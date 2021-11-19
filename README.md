@@ -1,60 +1,102 @@
-![logo](./docs/img/koin_2.0.jpg)
+# Koin Kotlin Compilers
 
-# What is KOIN? - [https://insert-koin.io](https://insert-koin.io)
- 
-A pragmatic lightweight dependency injection framework for Kotlin developers. `Koin is a DSL, a light container and a pragmatic API`
+The goal of Koin compiler & Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developer experience to scale and go fast 🚀.
 
-## Maven Central - [Latest Version 🚀](https://search.maven.org/search?q=io.insert-koin)
+## Current Version
 
-You can find the following page to help setup your project: [Koin Gradle Setup](https://insert-koin.io/docs/setup/v3)
+Here below is the current version:
 
-```gradle
-koin_version = '3.1.3'
+```kotlin
+koinKspVersion = "1.0.0-alpha-1"
 ```
 
-# Where to find resources? 🌐
+## Setup
 
-Latest News
-- Follow us on Twitter for latest news: [@insertkoin_io](https://twitter.com/insertkoin_io)
-- Koin developers on Medium: [koin developers hub](https://medium.com/koin-developers)
+First, setup KSP plugin like this, in your root `build.gradle`:
 
-Any question about Koin usage? 
-- Come talk on slack [#koin](https://kotlinlang.slack.com/?redir=%2Fmessages%2Fkoin) channel
-- Post your question on [Stackoverflow - #koin tag](https://stackoverflow.com/questions/tagged/koin)
+```kotlin
+plugins {
+    id "com.google.devtools.ksp" version "1.5.30-1.0.0"
+}
+```
 
-Found a bug or a problem on a specific feature? Open an issue on [Github issues](https://github.com/InsertKoinIO/koin/issues)
+Use the following dependencies in your Gradle dependencies section:
 
-# Contributing 🛠
+```kotlin
+implementation "io.insert-koin:koin-annotations:$koinKspVersion"
+ksp "io.insert-koin:koin-ksp-compiler:$koinKspVersion"
+```
 
-Want to help or share a proposal about Koin? problem on a specific feature? 
+On Android add the following to generated source code:
 
-- Open an issue to explain the issue you want to solve [Open an issue](https://github.com/InsertKoinIO/koin/issues)
-- Come talk on slack [#koin-dev](https://kotlinlang.slack.com/?redir=%2Fmessages%2Fkoin-dev) channel
-- After discussion to validate your ideas, you can open a PR or even a draft PR if the contribution is a big one [Current PRs](https://github.com/InsertKoinIO/koin/pulls)
+```kotlin
+android {
+  applicationVariants.all { variant ->
+          variant.sourceSets.java.each {
+              it.srcDirs += "build/generated/ksp/${variant.name}/kotlin"
+          }
+      }
+}
+```
 
-Additional readings about basic setup: https://github.com/InsertKoinIO/koin/blob/master/CONTRIBUTING.adoc
+## QuickStart
 
-<a href="https://github.com/InsertKoinIO/koin/graphs/contributors"><img src="https://opencollective.com/koin/contributors.svg?width=890&button=false" /></a>
+You can find below some example application to help you start:
+- [Coffee Maker App]()
+- [Android Coffee Maker App]()
 
-# Sponsorship
+## Getting Started
 
-[![Backers on Open Collective](https://opencollective.com/koin/backers/badge.svg)](#backers)
-[![Sponsors on Open Collective](https://opencollective.com/koin/sponsors/badge.svg)](#sponsors) 
+The only thing to setup in particular is the `org.koin.ksp.generated.*` import as follow, to be able to use generated code:
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/koin#sponsor)]
+```kotlin
+import org.koin.ksp.generated.*
 
-## Sponsors
+fun main() {
+    val koin = startKoin {
+        printLogger()
+        modules(
+          // use your modules here, with generated ".module" extension on classes
+          MyModule().module
+        )
+    }
 
-<a href="https://getstream.io/chat/sdk/android/?utm_source=koin&utm_medium=sponsorship&utm_content=developer" target="_blank"><img src="https://github.com/InsertKoinIO/koin/blob/master/docs/img/sponsors/stream-logo-2x.png"></a>
+    // Just use your Koin API as regular
+    koin.get<MyComponent>()
+}
 
-<a href="https://opencollective.com/koin#sponsors" target="_blank"><img src="https://opencollective.com/koin/sponsors.svg?width=890"></a>
+// Declare a module and scan for annotations
+@Module
+@ComponentScan
+class MyModule()
 
-## Backers
+// Declare a Single instance for MyComponent
+@Single
+class MyComponent()
+```
 
-Thank you to all our backers! 🙏
+Just tag your code with definition & module annotations, and use the regular Koin API.
 
-<a href="https://opencollective.com/koin#backers" target="_blank"><img src="https://opencollective.com/koin/backers.svg?width=890"></a>
+## Definitions
 
-[[Become a backer](https://opencollective.com/koin#backer)]
+### Koin definitions with Annotations
 
+### Automatic Binding
 
+### Nullable Injection
+
+### Qualifier
+
+### injected Parameter
+
+### Property
+
+### Scope
+
+## Modules
+
+### Default Module
+
+### Class Module
+
+### Components Scan
