@@ -15,6 +15,11 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.google.devtools.ksp" version "$ksp_version"
+}
+
+
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
