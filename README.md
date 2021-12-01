@@ -87,4 +87,4 @@ That's it, you can use your new definitions in Koin with the [regular Koin API](
 
 ## [QuickStart Samples]()
 
-## [Documentation]()
+## [Documentation](./Documentation.md)
