@@ -1,22 +1,16 @@
-buildscript {
-    apply from: "../../gradle/versions.gradle"
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        google()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'java-library'
 }
 
 apply from: "../../gradle/versions.gradle"
 apply plugin: 'kotlin'
+apply plugin: 'com.google.devtools.ksp'
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    google()
+// KSP - To use generated sources
+sourceSets.main {
+    java.srcDirs("build/generated/ksp/main/kotlin")
 }
 
 dependencies {
@@ -25,7 +19,10 @@ dependencies {
 
     // Koin
     compile "io.insert-koin:koin-core:$koin_version"
-    testCompile "io.insert-koin:koin-test-junit4:$koin_version"
+    compile "io.insert-koin:koin-annotations:$koin_ksp_version"
+    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
 
+    testCompile "io.insert-koin:koin-test-junit4:$koin_version"
     testCompile "org.mockito:mockito-inline:$mockito_version"
+    testCompile "junit:junit:4.13.2"
 }

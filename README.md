@@ -1,4 +1,4 @@
-# Koin Annotations
+# Koin Annotations & Kotlin Compilers
 
 The goal of Koin compiler & Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developer experience to scale and go fast 🚀.
 
@@ -32,9 +32,19 @@ implementation "io.insert-koin:koin-annotations:$koinKspVersion"
 ksp "io.insert-koin:koin-ksp-compiler:$koinKspVersion"
 ```
 
-On Android add the following to generated source code:
+On your app add the following to generated source code:
 
-```kotlin
+* On Kotlin project:
+
+```groovy
+sourceSets.main {
+    java.srcDirs("build/generated/ksp/main/kotlin")
+}
+```
+
+* on Android project:
+
+```groovy
 android {
   applicationVariants.all { variant ->
           variant.sourceSets.java.each {
@@ -85,6 +95,6 @@ fun main() {
 
 That's it, you can use your new definitions in Koin with the [regular Koin API](https://insert-koin.io/docs/reference/introduction)
 
-## [QuickStart Samples](https://github.com/InsertKoinIO/koin-compilers/tree/main/quickstart)
+## [QuickStart Samples]()
 
 ## [Documentation](./Documentation.md)
