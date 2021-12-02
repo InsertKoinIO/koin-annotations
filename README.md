@@ -95,6 +95,10 @@ fun main() {
 
 That's it, you can use your new definitions in Koin with the [regular Koin API](https://insert-koin.io/docs/reference/introduction)
 
-## [QuickStart Samples]()
+## QuickStart
+
+Below some quickstart apps:
+* Kotlin app - [sources](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-core) | [documentation](./quickstart/kotlin.md)
+* Android app - [sources](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-android) | [documentation](./quickstart/android.md)
 
 ## [Documentation](./Documentation.md)
