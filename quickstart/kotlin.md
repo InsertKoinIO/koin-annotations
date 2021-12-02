@@ -6,100 +6,95 @@ title: Kotlin
 
 ## Setup
 
-First, check that the `koin-core` dependency is added like below:
+Add KSP in your root Gradle config:
+
+```groovy
+// Add KSP Plugin
+plugins {
+    id "com.google.devtools.ksp" version "$ksp_version"
+}
+```
+
+
+Check that the `koin-core` dependency is added like below:
 
 ```groovy
 // Add Maven Central to your repositories if needed
 repositories {
 	mavenCentral()    
 }
+
+// Use KSP Plugin
+apply plugin: 'com.google.devtools.ksp'
+
+// Use KSP Generated sources
+sourceSets.main {
+    java.srcDirs("build/generated/ksp/main/kotlin")
+}
+
 dependencies {
-    // Koin for Kotlin apps
+    // Koin
     compile "io.insert-koin:koin-core:$koin_version"
-    // Testing
-    testCompile "io.insert-koin:koin-test:$koin_version"
+    compile "io.insert-koin:koin-annotations:$koin_ksp_version"
+    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
 }
 ```
 
 ## The application
 
-In our small app we need to have 2 components:
+In our small app we need to have components, to make coffee:
 
-* HelloMessageData - hold data
-* HelloService - use and display data from HelloMessageData
-* HelloApplication - retrieve and use HelloService
+* CoffeeApplication - run the coffee maker
+* CoffeeMaker - run the coffee process, by using a Pump and a Heater
+* ElectricHeater - a electric heater, to heat the water of the coffee
+* Thermosiphon - a pump to pump the water when it's hot
 
-### Data holder
 
-Let's create a `HelloMessageData` data class to hold our data:
+### Coffee Maker parts
+
+Below are the components, declared as single instance with `@Single`
 
 ```kotlin
-/**
- * A class to hold our message data
- */
-data class HelloMessageData(val message : String = "Hello Koin!")
+@Single
+class ElectricHeater : Heater
 ```
 
-### Service
-
-Let's create a service to display our data from `HelloMessageData`. Let's write `HelloServiceImpl` class and its interface `HelloService`:
+```kotlin
+@Single
+class Thermosiphon(private val heater: Heater) : Pump 
+```
 
 ```kotlin
-/**
- * Hello Service - interface
- */
-interface HelloService {
-    fun hello(): String
-}
-
-
-/**
- * Hello Service Impl
- * Will use HelloMessageData data
- */
-class HelloServiceImpl(private val helloMessageData: HelloMessageData) : HelloService {
-
-    override fun hello() = "Hey, ${helloMessageData.message}"
-}
+@Single
+class CoffeeMaker(private val pump: Pump, private val heater: Heater)
 ```
 
 
-## The application class
+## The CoffeeApplication class
 
-To run our `HelloService` component, we need to create a runtime component. Let's write a `HelloApplication` class and tag it with `KoinComponent` interface. This will later allows us to use the `by inject()` functions to retrieve our component:
+To "make our coffee", we need to create a runtime component. Let's write a `CoffeeApplication` class and tag it with `KoinComponent` interface. This will later allows us to use the `by inject()` functions to retrieve our component:
 
 ```kotlin
-/**
- * HelloApplication - Application Class
- * use HelloService
- */
-class HelloApplication : KoinComponent {
+class CoffeeApplication : KoinComponent {
+    
+    // retrieve CoffeeMaker
+    private val maker: CoffeeMaker by inject()
 
-    // Inject HelloService
-    val helloService by inject<HelloService>()
-
-    // display our data
-    fun sayHello() = println(helloService.hello())
+    fun run(){
+        maker.brew()
+    }
 }
 ```
 
-## Declaring dependencies
+## Declaring a Module
 
-Now, let's assemble `HelloMessageData` with `HelloService`, with a Koin module:
+We just need a module to scan all our components:
 
 ```kotlin
-val helloModule = module {
-
-    single { HelloMessageData() }
-
-    single { HelloServiceImpl(get()) as HelloService }
-}
+@Module
+@ComponentScan
+class CoffeeAppModule
 ```
-
-We declare each component as `single`, as singleton instances.
-
-* `single { HelloMessageData() }` : declare a singleton of `HelloMessageData` instance
-* `single { HelloServiceImpl(get()) as HelloService }` : Build `HelloServiceImpl` with injected instance of `HelloMessageData`,  declared a singleton of `HelloService`.
 
 ## That's it!
 
@@ -107,15 +102,14 @@ Just start our app from a `main` function:
 
 ```kotlin
 fun main(vararg args: String) {
-
+    
     startKoin {
-        // use Koin logger
-        printLogger()
-        // declare modules
-        modules(helloModule)
+        // load our module
+        modules(CoffeeAppModule().module)
     }
-
-    HelloApplication().sayHello()
+    
+    // run coffee
+    CoffeeApplication().run()
 }
 
 ```

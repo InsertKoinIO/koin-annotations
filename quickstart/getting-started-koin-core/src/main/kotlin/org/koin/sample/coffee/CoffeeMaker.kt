@@ -1,8 +1,8 @@
 package org.koin.sample.coffee
 
-import org.koin.core.annotation.Singleton
+import org.koin.core.annotation.Single
 
-@Singleton
+@Single
 class CoffeeMaker(private val pump: Pump, private val heater: Heater) {
 
     fun brew() {
