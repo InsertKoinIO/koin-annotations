@@ -4,12 +4,6 @@ title: Kotlin
 
 > This tutorial lets you write a Kotlin application and use Koin inject and retrieve your components.
 
-## Get the code
-
-:::info
-[The source code is available at on Github](https://github.com/InsertKoinIO/koin/tree/master/quickstart/getting-started-koin-core)
-:::
-
 ## Setup
 
 First, check that the `koin-core` dependency is added like below:
