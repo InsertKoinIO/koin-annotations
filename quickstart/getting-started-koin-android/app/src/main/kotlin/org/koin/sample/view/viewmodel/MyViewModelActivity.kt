@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import fr.ekito.myweatherapp.R
 import kotlinx.android.synthetic.main.activity_simple.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.sample.view.java.JavaActivity
+import org.koin.sample.view.simple.MySimpleActivity
 
 class MyViewModelActivity : AppCompatActivity() {
 
@@ -21,7 +21,7 @@ class MyViewModelActivity : AppCompatActivity() {
         text.text = myViewModel.sayHello()
 
         background.setOnClickListener { _ ->
-            startActivity(Intent(this, JavaActivity::class.java))
+            startActivity(Intent(this, MySimpleActivity::class.java))
         }
     }
 }

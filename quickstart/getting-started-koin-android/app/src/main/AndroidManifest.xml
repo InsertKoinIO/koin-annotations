@@ -22,7 +22,6 @@
         </activity>
         <activity android:name="org.koin.sample.view.scope.MyScopeActivity" />
         <activity android:name="org.koin.sample.view.viewmodel.MyViewModelActivity"/>
-        <activity android:name="org.koin.sample.view.java.JavaActivity"/>
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.google.devtools.ksp'
 
 android {
     signingConfigs {
@@ -34,6 +35,11 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
     }
+    applicationVariants.all { variant ->
+        variant.sourceSets.java.each {
+            it.srcDirs += "build/generated/ksp/${variant.name}/kotlin"
+        }
+    }
     productFlavors {
     }
 }
@@ -48,8 +54,11 @@ dependencies {
     // Android Test
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 
-    // Koins
+    // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
+    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
+
     testImplementation "org.mockito:mockito-inline:$mockito_version"
 
     testImplementation "io.insert-koin:koin-test-junit4:$koin_version"

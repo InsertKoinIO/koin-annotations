@@ -1,9 +1,8 @@
-package org.koin.sample
+package org.koin.sample.di
 
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 
-// Koin module
 @Module
-@ComponentScan
-class MessageModule
+@ComponentScan("org.koin.sample")
+class AppModule
