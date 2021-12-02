@@ -52,7 +52,7 @@ In our small app we need to have components, to make coffee:
 
 ### Coffee Maker parts
 
-Below are the components, declared as single instance with `@Single`
+Below are the components, declared as single instance with `@Single` annotation:
 
 ```kotlin
 @Single
@@ -95,6 +95,9 @@ We just need a module to scan all our components:
 @ComponentScan
 class CoffeeAppModule
 ```
+
+* `@Module` annotation declare the module class
+* `@ComponentScan` annotation scan for components
 
 ## That's it!
 
