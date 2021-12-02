@@ -45,6 +45,8 @@ dependencies {
 
 ## Basic Components
 
+### Repository
+
 Let's create a HelloRepository to provide some data:
 
 ```kotlin
@@ -58,7 +60,9 @@ class HelloRepositoryImpl() : HelloRepository {
 }
 ```
 
-We tag it with `@Single` to declare it as single instance.
+We tag it with `@Single` annotation to declare it as single instance.
+
+### Presenter
 
 Let's create a presenter class, for consuming this data:
 
@@ -71,7 +75,7 @@ class MySimplePresenter(val repo: HelloRepository) {
 }
 ```
 
-We tag it as `@Factory`, to declare it as Koin factory instance (recreated each time you need)
+We tag it with `@Factory` annotation, to declare it as Koin factory instance (recreated each time you need)
 
 ### ViewModel
 
