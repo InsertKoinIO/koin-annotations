@@ -89,7 +89,7 @@ class MyViewModel(val repo : HelloRepository) : ViewModel() {
 }
 ```
 
-We tag it `@KoinViewModel` to declare it as Koin ViewModel instance.
+We tag it `@KoinViewModel` annotation to declare it as Koin ViewModel instance.
 
 
 ## Writing the Koin module
