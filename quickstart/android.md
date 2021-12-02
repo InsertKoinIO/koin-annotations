@@ -43,7 +43,7 @@ dependencies {
 }
 ```
 
-## Our components
+## Basic Components
 
 Let's create a HelloRepository to provide some data:
 
@@ -73,6 +73,7 @@ class MySimplePresenter(val repo: HelloRepository) {
 
 We tag it as `@Factory`, to declare it as Koin factory instance (recreated each time you need)
 
+### ViewModel
 
 Let's create a ViewModel class, for consuming this data:
 
@@ -86,9 +87,10 @@ class MyViewModel(val repo : HelloRepository) : ViewModel() {
 
 We tag it `@KoinViewModel` to declare it as Koin ViewModel instance.
 
+
 ## Writing the Koin module
 
-Let's create a `AppModule` function to scan our components:
+Let's create a `AppModule` class to scan our components:
 
 ```kotlin
 @Module
@@ -138,13 +140,9 @@ class MySimpleActivity : AppCompatActivity() {
 }
 ```
 
-:::info
-The `by inject()` function allows us to retrieve Koin instances, in Android components runtime (Activity, fragment, Service...)
-:::
+> The `by inject()` function allows us to retrieve Koin instances, in Android components runtime (Activity, fragment, Service...)
 
-:::info
-The `get()` function is here to retrieve directly an instance (non lazy)
-:::
+> The `get()` function is here to retrieve directly an instance (non lazy)
 
 The `MyViewModel` component will be created with `HelloRepository` instance. To get it into our Activity, let's inject it with the `by viewModel()` delegate injector:
 
