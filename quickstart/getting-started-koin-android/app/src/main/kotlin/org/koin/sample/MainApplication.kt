@@ -2,8 +2,9 @@ package org.koin.sample
 
 import android.app.Application
 import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.ksp.generated.module
+import org.koin.sample.di.AppModule
 
 /**
  * Main Application
@@ -16,8 +17,7 @@ class MainApplication : Application() {
         // start Koin context
         startKoin {
             androidContext(this@MainApplication)
-            androidLogger()
-            modules(appModule)
+            modules(AppModule().module)
         }
     }
 }
