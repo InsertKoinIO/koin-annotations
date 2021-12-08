@@ -27,7 +27,7 @@ Use the following dependencies in your Gradle dependencies section:
 ```kotlin
 // Koin Annotations
 implementation "io.insert-koin:koin-annotations:$koinAnnotations"
-// Koin Ksp Compiler
+// Koin Annotations - Ksp Compiler
 ksp "io.insert-koin:koin-ksp-compiler:$koinAnnotations"
 ```
 
