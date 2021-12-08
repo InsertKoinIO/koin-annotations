@@ -56,9 +56,9 @@ class MyComponent(val myDependency : MyDependency)
 
 Koin Annotations keep the same semantic as the Koin DSL. You can declare your components with the following definitions:
 
-- `@Single` - singleton instance
-- `@Factory` - factory instance (recreated each time you need an instance)
-- `@KoinViewModel` - Android ViewModel instance
+- `@Single` - singleton instance (declared with `single { }` in DSL)
+- `@Factory` - factory instance. For instances recreated each time you need an instance. (declared with `factory { }` in DSL)
+- `@KoinViewModel` - Android ViewModel instance (declared with `viewModel { }` in DSL)
 
 For Scopes, check the [Declaring Scopes]() section.
 
@@ -158,9 +158,7 @@ class MyComponent
 // scope by name
 @Scope(name = "MyScopeName")
 class MyComponent
-```
-
-You can cumulate `@Factory` or `@KoinViewModel`, to specify a scoped Factory or a ViewModel.   
+```  
 
 The generated DSL equivalent will be:
 
@@ -173,6 +171,8 @@ scope(named("MyScopeName")) {
   scoped { MyComponent() }
 }
 ```
+
+> You can cumulate `@Factory` or `@KoinViewModel`, to specify a scoped Factory or a ViewModel. Also you can use the `@Scoped` annotation to let define specific bindings on a `@Scope` tagged components.
 
 ---
 
