@@ -10,7 +10,7 @@ Here below is the current version:
 
 ```kotlin
 // Koin KSP Compiler
-koinKspVersion = "1.0.0-beta-1"
+koinAnnotations = "1.0.0-beta-1"
 ```
 
 ## Setup
@@ -27,9 +27,9 @@ Use the following dependencies in your Gradle dependencies section:
 
 ```kotlin
 // Koin Annotations
-implementation "io.insert-koin:koin-annotations:$koinKspVersion"
+implementation "io.insert-koin:koin-annotations:$koinAnnotations"
 // Koin Ksp Compiler
-ksp "io.insert-koin:koin-ksp-compiler:$koinKspVersion"
+ksp "io.insert-koin:koin-ksp-compiler:$koinAnnotations"
 ```
 
 On your app add the following to generated source code:
