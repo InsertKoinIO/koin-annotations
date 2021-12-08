@@ -9,7 +9,6 @@ Here below is the current version:
 > Warning: while this is still in beta. There can be some breaking changes coming in next releases 🙏
 
 ```kotlin
-// Koin KSP Compiler
 koinAnnotations = "1.0.0-beta-1"
 ```
 
