@@ -35,7 +35,7 @@ fun OutputStream.generateFieldModule(definitions: List<KoinMetaData.Definition>)
             appendText(generateScope(scope!!))
             definitions.forEach { generateClassDeclarationDefinition(it as KoinMetaData.Definition.ClassDefinition) }
             // close scope
-            appendText("\n\t\t\t\t}")
+            appendText(generateScopeEnd())
         }
     KoinGenerator.LOGGER.logging("- generate field -")
 }
@@ -52,7 +52,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     classFile.appendText("\nval $generatedField = module {")
 
     if (module.definitions.any { it is KoinMetaData.Definition.FunctionDefinition }) {
-        classFile.appendText("\n\t\t\t\tval moduleInstance = $classModule()")
+        classFile.appendText("${defaultSpace}val moduleInstance = $classModule()")
     }
 
     val standardDefinitions = module.definitions.filter { it.isNotScoped() }
