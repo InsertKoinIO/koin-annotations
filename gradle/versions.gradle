@@ -1,18 +1,20 @@
 ext {
     // Koin
-    koin_version = '3.1.4'
+    koin_version = '3.2.0-beta-1'
     // TODO pass it to true to make release
     is_snaptshot = true
 
     // Kotlin
-    kotlin_version = '1.5.31'
-    coroutines_version = "1.5.2-native-mt"
+    kotlin_version = '1.6.10'
+    // coroutines_version = "1.5.2-native-mt"
 
     // Dokka
     dokka_version = '1.4.32'
 
-    // Ktor
-    ktor_version = '1.6.4'
+    // Ksp
+    koin_ksp_version = "1.0.0-beta-1"
+    ksp_version = "1.6.10-1.0.2"
+
 
     // Test
     junit_version = "4.13.2"
@@ -27,7 +29,5 @@ ext {
     // Publish
     // android_maven_publish = "3.6.3"
 
-    // Ksp
-    koin_ksp_version = "1.0.0-beta-1"
-    ksp_version = "1.5.31-1.0.0" 
+    
 }
