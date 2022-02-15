@@ -19,6 +19,8 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.SINGLE
 import java.io.OutputStream
 
+val defaultSpace = "\n\t"
+
 fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> String) {
     LOGGER.logging("generate $def")
     val param = def.parameters.generateParamFunction()
@@ -26,8 +28,8 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> 
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
     val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) CREATED_AT_START else ""
-    val defaultSpace = "\n\t\t\t\t"
-    val space = if (def.isScoped()) defaultSpace + "\t" else defaultSpace
+
+    val space = if (def.isScoped()) defaultSpace + "\t\t" else defaultSpace
     appendText("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
 
@@ -70,11 +72,13 @@ fun generateScope(scope: KoinMetaData.Scope): String {
             val type = scope.type
             val packageName = type.containingFile!!.packageName.asString()
             val className = type.simpleName.asString()
-            "\n\t\t\t\tscope<$packageName.$className> {"
+            "${defaultSpace}scope<$packageName.$className> {"
         }
-        is KoinMetaData.Scope.StringScope -> "\n\t\t\t\tscope(StringQualifier(\"${scope.name}\")) {"
+        is KoinMetaData.Scope.StringScope -> "${defaultSpace}scope(StringQualifier(\"${scope.name}\")) {"
     }
 }
+
+fun generateScopeEnd() : String = "${defaultSpace}}"
 
 fun generateBinding(declaration: KSDeclaration): String? {
     val packageName = declaration.containingFile?.packageName?.asString()
