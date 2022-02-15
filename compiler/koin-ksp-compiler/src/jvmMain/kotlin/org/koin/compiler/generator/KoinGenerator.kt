@@ -24,6 +24,7 @@ import generateDefaultModuleForDefinitions
 import generateDefaultModuleHeader
 import generateFieldModule
 import org.koin.compiler.metadata.KoinMetaData
+import java.io.OutputStream
 
 class KoinGenerator(
     val codeGenerator: CodeGenerator,
@@ -84,11 +85,18 @@ class KoinGenerator(
     }
 }
 
-fun CodeGenerator.getDefaultFile() = createNewFile(
-    Dependencies.ALL_FILES,
-    "org.koin.ksp.generated",
-    "Default"
-)
+private var defaultFile : OutputStream? = null
+fun CodeGenerator.getDefaultFile() : OutputStream {
+    return if (defaultFile != null) defaultFile!!
+    else {
+        defaultFile = createNewFile(
+            Dependencies.ALL_FILES,
+            "org.koin.ksp.generated",
+            "Default"
+        )
+        defaultFile!!
+    }
+}
 
 fun CodeGenerator.getFile(packageName: String = "org.koin.ksp.generated", fileName: String) = createNewFile(
     Dependencies.ALL_FILES,
