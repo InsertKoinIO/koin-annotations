@@ -26,15 +26,17 @@ class ModuleScanner(
     fun createClassModule(element: KSAnnotated): ModuleIndex {
         val declaration = (element as KSClassDeclaration)
         val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
-        val componentScan =
-            getComponentScan(declaration)
+        val annotations = declaration.annotations
+        val includes = getIncludedModules(annotations)
+        val componentScan = getComponentScan(annotations)
 
         val name = "$element"
         val moduleMetadata = KoinMetaData.Module(
             packageName = modulePackage,
             name = name,
             type = KoinMetaData.ModuleType.CLASS,
-            componentScan = componentScan
+            componentScan = componentScan,
+            includes = includes
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
@@ -46,12 +48,17 @@ class ModuleScanner(
         val definitions = annotatedFunctions.mapNotNull { addDefinition(it) }
         moduleMetadata.definitions += definitions
 
-        val moduleIndex = ModuleIndex(if (componentScan?.packageName?.isNotEmpty() == true) componentScan.packageName else modulePackage, moduleMetadata)
-        return moduleIndex
+        val key = if (componentScan?.packageName?.isNotEmpty() == true) componentScan.packageName else modulePackage
+        return ModuleIndex(key, moduleMetadata)
     }
 
-    private fun getComponentScan(declaration: KSClassDeclaration): KoinMetaData.Module.ComponentScan? {
-        val componentScan = declaration.annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
+    private fun getIncludedModules(annotations: Sequence<KSAnnotation>) : List<KSDeclaration>? {
+        val module = annotations.firstOrNull { it.shortName.asString() == "Module" }
+        return module?.let { includedModules(it) }
+    }
+
+    private fun getComponentScan(annotations: Sequence<KSAnnotation>): KoinMetaData.Module.ComponentScan? {
+        val componentScan = annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
         return componentScan?.let { a ->
             val value : String = a.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? String? ?: ""
             KoinMetaData.Module.ComponentScan(value)

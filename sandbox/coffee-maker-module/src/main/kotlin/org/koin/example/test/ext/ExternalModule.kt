@@ -1,6 +1,7 @@
 package org.koin.example.test.ext
 
 import org.koin.core.annotation.*
+import org.koin.example.test.include.IncludedModule
 
 
 class TestComponent
@@ -17,7 +18,7 @@ class PropertyComponent(@Property("prop_id") val id: String)
 
 class PropertyComponent2(val id: String)
 
-@Module
+@Module(includes = [IncludedModule::class])
 @ComponentScan
 class ExternalModule {
 
