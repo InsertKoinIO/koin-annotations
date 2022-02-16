@@ -15,6 +15,7 @@ import org.koin.example.tea.TeaModule
 import org.koin.example.tea.TeaPot
 import org.koin.example.test.*
 import org.koin.example.test.ext.*
+import org.koin.example.test.include.IncludedComponent
 import org.koin.example.test.scope.*
 import org.koin.ksp.generated.*
 import org.koin.mp.KoinPlatformTools
@@ -74,6 +75,8 @@ fun main() {
 
     assert(koin.get<TestComponentConsumer3>().id == null)
     assert(koin.get<TestComponentConsumer3>{ parametersOf("42")}.id == "42")
+
+    koin.get<IncludedComponent>()
 }
 
 fun measureDuration(msg: String, code: () -> Unit): Double {

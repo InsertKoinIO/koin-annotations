@@ -66,3 +66,8 @@ fun declaredBindings(annotation: KSAnnotation): List<KSDeclaration>? {
     val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
     return declaredBindingsTypes?.map { it.declaration }
 }
+
+fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
+    val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "includes" }?.value as? List<KSType>?
+    return declaredBindingsTypes?.map { it.declaration }
+}

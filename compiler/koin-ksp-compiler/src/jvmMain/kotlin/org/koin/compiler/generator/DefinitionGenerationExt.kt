@@ -19,7 +19,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.SINGLE
 import java.io.OutputStream
 
-val defaultSpace = "\n\t"
+const val defaultSpace = "\n\t"
 
 fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> String) {
     LOGGER.logging("generate $def")
@@ -44,18 +44,18 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
 
 const val CREATED_AT_START = ",createdAtStart=true"
 
-fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): String {
+private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): String {
     return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
 }
 
-fun String?.generateQualifier(): String = when {
+private fun String?.generateQualifier(): String = when {
     this == "\"null\"" -> "qualifier=null"
     this == "null" -> "qualifier=null"
     !this.isNullOrBlank() -> "qualifier=StringQualifier(\"$this\")"
     else -> "qualifier=null"
 }
 
-fun generateBindings(bindings: List<KSDeclaration>): String {
+private fun generateBindings(bindings: List<KSDeclaration>): String {
     return when {
         bindings.isEmpty() -> ""
         bindings.size == 1 -> {
@@ -64,6 +64,12 @@ fun generateBindings(bindings: List<KSDeclaration>): String {
         }
         else -> bindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") { generateBinding(it) ?: "" }
     }
+}
+
+private fun generateBinding(declaration: KSDeclaration): String? {
+    val packageName = declaration.containingFile?.packageName?.asString()
+    val className = declaration.simpleName.asString()
+    return packageName?.let { "$packageName.$className::class" }
 }
 
 fun generateScope(scope: KoinMetaData.Scope): String {
@@ -78,15 +84,9 @@ fun generateScope(scope: KoinMetaData.Scope): String {
     }
 }
 
-fun generateScopeEnd() : String = "${defaultSpace}}"
+fun generateScopeClosing() : String = "${defaultSpace}}"
 
-fun generateBinding(declaration: KSDeclaration): String? {
-    val packageName = declaration.containingFile?.packageName?.asString()
-    val className = declaration.simpleName.asString()
-    return packageName?.let { "$packageName.$className::class" }
-}
-
-fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
+private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
     return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
         val isNullable : Boolean = ctorParam.nullable
         when (ctorParam) {

@@ -25,6 +25,7 @@ sealed class KoinMetaData {
         val definitions: MutableList<Definition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
         val componentScan: ComponentScan? = null,
+        val includes : List<KSDeclaration>? = null
     ) : KoinMetaData() {
         data class ComponentScan(val packageName: String = "")
 
