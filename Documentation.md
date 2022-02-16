@@ -266,3 +266,32 @@ class MyModule {
 
 > @InjectedParam, @Property are also usable on function members 
 
+
+### Including Modules
+
+To include other class modules to your module, just use the `includes` attribute of the `@Module` annotation:
+
+```kotlin
+@Module
+class ModuleA
+
+@Module(includes = [ModuleA::class])
+class ModuleB
+```
+
+This way you can just run your root module:
+
+
+```kotlin
+// Use Koin Generation
+import org.koin.ksp.generated.*
+
+fun main() {
+    startKoin {
+        modules(
+          // will load ModuleB & ModuleA
+          ModuleB().module
+        )
+    }
+}
+```
