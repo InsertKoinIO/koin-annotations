@@ -1,0 +1,59 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.google.devtools.ksp'
+
+android {
+    compileSdkVersion 31
+    buildToolsVersion "30.0.3"
+    defaultConfig {
+        minSdkVersion 21
+        applicationId "org.sample.koin"
+        versionCode 1
+        versionName "1.0"
+    }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
+    }
+    // For KSP
+    applicationVariants.all { variant ->
+        variant.sourceSets.java.each {
+            it.srcDirs += "build/generated/ksp/${variant.name}/kotlin"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+//    implementation "androidx.appcompat:appcompat:$androidx_lib_version"
+//    implementation "androidx.lifecycle:lifecycle-extensions:$android_arch_version"
+//    implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$androidx_savedstate"
+//
+//    // Android Test
+//    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+//
+//    // Koin
+//    implementation "io.insert-koin:koin-android:$koin_version"
+//    implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
+//    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
+//
+//    testImplementation "org.mockito:mockito-inline:$mockito_version"
+//
+//    testImplementation "io.insert-koin:koin-test:$koin_version"
+//    testImplementation "io.insert-koin:koin-test-junit4:$koin_version"
+
+    implementation "androidx.appcompat:appcompat:1.4.1"
+
+    // Koin
+    implementation "io.insert-koin:koin-android:$koin_version"
+    testImplementation "org.mockito:mockito-inline:4.3.1"
+    implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
+    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
+
+    // Koin Tests
+    testImplementation "io.insert-koin:koin-test:$koin_version"
+    testImplementation "io.insert-koin:koin-test-junit4:$koin_version"
+    androidTestImplementation "io.insert-koin:koin-test-junit4:$koin_version"
+}
