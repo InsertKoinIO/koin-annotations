@@ -1,6 +1,5 @@
 buildscript {
     apply from: "../gradle/versions.gradle"
-    apply from: "../gradle/versions-android.gradle"
 
     repositories {
         mavenLocal()
@@ -11,7 +10,7 @@ buildscript {
         // Kotlin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // Android
-        classpath "com.android.tools.build:gradle:$android_gradle_version"
+        classpath "com.android.tools.build:gradle:7.0.4"
     }
 }
 

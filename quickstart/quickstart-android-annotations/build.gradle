@@ -1,0 +1,24 @@
+apply from: "../../gradle/versions.gradle"
+
+buildscript {
+    apply from: "../../gradle/versions.gradle"
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:7.0.4"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+    }
+}
+
