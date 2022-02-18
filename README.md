@@ -12,13 +12,15 @@ Here below is the current version:
 koinAnnotations = "1.0.0-beta-1"
 ```
 
+> Koin 3.2+ is required
+
 ## Setup
 
 First, setup KSP plugin like this, in your root `build.gradle`:
 
 ```kotlin
 plugins {
-    id "com.google.devtools.ksp" version "1.5.30-1.0.0"
+    id "com.google.devtools.ksp" version "1.6.10-1.0.2"
 }
 ```
 
@@ -97,7 +99,7 @@ That's it, you can use your new definitions in Koin with the [regular Koin API](
 ## QuickStart
 
 Below some quickstart apps:
-* Kotlin app - [sources](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-core) | [documentation](./quickstart/kotlin.md)
-* Android app - [sources](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-android) | [documentation](./quickstart/android.md)
+* [Kotlin app](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/quickstart-kotlin-annotations)
+* [Android app](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/quickstart-android-annotations)
 
-## [Documentation](./docs/reference/koin-annotations/annotations.md)
+## [Documentation](https://insert-koin.io/docs/reference/koin-annotations/annotations)
