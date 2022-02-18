@@ -1,8 +1,14 @@
 ---
-title: Kotlin
+title: Quickstart - Kotlin - Annotations
 ---
 
 > This tutorial lets you write a Kotlin application and use Koin inject and retrieve your components.
+
+## Get the code
+
+:::info
+[The source code is available at on Github](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-core)
+:::
 
 ## Setup
 
@@ -16,7 +22,7 @@ plugins {
 ```
 
 
-Check that the `koin-core` dependency is added like below:
+Check that the dependencies are added like below:
 
 ```groovy
 // Add Maven Central to your repositories if needed
@@ -88,11 +94,11 @@ class CoffeeApplication : KoinComponent {
 
 ## Declaring a Module
 
-We just need a module to scan all our components:
+We just need a module to scan all our components for the given package:
 
 ```kotlin
 @Module
-@ComponentScan
+@ComponentScan("org.koin.sample.coffee")
 class CoffeeAppModule
 ```
 
