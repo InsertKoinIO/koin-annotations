@@ -100,4 +100,4 @@ Below some quickstart apps:
 * Kotlin app - [sources](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-core) | [documentation](./quickstart/kotlin.md)
 * Android app - [sources](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-android) | [documentation](./quickstart/android.md)
 
-## [Documentation](./Documentation.md)
+## [Documentation](./docs/reference/koin-annotations/annotations.md)
