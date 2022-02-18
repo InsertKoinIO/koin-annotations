@@ -54,6 +54,4 @@ dependencies {
     implementation ("androidx.appcompat:appcompat:$appcompatVersion")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     testImplementation("junit:junit:4.13.1")
-    androidTestImplementation("com.android.support.test:runner:1.0.2")
-    androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2")
 }
