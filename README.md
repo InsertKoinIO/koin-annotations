@@ -59,7 +59,7 @@ android {
 
 Not familiar with Koin? First take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
 
-Tag your cpomnents with definition & module annotations, and use the regular Koin API.
+Tag your components with definition & module annotations, and use the regular Koin API.
 
 ```kotlin
 // Tag your component to declare a definition

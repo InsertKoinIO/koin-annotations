@@ -8,7 +8,7 @@ The goal of Koin Annotations project is to help declare Koin definition in a ver
 
 Not familiar with Koin? First take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
 
-Tag your cpomnents with definition & module annotations, and use the regular Koin API.
+Tag your components with definition & module annotations, and use the regular Koin API.
 
 ```kotlin
 // Tag your component to declare a definition
@@ -47,7 +47,7 @@ That's it, you can use your new definitions in Koin with the [regular Koin API](
 
 ## Definitions
 
-Koin Annotations allow to declare the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotatation, and it will generate everything for you!
+Koin Annotations allow to declare the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotation, and it will generate everything for you!
 
 For example the equivalent to `single { MyComponent(get()) }` DSL declaration, is just done by tagging with `@Single` like this:
 
@@ -76,7 +76,7 @@ class MyComponent(val myDependency : MyDependency) : MyInterface
 Koin will declare that your `MyComponent` component is also tied to `MyInterface`. The DSL equivalent is `single { MyComponent(get()) } bind MyInterface::class`.
 
 
-Instead of letting Koin detect thigns for you, you can also specify what type you really want to bind with the `binds` annotation parameter:
+Instead of letting Koin detect things for you, you can also specify what type you really want to bind with the `binds` annotation parameter:
 
  ```kotlin
 @Single(binds = [MyBoundType::class])
@@ -84,7 +84,7 @@ Instead of letting Koin detect thigns for you, you can also specify what type yo
 
 ### Nullable Dependencies
 
-If your component is using nullable depndency, don't worry it will be handled automaticaly for you. Keep using yopur definition annotation, and Koin will guess what to do:
+If your component is using nullable dependency, don't worry it will be handled automatically for you. Keep using your definition annotation, and Koin will guess what to do:
 
 ```kotlin
 @Single
@@ -139,7 +139,7 @@ The generated DSL equivalent will be `single { params -> MyComponent(params.get(
 
 ### Properties with @Property
 
-To resolve a Koin property in your definition, just tag a cosntructor member with `@Property`. Ths is will resolve the Koin property thanks to the value passed to the annotation:
+To resolve a Koin property in your definition, just tag a constructor member with `@Property`. Ths is will resolve the Koin property thanks to the value passed to the annotation:
 
 ```kotlin
 @Single
