@@ -60,16 +60,16 @@ private fun generateBindings(bindings: List<KSDeclaration>): String {
         bindings.isEmpty() -> ""
         bindings.size == 1 -> {
             val generateBinding = generateBinding(bindings.first())
-            generateBinding?.let { "bind($generateBinding)" } ?: ""
+            "bind($generateBinding)"
         }
         else -> bindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") { generateBinding(it) ?: "" }
     }
 }
 
-private fun generateBinding(declaration: KSDeclaration): String? {
-    val packageName = declaration.containingFile?.packageName?.asString()
+private fun generateBinding(declaration: KSDeclaration): String {
+    val packageName = declaration.packageName.asString()
     val className = declaration.simpleName.asString()
-    return packageName?.let { "$packageName.$className::class" }
+    return "$packageName.$className::class"
 }
 
 fun generateScope(scope: KoinMetaData.Scope): String {
