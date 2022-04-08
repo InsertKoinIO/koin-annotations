@@ -48,7 +48,6 @@ kotlin {
         jvmMain {
             dependencies {
                 api kotlin("stdlib-jdk8")
-                api kotlin("test-junit")
             }
         }
 
