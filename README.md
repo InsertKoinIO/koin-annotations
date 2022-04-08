@@ -9,7 +9,7 @@ Here below is the current version:
 > Warning: while this is still in beta. There can be some breaking changes coming in next releases 🙏
 
 ```kotlin
-koinAnnotations = "1.0.0-beta-1"
+koinAnnotations = "1.0.0-beta-2"
 ```
 
 > Koin 3.2+ is required
