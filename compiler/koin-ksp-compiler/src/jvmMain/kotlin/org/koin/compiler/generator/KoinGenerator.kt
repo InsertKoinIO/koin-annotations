@@ -22,7 +22,7 @@ import generateClassModule
 import generateDefaultModuleFooter
 import generateDefaultModuleForDefinitions
 import generateDefaultModuleHeader
-import generateFieldModule
+import generateFieldDefaultModule
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
@@ -61,7 +61,9 @@ class KoinGenerator(
         codeGenerator.getDefaultFile().let { defaultFile ->
             if (module.definitions.isNotEmpty()) {
                 when (module.type) {
-                    KoinMetaData.ModuleType.FIELD -> defaultFile.generateFieldModule(module.definitions)
+                    KoinMetaData.ModuleType.FIELD -> {
+                        defaultFile.generateFieldDefaultModule(module.definitions)
+                    }
                     KoinMetaData.ModuleType.CLASS -> {
                         val moduleFile = codeGenerator.getFile(fileName = "${module.name}Gen")
                         generateClassModule(moduleFile, module)
