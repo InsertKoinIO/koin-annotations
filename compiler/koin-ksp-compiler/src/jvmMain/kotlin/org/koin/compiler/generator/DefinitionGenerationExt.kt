@@ -51,7 +51,7 @@ private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): Str
 private fun String?.generateQualifier(): String = when {
     this == "\"null\"" -> "qualifier=null"
     this == "null" -> "qualifier=null"
-    !this.isNullOrBlank() -> "qualifier=StringQualifier(\"$this\")"
+    !this.isNullOrBlank() -> "qualifier=org.koin.core.qualifier.StringQualifier(\"$this\")"
     else -> "qualifier=null"
 }
 
@@ -80,7 +80,7 @@ fun generateScope(scope: KoinMetaData.Scope): String {
             val className = type.simpleName.asString()
             "${defaultSpace}scope<$packageName.$className> {"
         }
-        is KoinMetaData.Scope.StringScope -> "${defaultSpace}scope(StringQualifier(\"${scope.name}\")) {"
+        is KoinMetaData.Scope.StringScope -> "${defaultSpace}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {"
     }
 }
 
@@ -91,7 +91,7 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
         val isNullable : Boolean = ctorParam.nullable
         when (ctorParam) {
             is KoinMetaData.ConstructorParameter.Dependency -> {
-                val qualifier = ctorParam.value?.let { "qualifier=StringQualifier(\"${it}\")" } ?: ""
+                val qualifier = ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
                 if (!isNullable) "get($qualifier)" else "getOrNull($qualifier)"
             }
             is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"

@@ -7,6 +7,7 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 - `[FIXED]` - Generating right package type with `bind` - #7
 - `[FIXED]` - Remove useless dependency with `test-junit` - #6
+- `[FIXED]` - Generate right StringQualifier import - #5
 
 
 ## [1.0.0-beta-1]()
