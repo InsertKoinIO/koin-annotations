@@ -6,6 +6,7 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 ## [1.0.0-beta-2]()
 
 - `[FIXED]` - Generating right package type with `bind` - #7
+- `[FIXED]` - Remove useless dependency with `test-junit` - #6
 
 
 ## [1.0.0-beta-1]()
