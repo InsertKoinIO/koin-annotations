@@ -16,6 +16,7 @@
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.*
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.core.qualifier.qualifier
 import java.io.OutputStream
 
 fun OutputStream.generateFieldModule(definitions: List<KoinMetaData.Definition>) {
@@ -42,7 +43,7 @@ fun OutputStream.generateFieldModule(definitions: List<KoinMetaData.Definition>)
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     classFile.appendText(MODULE_HEADER)
-    if (module.definitions.any { it.qualifier != null || it.scope != null }) {
+    if (module.definitions.any { it.scope != null }) {
         classFile.appendText(MODULE_HEADER_STRING_QUALIFIER)
     }
     classFile.appendText(module.definitions.generateImports())
@@ -51,9 +52,9 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     val classModule = "${module.packageName}.${module.name}"
     classFile.appendText("\nval $generatedField = module {")
 
-    if (module.includes?.isNotEmpty() == true){
+    if (module.includes?.isNotEmpty() == true) {
         KoinGenerator.LOGGER.logging("generate - includes")
-        val generatedIncludes : String = module.includes.generateModuleIncludes()
+        val generatedIncludes: String = module.includes.generateModuleIncludes()
         classFile.appendText("${defaultSpace}includes($generatedIncludes)")
     }
 
@@ -117,7 +118,7 @@ fun KoinGenerator.generateDefaultModuleForDefinitions(
 
 fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Definition> = emptyList()) {
     appendText(DEFAULT_MODULE_HEADER)
-    if (definitions.any { it.qualifier != null || it.scope != null }) {
+    if (definitions.any { it.scope != null }) {
         appendText(MODULE_HEADER_STRING_QUALIFIER)
     }
     appendText(definitions.generateImports())
@@ -129,14 +130,18 @@ fun OutputStream.generateDefaultModuleFooter() {
 }
 
 private fun List<KoinMetaData.Definition>.generateImports(): String {
-    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }.joinToString(separator = "\n", postfix = "\n")
+    val globalImports = mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }
+        .joinToString(separator = "\n", postfix = "\n")
+    val hasQualifier: Boolean = any { definition -> definition.qualifier != null || definition.parameters.any { (it as? KoinMetaData.ConstructorParameter.Dependency)?.value != null } }
+    val qualifierImport = if (hasQualifier) "\n$STRING_QUALIFIER_IMPORT\n" else ""
+    return globalImports + qualifierImport
 }
 
 private fun List<KSDeclaration>.generateModuleIncludes(): String {
     return joinToString { it.generateInclude() }
 }
 
-private fun KSDeclaration.generateInclude() :String{
+private fun KSDeclaration.generateInclude(): String {
     val packageName: String = containingFile?.packageName?.asString() ?: ""
     val className = simpleName.asString()
     return "$packageName.$className().module"

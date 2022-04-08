@@ -38,6 +38,8 @@ val MODULE_HEADER = """
             import org.koin.dsl.*
         """.trimIndent()
 
+const val STRING_QUALIFIER_IMPORT = "import org.koin.core.qualifier.StringQualifier"
+
 val MODULE_HEADER_STRING_QUALIFIER = """
-            import org.koin.core.qualifier.StringQualifier
+            $STRING_QUALIFIER_IMPORT
         """.trimIndent()
