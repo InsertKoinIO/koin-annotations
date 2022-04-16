@@ -53,7 +53,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
 
     val generatedField = "${module.name}Module"
     val classModule = "${module.packageName}.${module.name}"
-    classFile.appendText("\nval $generatedField = module {")
+    classFile.appendText("\nprivate val $generatedField = module {")
 
     if (module.includes?.isNotEmpty() == true) {
         KoinGenerator.LOGGER.logging("generate - includes")
