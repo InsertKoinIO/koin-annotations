@@ -39,6 +39,12 @@ fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Defin
 }
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
+    classFile.appendText("""
+            @file:JvmName("${module.name}Gen")
+            @file:JvmMultifileClass
+        """.trimIndent())
+    classFile.appendText("\n\n")
+
     classFile.appendText(MODULE_HEADER)
 //    if (module.definitions.any { it.scope != null }) {
 //        classFile.appendText(MODULE_HEADER_STRING_QUALIFIER)
