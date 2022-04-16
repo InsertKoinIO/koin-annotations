@@ -65,7 +65,8 @@ class KoinGenerator(
                         defaultFile.generateFieldDefaultModule(module.definitions)
                     }
                     KoinMetaData.ModuleType.CLASS -> {
-                        val moduleFile = codeGenerator.getFile(fileName = "${module.name}Gen")
+                        val fileName = module.generateFileName()
+                        val moduleFile = codeGenerator.getFile(fileName = fileName)
                         generateClassModule(moduleFile, module)
                     }
                 }
@@ -85,6 +86,10 @@ class KoinGenerator(
         lateinit var LOGGER: KSPLogger
             private set
     }
+}
+
+private fun KoinMetaData.Module.generateFileName(): String {
+    return "${this.name}\$${this.packageName.uppercase().replace(".", "\$")}"
 }
 
 private var defaultFile : OutputStream? = null
