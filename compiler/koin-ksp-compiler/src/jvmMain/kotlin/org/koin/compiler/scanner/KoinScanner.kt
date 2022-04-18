@@ -97,7 +97,9 @@ class KoinMetaDataScanner(
         }
     }
     private fun ModuleMap.firstAcceptedDefinitionPackageModuleOrNull(definitionPackage: String): KoinMetaData.Module? {
-        return values.firstOrNull() { it.last().acceptDefinition(definitionPackage) }?.last()
+        return values.firstOrNull() {
+            it.lastOrNull()?.acceptDefinition(definitionPackage) ?: false
+        }?.lastOrNull()
     }
 }
 
