@@ -24,6 +24,7 @@ import generateDefaultModuleForDefinitions
 import generateDefaultModuleHeader
 import generateFieldDefaultModule
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.scanner.ModuleMap
 import java.io.OutputStream
 
 class KoinGenerator(
@@ -36,7 +37,7 @@ class KoinGenerator(
     }
 
     fun generateModules(
-        moduleMap: Map<String, List<KoinMetaData.Module>>,
+        moduleMap: ModuleMap,
         defaultModule: KoinMetaData.Module
     ) {
         val modules = moduleMap.values.flatten()

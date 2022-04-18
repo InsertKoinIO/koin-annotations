@@ -29,14 +29,14 @@ class KoinMetaDataScanner(
     val logger: KSPLogger
 ) {
 
-    lateinit var moduleMap: Map<String, List<KoinMetaData.Module>>
+    lateinit var moduleMap: ModuleMap
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ComponentScanner(logger)
 
     fun scanAllMetaData(
         resolver: Resolver,
         defaultModule: KoinMetaData.Module
-    ): Pair<Map<String, List<KoinMetaData.Module>>, List<KoinMetaData.Definition>> {
+    ): Pair<ModuleMap, List<KoinMetaData.Definition>> {
         return Pair(
             scanClassModules(resolver, defaultModule).toSortedMap(),
             scanComponents(resolver, defaultModule)
@@ -46,7 +46,7 @@ class KoinMetaDataScanner(
     private fun scanClassModules(
         resolver: Resolver,
         defaultModule: KoinMetaData.Module
-    ): Map<String, List<KoinMetaData.Module>> {
+    ): ModuleMap {
 
         logger.logging("scan modules ...")
         // class modules
@@ -87,7 +87,7 @@ class KoinMetaDataScanner(
         defaultModule: KoinMetaData.Module
     ) {
         val definitionPackage = definition.packageName
-        val foundModule = moduleMap.values.firstOrNull { it.last().acceptDefinition(definitionPackage) }?.last()
+        val foundModule = moduleMap.firstAcceptedDefinitionPackageModuleOrNull(definitionPackage)
         val module = foundModule ?: defaultModule
         val alreadyExists = module.definitions.contains(definition)
         if (!alreadyExists) {
@@ -96,6 +96,10 @@ class KoinMetaDataScanner(
             logger.logging("skip addToModule - definition(class) -> $definition -> module $module - already exists")
         }
     }
+    private fun ModuleMap.firstAcceptedDefinitionPackageModuleOrNull(definitionPackage: String): KoinMetaData.Module? {
+        return values.firstOrNull() { it.last().acceptDefinition(definitionPackage) }?.last()
+    }
 }
 
 typealias ModuleIndex = Pair<String, KoinMetaData.Module>
+typealias ModuleMap = Map<String, List<KoinMetaData.Module>>
