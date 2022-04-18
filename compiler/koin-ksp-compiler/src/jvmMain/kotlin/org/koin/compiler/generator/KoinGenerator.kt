@@ -36,23 +36,29 @@ class KoinGenerator(
     }
 
     fun generateModules(
-        moduleMap: Map<String, KoinMetaData.Module>,
+        moduleMap: Map<String, List<KoinMetaData.Module>>,
         defaultModule: KoinMetaData.Module
     ) {
-        logger.logging("generate ${moduleMap.size} modules ...")
-        moduleMap.values.forEachIndexed { index, module ->
-            if (index == 0) {
-                if (defaultModule.definitions.isNotEmpty()){
-                    codeGenerator.getDefaultFile().generateDefaultModuleHeader()
-                }
+        val modules = moduleMap.values.flatten()
+        if (modules.isEmpty()) {
+            logger.logging("no modules were found. skip ...")
+            return
+        }
+
+        fun withGeneratingDefaultModule(block: () -> Unit) {
+            if (defaultModule.definitions.isNotEmpty()){
+                codeGenerator.getDefaultFile().generateDefaultModuleHeader()
             }
-            generateModule(module)
-            if (index == moduleMap.values.size - 1) {
-                generateModule(defaultModule)
-                if (defaultModule.definitions.isNotEmpty()) {
-                    codeGenerator.getDefaultFile().generateDefaultModuleFooter()
-                }
+            block()
+            generateModule(defaultModule)
+            if (defaultModule.definitions.isNotEmpty()) {
+                codeGenerator.getDefaultFile().generateDefaultModuleFooter()
             }
+        }
+
+        logger.logging("generate ${modules.size} modules ...")
+        withGeneratingDefaultModule {
+            modules.forEach { module -> generateModule(module) }
         }
     }
 

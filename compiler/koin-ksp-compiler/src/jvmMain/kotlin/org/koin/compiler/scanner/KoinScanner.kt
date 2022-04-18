@@ -29,14 +29,14 @@ class KoinMetaDataScanner(
     val logger: KSPLogger
 ) {
 
-    lateinit var moduleMap: Map<String, KoinMetaData.Module>
+    lateinit var moduleMap: Map<String, List<KoinMetaData.Module>>
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ComponentScanner(logger)
 
     fun scanAllMetaData(
         resolver: Resolver,
         defaultModule: KoinMetaData.Module
-    ): Pair<Map<String, KoinMetaData.Module>, List<KoinMetaData.Definition>> {
+    ): Pair<Map<String, List<KoinMetaData.Module>>, List<KoinMetaData.Definition>> {
         return Pair(
             scanClassModules(resolver, defaultModule).toSortedMap(),
             scanComponents(resolver, defaultModule)
@@ -46,14 +46,14 @@ class KoinMetaDataScanner(
     private fun scanClassModules(
         resolver: Resolver,
         defaultModule: KoinMetaData.Module
-    ): Map<String, KoinMetaData.Module> {
+    ): Map<String, List<KoinMetaData.Module>> {
 
         logger.logging("scan modules ...")
         // class modules
         moduleMap = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
             .filter { it is KSClassDeclaration && it.validate() }
             .map { moduleMetadataScanner.createClassModule(it) }
-            .toMap()
+            .groupBy ({ (key, _) -> key }) { (_, value) -> value }
 
         return moduleMap
     }
@@ -64,11 +64,11 @@ class KoinMetaDataScanner(
     ): List<KoinMetaData.Definition> {
         // component scan
         logger.logging("scan definitions ...")
-
+        logger.logging("moduleMap size: ${moduleMap}")
         val definitions =
             DEFINITION_ANNOTATION_LIST_TYPES.flatMap { a -> resolver.scanDefinition(a) { d -> componentMetadataScanner.extractDefinition(d) } }
 
-        definitions.forEach { addToModule(it, defaultModule) }
+        definitions.forEach { addToComponentScanningModuleOrDefault(it, defaultModule) }
         return definitions
     }
 
@@ -82,9 +82,12 @@ class KoinMetaDataScanner(
             .toList()
     }
 
-    private fun addToModule(definition: KoinMetaData.Definition, defaultModule: KoinMetaData.Module) {
+    private fun addToComponentScanningModuleOrDefault(
+        definition: KoinMetaData.Definition,
+        defaultModule: KoinMetaData.Module
+    ) {
         val definitionPackage = definition.packageName
-        val foundModule = moduleMap.values.firstOrNull { it.acceptDefinition(definitionPackage) }
+        val foundModule = moduleMap.values.firstOrNull { it.last().acceptDefinition(definitionPackage) }?.last()
         val module = foundModule ?: defaultModule
         val alreadyExists = module.definitions.contains(definition)
         if (!alreadyExists) {
