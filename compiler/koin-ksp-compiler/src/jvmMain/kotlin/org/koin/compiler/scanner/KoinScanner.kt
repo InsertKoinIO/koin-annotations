@@ -64,7 +64,7 @@ class KoinMetaDataScanner(
     ): List<KoinMetaData.Definition> {
         // component scan
         logger.logging("scan definitions ...")
-        logger.logging("moduleMap size: ${moduleMap}")
+
         val definitions =
             DEFINITION_ANNOTATION_LIST_TYPES.flatMap { a -> resolver.scanDefinition(a) { d -> componentMetadataScanner.extractDefinition(d) } }
 
