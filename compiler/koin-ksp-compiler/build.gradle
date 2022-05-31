@@ -31,29 +31,29 @@ kotlin {
             }
         }
 
-        jsMain {
-            dependsOn commonMain
-            dependencies {
-            }
-        }
-
-        jsTest {
-            dependsOn commonTest
-            dependencies {
-            }
-        }
-
-        nativeMain {
-            dependencies {
-
-            }
-        }
-
-        nativeTest {
-            dependencies {
-
-            }
-        }
+//        jsMain {
+//            dependsOn commonMain
+//            dependencies {
+//            }
+//        }
+//
+//        jsTest {
+//            dependsOn commonTest
+//            dependencies {
+//            }
+//        }
+//
+//        nativeMain {
+//            dependencies {
+//
+//            }
+//        }
+//
+//        nativeTest {
+//            dependencies {
+//
+//            }
+//        }
     }
 }
 
