@@ -20,7 +20,6 @@ import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import generateClassModule
 import generateDefaultModuleFooter
-import generateDefaultModuleForDefinitions
 import generateDefaultModuleHeader
 import generateFieldDefaultModule
 import org.koin.compiler.metadata.KoinMetaData
@@ -36,49 +35,41 @@ class KoinGenerator(
     }
 
     fun generateModules(
-        moduleMap: Map<String, KoinMetaData.Module>,
+        moduleList: List<KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module
     ) {
-        logger.logging("generate ${moduleMap.size} modules ...")
-        moduleMap.values.forEachIndexed { index, module ->
-            if (index == 0) {
-                if (defaultModule.definitions.isNotEmpty()){
-                    codeGenerator.getDefaultFile().generateDefaultModuleHeader()
-                }
-            }
-            generateModule(module)
-            if (index == moduleMap.values.size - 1) {
-                generateModule(defaultModule)
-                if (defaultModule.definitions.isNotEmpty()) {
-                    codeGenerator.getDefaultFile().generateDefaultModuleFooter()
-                }
-            }
+        logger.logging("generate ${moduleList.size} modules ...")
+        moduleList.forEach { generateModule(it) }
+
+        if (defaultModule.definitions.isNotEmpty()) {
+            logger.logging("generate default module ...")
+            val defaultModuleFile = codeGenerator.getDefaultFile()
+            defaultModuleFile.generateDefaultModuleHeader()
+            generateModule(defaultModule)
+            defaultModuleFile.generateDefaultModuleFooter()
         }
     }
 
     private fun generateModule(module: KoinMetaData.Module) {
         logger.logging("generate $module - ${module.type}")
-        codeGenerator.getDefaultFile().let { defaultFile ->
-            if (module.definitions.isNotEmpty()) {
-                when (module.type) {
-                    KoinMetaData.ModuleType.FIELD -> {
-                        defaultFile.generateFieldDefaultModule(module.definitions)
-                    }
-                    KoinMetaData.ModuleType.CLASS -> {
-                        val moduleFile = codeGenerator.getFile(fileName = "${module.name}Gen")
-                        generateClassModule(moduleFile, module)
-                    }
+        if (module.definitions.isNotEmpty()) {
+            when (module.type) {
+                KoinMetaData.ModuleType.FIELD -> {
+                    codeGenerator.getDefaultFile().generateFieldDefaultModule(module.definitions)
                 }
-            } else {
-                logger.logging("no definition for $module")
+                KoinMetaData.ModuleType.CLASS -> {
+                    val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
+                    generateClassModule(moduleFile, module)
+                }
             }
+        } else {
+            logger.logging("no definition for $module")
         }
     }
 
-    fun generateDefaultModule(
-        definitions: List<KoinMetaData.Definition>
-    ) {
-        generateDefaultModuleForDefinitions(definitions)
+    private fun KoinMetaData.Module.generateModuleFileName(): String {
+        val extensionName = packageName("$")
+        return "${name}Gen${extensionName}"
     }
 
     companion object {
@@ -87,8 +78,8 @@ class KoinGenerator(
     }
 }
 
-private var defaultFile : OutputStream? = null
-fun CodeGenerator.getDefaultFile() : OutputStream {
+private var defaultFile: OutputStream? = null
+fun CodeGenerator.getDefaultFile(): OutputStream {
     return if (defaultFile != null) defaultFile!!
     else {
         defaultFile = createNewFile(

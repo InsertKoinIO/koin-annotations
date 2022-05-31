@@ -20,6 +20,8 @@ class MainActivity : AppCompatActivity() {
     val coffeeViewModel : CoffeeViewModel by viewModel()
     val myPresenter : MyPresenter by inject { parametersOf(this@MainActivity) }
     val todoViewModel : TodoViewModel by viewModel()
+    val heater : AndroidHeater by inject()
+    val coffeeFactory : AndroidCoffeeMakerTester by inject()
 
     private val button : Button by lazy { findViewById(R.id.main_button) }
     private val textView : TextView by lazy { findViewById(R.id.main_text) }
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         button.setOnClickListener {
             textView.text = "I need coffee"
+            coffeeFactory.coffeeMakerTester.coffeeMaker.brew()
         }
 
         coffeeViewModel.coffeeMaker.brew()
@@ -39,5 +42,6 @@ class MainActivity : AppCompatActivity() {
 
         assert(todoViewModel.repository.local == getKoin().get<TaskDatasource>(named("local")))
         assert(todoViewModel.repository.remote == getKoin().get<TaskDatasource>(named("remote")))
+        assert(heater != null)
     }
 }

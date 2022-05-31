@@ -21,14 +21,11 @@ import java.io.OutputStream
 fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Definition>) {
 
     definitions.generateImports()
-//    KoinGenerator.LOGGER.logging("- generate field definitions: $definitions ...")
     val classDefinitions = definitions.filterIsInstance<KoinMetaData.Definition.ClassDefinition>()
-    // TODO optimize group/split?
     val standardDefinitions = classDefinitions.filter { it.isNotScoped() }.toSet()
     val scopeDefinitions = classDefinitions.filter { it.isScoped() }.toSet()
 
-    standardDefinitions.forEach { def -> generateClassDeclarationDefinition(def) }
-
+    standardDefinitions.forEach { generateClassDeclarationDefinition(it) }
     scopeDefinitions
         .groupBy { it.scope }
         .forEach { (scope, definitions) ->
@@ -40,81 +37,77 @@ fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Defin
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     classFile.appendText(MODULE_HEADER)
-//    if (module.definitions.any { it.scope != null }) {
-//        classFile.appendText(MODULE_HEADER_STRING_QUALIFIER)
-//    }
     classFile.appendText(module.definitions.generateImports())
 
-    val generatedField = "${module.name}Module"
-    val classModule = "${module.packageName}.${module.name}"
-    classFile.appendText("\nval $generatedField = module {")
+    val generatedField = module.generateModuleField(classFile)
 
-    if (module.includes?.isNotEmpty() == true) {
-        KoinGenerator.LOGGER.logging("generate - includes")
-        val generatedIncludes: String = module.includes.generateModuleIncludes()
-        classFile.appendText("${defaultSpace}includes($generatedIncludes)")
+    val modulePath = "${module.packageName}.${module.name}"
+
+    module.includes?.let { includes ->
+        if (includes.isNotEmpty()) { generateIncludes(includes, classFile) }
     }
 
     if (module.definitions.any { it is KoinMetaData.Definition.FunctionDefinition }) {
-        classFile.appendText("${defaultSpace}val moduleInstance = $classModule()")
+        classFile.appendText("${defaultSpace}val moduleInstance = $modulePath()")
     }
 
-    val standardDefinitions = module.definitions.filter { it.isNotScoped() }
-
-    KoinGenerator.LOGGER.logging("generate - definitions")
-
-    standardDefinitions.forEach {
-        when (it) {
-            is KoinMetaData.Definition.FunctionDefinition -> classFile.generateFunctionDeclarationDefinition(it)
-            is KoinMetaData.Definition.ClassDefinition -> classFile.generateClassDeclarationDefinition(it)
-        }
-    }
-
-    KoinGenerator.LOGGER.logging("generate - scopes")
-    val scopeDefinitions = module.definitions.filter { it.isScoped() }
-    scopeDefinitions
-        .groupBy { it.scope }
-        .forEach { (scope, definitions) ->
-            KoinGenerator.LOGGER.logging("generate - scope $scope")
-            classFile.appendText(generateScope(scope!!))
-            definitions.forEach {
-                when (it) {
-                    is KoinMetaData.Definition.FunctionDefinition -> classFile.generateFunctionDeclarationDefinition(it)
-                    is KoinMetaData.Definition.ClassDefinition -> classFile.generateClassDeclarationDefinition(it)
-                }
-            }
-            // close scope
-            classFile.appendText("\n\t\t\t\t}")
-        }
+    generateDefinitions(module, classFile)
 
     classFile.appendText("\n}")
-    classFile.appendText("\nval $classModule.module : org.koin.core.module.Module get() = $generatedField")
+    classFile.appendText("\nval $modulePath.module : org.koin.core.module.Module get() = $generatedField")
 
     classFile.flush()
     classFile.close()
 }
 
-fun KoinGenerator.generateDefaultModuleForDefinitions(
-    definitions: List<KoinMetaData.Definition>
+private fun generateDefinitions(
+    module: KoinMetaData.Module,
+    classFile: OutputStream
 ) {
-    definitions.firstOrNull { _ ->
-//        logger.logging("+ generate default module: ${definitions.size} ...")
-//        logger.logging("+ generate default module header ...")
-        val defaultFile = codeGenerator.getDefaultFile()
-        defaultFile.generateDefaultModuleHeader(definitions)
-        defaultFile.generateFieldDefaultModule(definitions)
-//        logger.logging("+ generate default module header ...")
-        defaultFile.generateDefaultModuleFooter()
-//        logger.logging("+ generate default module +")
-        true
+    val standardDefinitions = module.definitions.filter { it.isNotScoped() }
+    standardDefinitions.forEach { it.generateTargetDefinition(classFile) }
+
+    val scopeDefinitions = module.definitions.filter { it.isScoped() }
+    scopeDefinitions
+        .groupBy { it.scope }
+        .forEach { (scope, definitions) ->
+            classFile.appendText(generateScope(scope!!))
+            definitions.forEach {
+                it.generateTargetDefinition(classFile)
+            }
+            // close scope
+            classFile.appendText("\n\t\t\t\t}")
+        }
+}
+
+private fun KoinMetaData.Definition.generateTargetDefinition(
+    classFile: OutputStream
+) {
+    when (this) {
+        is KoinMetaData.Definition.FunctionDefinition -> classFile.generateFunctionDeclarationDefinition(this)
+        is KoinMetaData.Definition.ClassDefinition -> classFile.generateClassDeclarationDefinition(this)
     }
+}
+
+private fun generateIncludes(
+    includeList: List<KSDeclaration>,
+    classFile: OutputStream
+) {
+    val generatedIncludes: String = includeList.generateModuleIncludes()
+    classFile.appendText("${defaultSpace}includes($generatedIncludes)")
+}
+
+private fun KoinMetaData.Module.generateModuleField(
+    classFile: OutputStream
+): String {
+    val packageName = packageName("_")
+    val generatedField = "${packageName}_${name}"
+    classFile.appendText("\nval $generatedField = module {")
+    return generatedField
 }
 
 fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Definition> = emptyList()) {
     appendText(DEFAULT_MODULE_HEADER)
-//    if (definitions.any { it.scope != null }) {
-//        appendText(MODULE_HEADER_STRING_QUALIFIER)
-//    }
     appendText(definitions.generateImports())
     appendText(DEFAULT_MODULE_FUNCTION)
 }
@@ -124,10 +117,8 @@ fun OutputStream.generateDefaultModuleFooter() {
 }
 
 private fun List<KoinMetaData.Definition>.generateImports(): String {
-    val globalImports = mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }.joinToString(separator = "\n", postfix = "\n")
-//    val hasQualifier: Boolean = any { definition -> definition.qualifier != null || definition.parameters.any { (it as? KoinMetaData.ConstructorParameter.Dependency)?.value != null } }
-//    val qualifierImport = if (hasQualifier) "\n$STRING_QUALIFIER_IMPORT\n" else ""
-    return globalImports //+ qualifierImport
+    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }
+        .joinToString(separator = "\n", postfix = "\n")
 }
 
 private fun List<KSDeclaration>.generateModuleIncludes(): String {

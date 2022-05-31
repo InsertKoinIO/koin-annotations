@@ -53,5 +53,5 @@ dependencies {
 
     implementation ("androidx.appcompat:appcompat:$appcompatVersion")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("junit:junit:4.13.2")
 }
