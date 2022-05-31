@@ -25,6 +25,7 @@ import generateDefaultModuleHeader
 import generateFieldDefaultModule
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
+import java.util.*
 
 class KoinGenerator(
     val codeGenerator: CodeGenerator,
@@ -65,7 +66,7 @@ class KoinGenerator(
                         defaultFile.generateFieldDefaultModule(module.definitions)
                     }
                     KoinMetaData.ModuleType.CLASS -> {
-                        val moduleFile = codeGenerator.getFile(fileName = "${module.name}Gen")
+                        val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
                         generateClassModule(moduleFile, module)
                     }
                 }
@@ -73,6 +74,11 @@ class KoinGenerator(
                 logger.logging("no definition for $module")
             }
         }
+    }
+
+    private fun KoinMetaData.Module.generateModuleFileName(): String {
+        val extensionName = packageName("$")
+        return "${name}Gen${extensionName}"
     }
 
     fun generateDefaultModule(

@@ -45,7 +45,9 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
 //    }
     classFile.appendText(module.definitions.generateImports())
 
-    val generatedField = "${module.name}Module"
+    val packageName = module.packageName("_")
+    val generatedField = "${packageName}_${module.name}"
+
     val classModule = "${module.packageName}.${module.name}"
     classFile.appendText("\nval $generatedField = module {")
 
