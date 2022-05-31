@@ -55,12 +55,17 @@ private fun String?.generateQualifier(): String = when {
     else -> "qualifier=null"
 }
 
+val blocked_types =  listOf("Any","ViewModel")
+
 private fun generateBindings(bindings: List<KSDeclaration>): String {
     return when {
         bindings.isEmpty() -> ""
         bindings.size == 1 -> {
-            val generateBinding = generateBinding(bindings.first())
-            "bind($generateBinding)"
+            val declaration = bindings.first()
+            if (declaration.simpleName.asString() !in blocked_types) {
+                val generateBinding = generateBinding(declaration)
+                "bind($generateBinding)"
+            } else ""
         }
         else -> bindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") { generateBinding(it) ?: "" }
     }
@@ -80,7 +85,7 @@ fun generateScope(scope: KoinMetaData.Scope): String {
             val className = type.simpleName.asString()
             "${defaultSpace}scope<$packageName.$className> {"
         }
-        is KoinMetaData.Scope.StringScope -> "${defaultSpace}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {"
+        is KoinMetaData.Scope.StringScope -> "${defaultSpace}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {\n"
     }
 }
 

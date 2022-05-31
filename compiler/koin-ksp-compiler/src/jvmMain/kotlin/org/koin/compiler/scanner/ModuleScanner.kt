@@ -23,7 +23,7 @@ class ModuleScanner(
     val logger: KSPLogger
 ) {
 
-    fun createClassModule(element: KSAnnotated): ModuleIndex {
+    fun createClassModule(element: KSAnnotated): KoinMetaData.Module {
         val declaration = (element as KSClassDeclaration)
         val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
         val annotations = declaration.annotations
@@ -48,8 +48,7 @@ class ModuleScanner(
         val definitions = annotatedFunctions.mapNotNull { addDefinition(it) }
         moduleMetadata.definitions += definitions
 
-        val key = if (componentScan?.packageName?.isNotEmpty() == true) componentScan.packageName else modulePackage
-        return ModuleIndex(key, moduleMetadata)
+        return moduleMetadata
     }
 
     private fun getIncludedModules(annotations: Sequence<KSAnnotation>) : List<KSDeclaration>? {
