@@ -16,6 +16,7 @@
 package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
+import java.util.*
 
 sealed class KoinMetaData {
 
@@ -27,6 +28,12 @@ sealed class KoinMetaData {
         val componentScan: ComponentScan? = null,
         val includes : List<KSDeclaration>? = null
     ) : KoinMetaData() {
+
+        fun packageName(separator : String) : String{
+            val default = Locale.getDefault()
+            return packageName.split(".").joinToString(separator) { it.lowercase(default) }
+        }
+
         data class ComponentScan(val packageName: String = "")
 
         fun acceptDefinition(defPackageName: String): Boolean {
