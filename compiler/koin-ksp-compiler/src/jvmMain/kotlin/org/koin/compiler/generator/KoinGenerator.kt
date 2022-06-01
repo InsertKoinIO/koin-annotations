@@ -89,7 +89,11 @@ class KoinGenerator(
 }
 
 private fun KoinMetaData.Module.generateFileName(): String {
-    return "${this.name}\$${this.packageName.uppercase().replace(".", "\$")}"
+    val suffix = this.packageName
+        .lowercase()
+        .split(".")
+        .joinToString("$") { it.replaceFirstChar(Char::titlecase) }
+    return if (suffix.isNotEmpty()) "${this.name}\$$suffix" else this.name
 }
 
 private var defaultFile : OutputStream? = null
