@@ -93,7 +93,7 @@ private fun KoinMetaData.Module.generateFileName(): String {
         .lowercase()
         .split(".")
         .joinToString("$") { it.replaceFirstChar(Char::titlecase) }
-    return if (suffix.isNotEmpty()) "${this.name}\$$suffix" else this.name
+    return if (suffix.isNotBlank()) "${this.name}\$$suffix" else this.name
 }
 
 private var defaultFile : OutputStream? = null
