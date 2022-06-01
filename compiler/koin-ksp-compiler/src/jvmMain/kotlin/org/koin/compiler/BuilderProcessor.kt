@@ -20,7 +20,6 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
-import org.koin.compiler.validator.KoinModuleValidator
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -29,7 +28,6 @@ class BuilderProcessor(
 
     private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinModuleValidator = KoinModuleValidator(logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val defaultModule = KoinMetaData.Module(
@@ -38,9 +36,6 @@ class BuilderProcessor(
         )
         logger.logging("Scan metadata ...")
         val (moduleMap, definitions) = koinMetaDataScanner.scanAllMetaData(resolver, defaultModule)
-
-        logger.logging("Validate Modules...")
-        koinModuleValidator.validate(moduleMap)
 
         logger.logging("Generate code ...")
         if (moduleMap.isNotEmpty()) {

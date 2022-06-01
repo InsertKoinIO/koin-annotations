@@ -3,7 +3,7 @@ package org.koin.compiler.validator
 import com.google.devtools.ksp.processing.KSPLogger
 import org.koin.compiler.scanner.ModuleMap
 
-class KoinModuleValidator(private val logger: KSPLogger) {
+class ModuleValidator(private val logger: KSPLogger) {
 
     fun validate(moduleMap: ModuleMap) {
         checkConflictedComponentScanExists(moduleMap)

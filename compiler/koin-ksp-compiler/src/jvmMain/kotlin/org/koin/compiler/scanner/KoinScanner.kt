@@ -22,6 +22,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.validator.ModuleValidator
 import org.koin.core.annotation.Module
 import kotlin.reflect.KClass
 
@@ -32,11 +33,14 @@ class KoinMetaDataScanner(
     lateinit var moduleMap: ModuleMap
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ComponentScanner(logger)
+    private val moduleValidator = ModuleValidator(logger)
 
     fun scanAllMetaData(
         resolver: Resolver,
         defaultModule: KoinMetaData.Module
     ): Pair<ModuleMap, List<KoinMetaData.Definition>> {
+        val moduleMap = scanClassModules(resolver, defaultModule)
+        moduleValidator.validate(moduleMap)
         return Pair(
             scanClassModules(resolver, defaultModule).toSortedMap(),
             scanComponents(resolver, defaultModule)
