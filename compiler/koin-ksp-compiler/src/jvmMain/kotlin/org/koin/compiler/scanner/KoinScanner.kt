@@ -52,9 +52,22 @@ class KoinMetaDataScanner(
     }
 
     private fun List<KoinMetaData.Module>.generateScanComponentIndex(): List<KoinMetaData.Module> {
-        return mapNotNull { module ->
-            if (module.componentScan != null) module else null
+        val moduleList = hashMapOf<String,KoinMetaData.Module>()
+        val emptyScanList = arrayListOf<KoinMetaData.Module>()
+        forEach { module ->
+            module.componentScan?.let { scan ->
+                when(scan.packageName){
+                    "" -> emptyScanList.add(module)
+                    else -> if (moduleList.contains(scan.packageName)){
+                        val existing = moduleList[scan.packageName]!!
+                        error("@ComponentScan with '${scan.packageName}' from module ${module.name} is already declared in ${existing.name}. Please fix @ComponentScan value ")
+                    } else {
+                        moduleList[scan.packageName] = module
+                    }
+                }
+            }
         }
+        return moduleList.values + emptyScanList
     }
 
     private fun scanClassComponents(
