@@ -5,7 +5,9 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 ## [1.0.0]()
 
-- `[FIXED]` - Allow same name of Module, but different package - #14 #16  
+- `[FIXED]` - Allow same name of Module, but different package - #14 #16
+- `[FIXED]` - Allow collocated module independant of @ComponentScan annotation
+- `[ADDED]` - @ComponentScan annotation scan check (avoid double declaration)
 
 
 ## [1.0.0-beta-2]()

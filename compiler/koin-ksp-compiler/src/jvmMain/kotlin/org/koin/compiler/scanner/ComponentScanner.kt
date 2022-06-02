@@ -23,7 +23,7 @@ class ComponentScanner(
     val logger: KSPLogger,
 ) {
 
-    fun extractDefinition(element: KSAnnotated): KoinMetaData.Definition {
+    fun extractClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
         logger.logging("definition(class) -> $element", element)
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
@@ -32,15 +32,15 @@ class ComponentScanner(
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
         return if (scopeAnnotation != null){
-            createDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
+            createClassDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
         } else {
             annotations.firstNotNullOf { (annotationName, annotation) ->
-                createDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
+                createClassDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
             }
         }
     }
 
-    private fun createDefinition(
+    private fun createClassDefinition(
         element: KSAnnotated,
         annotation: KSAnnotation,
         ksClassDeclaration: KSClassDeclaration,
