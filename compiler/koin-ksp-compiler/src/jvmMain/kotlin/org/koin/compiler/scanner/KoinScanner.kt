@@ -40,10 +40,10 @@ class KoinMetaDataScanner(
         scanClassComponents(resolver, defaultModule, scanComponentIndex)
         return moduleList
     }
+
     private fun scanClassModules(
         resolver: Resolver
     ): List<KoinMetaData.Module> {
-
         logger.logging("scan modules ...")
         return resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
             .filter { it is KSClassDeclaration && it.validate() }
