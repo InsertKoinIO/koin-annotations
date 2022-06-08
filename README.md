@@ -6,10 +6,8 @@ The goal of Koin Annotations project is to help declare Koin definition in a ver
 
 Here below is the current version:
 
-> Warning: while this is still in beta. There can be some breaking changes coming in next releases 🙏
-
 ```kotlin
-koinAnnotations = "1.0.0-beta-2"
+koin_annotations_version = "1.0.0"
 ```
 
 > Koin 3.2+ is required
@@ -20,7 +18,7 @@ First, setup KSP plugin like this, in your root `build.gradle`:
 
 ```kotlin
 plugins {
-    id "com.google.devtools.ksp" version "1.6.10-1.0.2"
+    id "com.google.devtools.ksp" version "1.6.21-1.0.5"
 }
 ```
 
@@ -28,9 +26,10 @@ Use the following dependencies in your Gradle dependencies section:
 
 ```kotlin
 // Koin Annotations
-implementation "io.insert-koin:koin-annotations:$koinAnnotations"
+implementation "io.insert-koin:koin-annotations:$koin_annotations_version"
+
 // Koin Annotations - Ksp Compiler
-ksp "io.insert-koin:koin-ksp-compiler:$koinAnnotations"
+ksp "io.insert-koin:koin-ksp-compiler:$koin_annotations_version"
 ```
 
 On your app add the following to generated source code:

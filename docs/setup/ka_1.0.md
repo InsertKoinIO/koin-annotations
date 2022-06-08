@@ -2,16 +2,12 @@
 title: Koin Annotations 1.0
 ---
 
- Setup Koin Annotations for your project 
-
-:::info
- Koin Annotations is in Beta. Some changes can still occurs in terms of features.
-:::
+Setup Koin Annotations for your project 
 
 ### Version
 
 ```groovy
-koin_ksp_version= "1.0.0-beta-1"
+koin_ksp_version= "1.0.0"
 ```
 
 Everything is hosted on maven central:
@@ -34,7 +30,7 @@ You can find all [Koin packages on maven central](https://search.maven.org/searc
 We need KSP Plugin to work (https://github.com/google/ksp). Jst add the gradle plugin:
 
 ```groovy
-ksp_version = "1.6.10-1.0.2"
+ksp_version = "1.6.21-1.0.5""
 ```
 
 ```groovy
@@ -90,3 +86,10 @@ dependencies {
     ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
 }
 ```
+
+### Kotlin KMP Setup
+
+Please follow KSP setup as described in official documentation: [KSP with Kotlin Multiplatform](https://kotlinlang.org/docs/ksp-multiplatform.html)
+
+You can also check the [Hello Koin KMP](https://github.com/InsertKoinIO/hello-kmp/tree/annotations) project with basic setup for Koin Annotations.
+

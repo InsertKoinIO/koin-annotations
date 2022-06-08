@@ -1,5 +1,5 @@
 ---
-title: Quickstart - Android - Annotations
+title: Android - Annotations
 ---
 
 > This tutorial lets you write an Android/Kotlin application and use Koin inject and retrieve your components.
@@ -7,7 +7,7 @@ title: Quickstart - Android - Annotations
 ## Get the code
 
 :::info
-[The source code is available at on Github](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-android)
+[The source code is available at on Github](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/quickstart-android-annotations)
 :::
 
 ## Gradle Setup

@@ -1,5 +1,5 @@
 ---
-title: Quickstart - Kotlin - Annotations
+title: Kotlin - Annotations
 ---
 
 > This tutorial lets you write a Kotlin application and use Koin inject and retrieve your components.
@@ -7,7 +7,7 @@ title: Quickstart - Kotlin - Annotations
 ## Get the code
 
 :::info
-[The source code is available at on Github](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/getting-started-koin-core)
+[The source code is available at on Github](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/quickstart-kotlin-annotations)
 :::
 
 ## Setup

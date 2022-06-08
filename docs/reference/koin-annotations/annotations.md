@@ -45,6 +45,13 @@ fun main() {
 
 That's it, you can use your new definitions in Koin with the [regular Koin API](https://insert-koin.io/docs/reference/introduction)
 
+
+### Kotlin KMP Setup
+
+Please follow KSP setup as described in official documentation: [KSP with Kotlin Multiplatform](https://kotlinlang.org/docs/ksp-multiplatform.html)
+
+You can also check the [Hello Koin KMP](https://github.com/InsertKoinIO/hello-kmp/tree/annotations) project with basic setup for Koin Annotations.
+
 ## Definitions
 
 Koin Annotations allow to declare the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotation, and it will generate everything for you!
@@ -249,6 +256,10 @@ This will scan current package and subpackages for annotated components.
 
 > You can specify to scan a given package `@ComponentScan("com.my.package")`
 
+
+:::info
+    When using `@ComponentScan` annotation, KSP will scan in the current Gradle sources only, not accross multiple modules.
+:::
 
 ### Definitions in Class Modules
 
