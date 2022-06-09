@@ -56,7 +56,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     generateDefinitions(module, classFile)
 
     classFile.appendText("\n}")
-    classFile.appendText("\nval $modulePath.module : org.koin.core.module.Module get() = $generatedField")
+    classFile.appendText("\nprivate val $modulePath.module : org.koin.core.module.Module get() = $generatedField")
 
     classFile.flush()
     classFile.close()
