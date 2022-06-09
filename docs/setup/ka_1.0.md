@@ -62,14 +62,6 @@ dependencies {
 }
 ```
 
-If you use several KSP libraries (like Room), you can use this way of declaring generated sources:
-
-```groovy
-libraryVariants.all { variant ->
-  variant.addJavaSourceFoldersToModel(file("build/generated/ksp/${variant.name}/kotlin"))
-}
-```
-
 ### Android App Setup
 
 Here below how you can configure an Android app:
@@ -92,6 +84,14 @@ dependencies {
     implementation "io.insert-koin:koin-android:$koin_version"
     implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
     ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
+}
+```
+
+If you use several KSP libraries (like Room), you can use this way of declaring generated sources:
+
+```groovy
+libraryVariants.all { variant ->
+  variant.addJavaSourceFoldersToModel(file("build/generated/ksp/${variant.name}/kotlin"))
 }
 ```
 
