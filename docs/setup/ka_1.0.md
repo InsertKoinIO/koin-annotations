@@ -62,6 +62,14 @@ dependencies {
 }
 ```
 
+If you use several KSP libraries (like Room), you can use this way of declaring generated sources:
+
+```groovy
+libraryVariants.all { variant ->
+  variant.addJavaSourceFoldersToModel(file("build/generated/ksp/${variant.name}/kotlin"))
+}
+```
+
 ### Android App Setup
 
 Here below how you can configure an Android app:
