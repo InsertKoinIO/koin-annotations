@@ -36,6 +36,8 @@ fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Defin
 }
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
+    classFile.appendText(fileAnnotation(module.name))
+    classFile.appendText("\n\n")
     classFile.appendText(MODULE_HEADER)
     classFile.appendText(module.definitions.generateImports())
 

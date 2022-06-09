@@ -43,3 +43,8 @@ val MODULE_HEADER = """
 //val MODULE_HEADER_STRING_QUALIFIER = """
 //            $STRING_QUALIFIER_IMPORT
 //        """.trimIndent()
+
+fun fileAnnotation(name: String) = """
+    @file:JvmName("${name}Gen")
+    @file:JvmMultifileClass
+    """.trimIndent()
