@@ -19,8 +19,6 @@ import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
 fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Definition>) {
-
-    definitions.generateImports()
     val classDefinitions = definitions.filterIsInstance<KoinMetaData.Definition.ClassDefinition>()
     val standardDefinitions = classDefinitions.filter { it.isNotScoped() }.toSet()
     val scopeDefinitions = classDefinitions.filter { it.isScoped() }.toSet()
@@ -36,7 +34,7 @@ fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Defin
 }
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
-    classFile.appendText(MODULE_HEADER)
+    classFile.appendText(moduleHeader(module.name))
     classFile.appendText(module.definitions.generateImports())
 
     val generatedField = module.generateModuleField(classFile)
@@ -48,7 +46,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     }
 
     if (module.definitions.any { it is KoinMetaData.Definition.FunctionDefinition }) {
-        classFile.appendText("${defaultSpace}val moduleInstance = $modulePath()")
+        classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
     }
 
     generateDefinitions(module, classFile)
@@ -94,7 +92,7 @@ private fun generateIncludes(
     classFile: OutputStream
 ) {
     val generatedIncludes: String = includeList.generateModuleIncludes()
-    classFile.appendText("${defaultSpace}includes($generatedIncludes)")
+    classFile.appendText("${NEW_LINE}includes($generatedIncludes)")
 }
 
 private fun KoinMetaData.Module.generateModuleField(
@@ -106,7 +104,7 @@ private fun KoinMetaData.Module.generateModuleField(
     return generatedField
 }
 
-fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Definition> = emptyList()) {
+fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Definition>) {
     appendText(DEFAULT_MODULE_HEADER)
     appendText(definitions.generateImports())
     appendText(DEFAULT_MODULE_FUNCTION)

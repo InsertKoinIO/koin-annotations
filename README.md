@@ -7,7 +7,7 @@ The goal of Koin Annotations project is to help declare Koin definition in a ver
 Here below is the current version:
 
 ```kotlin
-koin_annotations_version = "1.0.0"
+koin_annotations_version = "1.0.1"
 ```
 
 > Koin 3.2+ is required

@@ -21,6 +21,7 @@ val DEFAULT_MODULE_HEADER = """
         import org.koin.core.KoinApplication
         import org.koin.core.module.Module
         import org.koin.dsl.*
+        
     """.trimIndent()
 
 val DEFAULT_MODULE_FUNCTION = """
@@ -33,9 +34,19 @@ val DEFAULT_MODULE_FOOTER = """
         }
     """.trimIndent()
 
+fun moduleHeader(genName : String) = """
+    @file:JvmName("${genName}Gen")
+    @file:JvmMultifileClass
+    package org.koin.ksp.generated
+    
+    import org.koin.dsl.*
+    
+""".trimIndent()
+
 val MODULE_HEADER = """
             package org.koin.ksp.generated
             import org.koin.dsl.*
+            
         """.trimIndent()
 
 //const val STRING_QUALIFIER_IMPORT = "import org.koin.core.qualifier.StringQualifier"

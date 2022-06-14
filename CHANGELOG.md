@@ -3,6 +3,15 @@
 Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKING]`
 
 
+## [1.0.x]()
+
+
+### [1.0.1]()
+
+- `[FIXED]` - Fixed ViewModel code Generation
+- `[FIXED]` - Module Header generation 
+
+
 ## [1.0.0]()
 
 - `[FIXED]` - Allow same name of Module, but different package - #14 #16
