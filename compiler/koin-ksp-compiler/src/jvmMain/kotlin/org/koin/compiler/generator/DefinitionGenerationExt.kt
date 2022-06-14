@@ -19,7 +19,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.SINGLE
 import java.io.OutputStream
 
-const val defaultSpace = "\n\t"
+const val NEW_LINE = "\n\t"
 
 fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> String) {
     LOGGER.logging("generate $def")
@@ -29,7 +29,7 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> 
     val qualifier = def.qualifier.generateQualifier()
     val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) CREATED_AT_START else ""
 
-    val space = if (def.isScoped()) defaultSpace + "\t\t" else defaultSpace
+    val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
     appendText("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
 
@@ -83,13 +83,13 @@ fun generateScope(scope: KoinMetaData.Scope): String {
             val type = scope.type
             val packageName = type.containingFile!!.packageName.asString()
             val className = type.simpleName.asString()
-            "${defaultSpace}scope<$packageName.$className> {"
+            "${NEW_LINE}scope<$packageName.$className> {"
         }
-        is KoinMetaData.Scope.StringScope -> "${defaultSpace}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {\n"
+        is KoinMetaData.Scope.StringScope -> "${NEW_LINE}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {\n"
     }
 }
 
-fun generateScopeClosing() : String = "${defaultSpace}}"
+fun generateScopeClosing() : String = "${NEW_LINE}}"
 
 private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
     return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->

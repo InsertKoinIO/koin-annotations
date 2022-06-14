@@ -44,7 +44,7 @@ class KoinGenerator(
         if (defaultModule.definitions.isNotEmpty()) {
             logger.logging("generate default module ...")
             val defaultModuleFile = codeGenerator.getDefaultFile()
-            defaultModuleFile.generateDefaultModuleHeader()
+            defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
             generateModule(defaultModule)
             defaultModuleFile.generateDefaultModuleFooter()
         }

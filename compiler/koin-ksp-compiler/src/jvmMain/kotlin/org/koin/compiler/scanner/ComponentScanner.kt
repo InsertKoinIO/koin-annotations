@@ -24,7 +24,6 @@ class ComponentScanner(
 ) {
 
     fun extractClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
-        logger.logging("definition(class) -> $element", element)
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
         val className = ksClassDeclaration.simpleName.asString()
@@ -66,7 +65,7 @@ class ComponentScanner(
                 createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings)
             }
             KOIN_VIEWMODEL.annotationName -> {
-                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings)
+                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings)
             }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()

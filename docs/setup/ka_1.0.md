@@ -7,7 +7,7 @@ Setup Koin Annotations for your project
 ### Version
 
 ```groovy
-koin_ksp_version= "1.0.0"
+koin_ksp_version= "1.0.1"
 ```
 
 Everything is hosted on maven central:
