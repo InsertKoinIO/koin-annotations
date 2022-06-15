@@ -121,7 +121,7 @@ sealed class KoinMetaData {
     sealed class ConstructorParameter(val nullable: Boolean = false) {
         data class Dependency(val value: String? = null, val isNullable: Boolean = false) :
             ConstructorParameter(isNullable)
-
+        data class ListDependency(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
         data class ParameterInject(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
         data class Property(val value: String? = null, val isNullable: Boolean = false) :
             ConstructorParameter(isNullable)

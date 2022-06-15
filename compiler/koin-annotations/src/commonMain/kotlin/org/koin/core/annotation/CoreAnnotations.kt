@@ -136,6 +136,19 @@ annotation class InjectedParam
 annotation class Property(val value: String)
 
 /**
+ * Annotate a constructor parameter or function parameter, to resolve as "getAll()" instead of "get()"
+ *
+ * example:
+ *
+ * @Factory
+ * class MyClass(@GetAll val dList : List<MyDependency>)
+ *
+ * will result in `factory { MyClass(getAll()) }`
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class GetAll
+
+/**
  * Class annotation, to help gather definitions inside a Koin module.
  * Each function can be annotated with a Koin definition annotation, to declare it
  *

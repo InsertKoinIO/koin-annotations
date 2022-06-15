@@ -99,6 +99,7 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
                 val qualifier = ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
                 if (!isNullable) "get($qualifier)" else "getOrNull($qualifier)"
             }
+            is KoinMetaData.ConstructorParameter.ListDependency -> "getAll()"
             is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
             is KoinMetaData.ConstructorParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
         }
