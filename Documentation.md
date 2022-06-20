@@ -146,6 +146,17 @@ class MyComponent(@Property("my_key") val myProperty : String)
 
 The generated DSL equivalent will be `single { MyComponent(getProperty("my_key")) }`
 
+### List parameters with @GetAll
+
+To resolve a dependency with `getAll()` instead of `get()` when dealing with a list, just tag the parameter with @GetAll:
+
+```kotlin
+@Single
+class MyComponent(@GetAll val myDependencies: List<MyDependency>)
+```
+
+The generated DSL equivalent will be `single { MyComponent(getAll()) }`. Without the annotation, it will resolve to `single { MyComponent(get()) }` instead.
+
 ### Declaring Scopes with @Scope
 
 You can declare definition inside a scope, by using the `@Scope` annotation. The target scope can be specified as a class, or a name:
