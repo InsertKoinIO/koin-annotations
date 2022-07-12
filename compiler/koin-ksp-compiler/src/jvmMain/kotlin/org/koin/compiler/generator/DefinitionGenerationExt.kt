@@ -74,7 +74,25 @@ private fun generateBindings(bindings: List<KSDeclaration>): String {
 private fun generateBinding(declaration: KSDeclaration): String {
     val packageName = declaration.packageName.asString()
     val className = declaration.simpleName.asString()
-    return "$packageName.$className::class"
+    val parents = getParentDeclarations(declaration)
+    return if (parents.isNotEmpty()) {
+        val parentNames = parents.joinToString(".") { it.simpleName.asString() }
+        "$packageName.$parentNames.$className::class"
+    } else {
+        "$packageName.$className::class"
+    }
+}
+
+private fun getParentDeclarations(declaration: KSDeclaration): List<KSDeclaration> {
+    val parents = mutableListOf<KSDeclaration>()
+
+    var parent = declaration.parentDeclaration
+    while (parent != null) {
+        parents.add(parent)
+        parent = parent.parentDeclaration
+    }
+
+    return parents.reversed()
 }
 
 fun generateScope(scope: KoinMetaData.Scope): String {
