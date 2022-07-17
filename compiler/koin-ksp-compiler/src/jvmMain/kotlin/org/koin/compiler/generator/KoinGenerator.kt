@@ -52,7 +52,7 @@ class KoinGenerator(
 
     private fun generateModule(module: KoinMetaData.Module) {
         logger.logging("generate $module - ${module.type}")
-        if (module.definitions.isNotEmpty()) {
+        if (module.definitions.isNotEmpty() || module.includes?.isNotEmpty() == true) {
             when (module.type) {
                 KoinMetaData.ModuleType.FIELD -> {
                     codeGenerator.getDefaultFile().generateFieldDefaultModule(module.definitions)
