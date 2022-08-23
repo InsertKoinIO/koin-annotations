@@ -39,6 +39,8 @@ fun moduleHeader(genName : String) = """
     @file:JvmMultifileClass
     package org.koin.ksp.generated
     
+    import kotlin.jvm.JvmMultifileClass
+    import kotlin.jvm.JvmName
     import org.koin.dsl.*
     
 """.trimIndent()
