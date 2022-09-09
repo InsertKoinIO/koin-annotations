@@ -34,7 +34,8 @@ fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Defin
 }
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
-    classFile.appendText(moduleHeader(module.name))
+    // classFile.appendText(moduleHeader(module.name)) -> previously generating header #JvmName
+    classFile.appendText(moduleHeader())
     classFile.appendText(module.definitions.generateImports())
 
     val generatedField = module.generateModuleField(classFile)

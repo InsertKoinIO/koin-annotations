@@ -34,9 +34,7 @@ val DEFAULT_MODULE_FOOTER = """
         }
     """.trimIndent()
 
-fun moduleHeader(genName : String) = """
-    @file:JvmName("${genName}Gen")
-    @file:JvmMultifileClass
+fun moduleHeader() = """
     package org.koin.ksp.generated
     
     import org.koin.dsl.*
