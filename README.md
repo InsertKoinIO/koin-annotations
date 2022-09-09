@@ -32,7 +32,7 @@ implementation "io.insert-koin:koin-annotations:$koin_annotations_version"
 ksp "io.insert-koin:koin-ksp-compiler:$koin_annotations_version"
 ```
 
-On your app add the following to generated source code:
+On your app add the following to see generated source code:
 
 * On Kotlin project:
 
@@ -46,11 +46,13 @@ sourceSets.main {
 
 ```groovy
 android {
-  applicationVariants.all { variant ->
-          variant.sourceSets.java.each {
-              it.srcDirs += "build/generated/ksp/${variant.name}/kotlin"
-          }
-      }
+    applicationVariants.configureEach { variant ->
+        kotlin.sourceSets {
+            getByName(name) {
+                kotlin.srcDir("build/generated/ksp/${variant.name}/kotlin")
+            }
+        }
+    }
 }
 ```
 
