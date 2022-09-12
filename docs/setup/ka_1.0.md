@@ -7,7 +7,7 @@ Setup Koin Annotations for your project
 ### Version
 
 ```groovy
-koin_ksp_version= "1.0.1"
+koin_ksp_version= "1.0.2"
 ```
 
 Everything is hosted on maven central:
@@ -30,7 +30,7 @@ You can find all [Koin packages on maven central](https://search.maven.org/searc
 We need KSP Plugin to work (https://github.com/google/ksp). Jst add the gradle plugin:
 
 ```groovy
-ksp_version = "1.6.21-1.0.5""
+ksp_version = "1.6.21-1.0.6""
 ```
 
 ```groovy

@@ -6,6 +6,14 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 ## [1.0.x]()
 
 
+### [1.0.2]()
+
+- `[UPDATED]` - KSP `1.6.21-1.0.6`
+- `[MERGED]` - Gradle KSP Config for Android #39
+- `[FIXED]` - KMM compatible File generation #51, #41, #8, #20
+- `[FIXED]` - File Path generation #42, #40
+
+
 ### [1.0.1]()
 
 - `[FIXED]` - Fixed ViewModel code Generation
