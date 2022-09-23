@@ -5,6 +5,9 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 ## [1.0.x]()
 
+### [1.0.3]()
+
+- `[UPDATED]` - Koin 3.2.2
 
 ### [1.0.2]()
 
