@@ -1,4 +1,0 @@
-
-include 'quickstart-kotlin-annotations'
-include 'quickstart-android-annotations'
-include 'quickstart-android-annotations:app'
