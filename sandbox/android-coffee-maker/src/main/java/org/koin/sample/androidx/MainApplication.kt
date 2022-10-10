@@ -6,6 +6,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
+import org.koin.example.service.ServiceModule
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import org.koin.sample.androidx.di.AppModule
@@ -25,6 +26,7 @@ class MainApplication : Application() {
                 RepositoryModule().module,
                 AppModule().module,
                 CoffeeAppModule().module,
+                ServiceModule().module,
                 CoffeeTesterModule().module,
             )
         }

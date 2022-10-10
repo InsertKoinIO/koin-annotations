@@ -14,8 +14,8 @@ sourceSets.main {
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
     mavenLocal()
+    mavenCentral()
     google()
 }
 

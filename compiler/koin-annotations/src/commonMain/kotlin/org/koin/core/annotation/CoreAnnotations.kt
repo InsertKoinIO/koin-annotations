@@ -121,6 +121,19 @@ annotation class Named(val value: String)
 annotation class InjectedParam
 
 /**
+ * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
+ *
+ * example:
+ *
+ * @Factory
+ * class MyClass(@InjectedParam val d : MyDependency)
+ *
+ * will result in `factory { params -> MyClass(params.get()) }`
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class LazyParam(val value: String = "")
+
+/**
  * Annotate a constructor parameter or function parameter, to resolve as Koin property
  *
  * example:
