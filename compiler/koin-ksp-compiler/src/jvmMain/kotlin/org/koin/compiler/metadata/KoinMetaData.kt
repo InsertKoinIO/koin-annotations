@@ -123,6 +123,7 @@ sealed class KoinMetaData {
             ConstructorParameter(isNullable)
 
         data class ParameterInject(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
+        data class LazyParameterInject(val value: String? = null, val isNullable: Boolean = false) : ConstructorParameter(isNullable)
         data class Property(val value: String? = null, val isNullable: Boolean = false) :
             ConstructorParameter(isNullable)
     }

@@ -119,6 +119,10 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
             }
             is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
             is KoinMetaData.ConstructorParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
+            is KoinMetaData.ConstructorParameter.LazyParameterInject ->{
+                val qualifier = ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                if (!isNullable) "inject($qualifier)" else "injectOrNull($qualifier)"
+            }
         }
     }
 }

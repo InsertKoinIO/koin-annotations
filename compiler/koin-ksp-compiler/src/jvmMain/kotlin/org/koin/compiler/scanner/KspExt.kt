@@ -20,6 +20,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.isScopeAnnotation
 import org.koin.compiler.metadata.isValidAnnotation
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.LazyParam
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Property
 
@@ -76,6 +77,7 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     val isNullable = param.type.resolve().isMarkedNullable
     return when (annotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(isNullable)
+        "${LazyParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.LazyParameterInject(annotationValue, isNullable)
         "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(annotationValue, isNullable)
         "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(annotationValue, isNullable)
         else -> KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable)
