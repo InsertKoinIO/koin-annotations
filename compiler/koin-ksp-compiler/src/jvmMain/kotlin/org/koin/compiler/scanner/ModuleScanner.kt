@@ -68,7 +68,7 @@ class ModuleScanner(
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
-        val qualifier = ksFunctionDeclaration.getStringQualifier()
+        val qualifier = element.getNamedAnnotations().firstOrNull()?.getKoinQualifier()
 
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
@@ -90,7 +90,7 @@ class ModuleScanner(
         annotationName: String,
         annotation: KSAnnotation,
         packageName: String,
-        qualifier: String?,
+        qualifier: KoinMetaData.KoinQualifier?,
         functionName: String,
         ksFunctionDeclaration: KSFunctionDeclaration,
         annotations: Map<String, KSAnnotation> = emptyMap()
@@ -123,7 +123,7 @@ class ModuleScanner(
     private fun createSingleDefinition(
         annotation: KSAnnotation,
         packageName: String,
-        qualifier: String?,
+        qualifier: KoinMetaData.KoinQualifier?,
         functionName: String,
         functionParameters: List<KoinMetaData.ConstructorParameter>,
         allBindings: List<KSDeclaration>
@@ -145,7 +145,7 @@ class ModuleScanner(
     private fun createFunctionDefinition(
         keyword : DefinitionAnnotation,
         packageName: String,
-        qualifier: String?,
+        qualifier: KoinMetaData.KoinQualifier?,
         functionName: String,
         parameters: List<KoinMetaData.ConstructorParameter>?,
         allBindings: List<KSDeclaration>,

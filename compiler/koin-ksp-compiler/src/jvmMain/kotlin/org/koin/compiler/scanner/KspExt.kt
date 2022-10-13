@@ -40,6 +40,14 @@ fun KSAnnotated.getKoinAnnotations(): Map<String, KSAnnotation> {
         .toMap()
 }
 
+fun KSAnnotated.getNamedAnnotations(): List<KSAnnotation> {
+    return annotations.filter { it.shortName.asString() == "Named" }.toList()
+}
+
+fun KSAnnotated.getLazyParamAnnotations(): List<KSAnnotation> {
+    return annotations.filter { it.shortName.asString() == "LazyParam" }.toList()
+}
+
 fun Map<String, KSAnnotation>.getScopeAnnotation(): Pair<String, KSAnnotation>? {
     return firstNotNullOfOrNull { (name, annotation) ->
         if (isScopeAnnotation(name)) Pair(name, annotation) else null
@@ -59,11 +67,19 @@ fun List<KSValueArgument>.getScope(): KoinMetaData.Scope {
         ?: error("Scope annotation needs parameters: either type value or name")
 }
 
-fun KSAnnotated.getStringQualifier(): String? {
-    val qualifierAnnotation = annotations.firstOrNull { a -> a.shortName.asString() == "Named" }
-    return qualifierAnnotation?.let {
-        qualifierAnnotation.arguments.getValueArgument() ?: error("Can't get value for @Named")
-    }
+fun KSAnnotation.getKoinQualifier(): KoinMetaData.KoinQualifier {
+    val scopeKClassType: KSType? = arguments.firstOrNull { it.name?.asString() == "value" }?.value as? KSType
+    val scopeStringType: String? = arguments.firstOrNull { it.name?.asString() == "name" }?.value as? String
+    return scopeKClassType?.let {
+        val type = it.declaration
+        if (type.simpleName.asString() != "NoClass") {
+            KoinMetaData.KoinQualifier.KoinTypeQualifier(type)
+        } else null
+    } ?: scopeStringType?.let {
+        KoinMetaData.KoinQualifier.KoinStringQualifier(
+            scopeStringType
+        )
+    } ?: error("Named and LazyParam annotations need parameters: either type value or name")
 }
 
 fun List<KSValueParameter>.getConstructorParameters(): List<KoinMetaData.ConstructorParameter> {
@@ -72,14 +88,15 @@ fun List<KSValueParameter>.getConstructorParameters(): List<KoinMetaData.Constru
 
 private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.ConstructorParameter {
     val firstAnnotation = param.annotations.firstOrNull()
+    val namedAnnotation = param.getNamedAnnotations().firstOrNull()
+    val lazyParamAnnotation = param.getLazyParamAnnotations().firstOrNull()
     val annotationName = firstAnnotation?.shortName?.asString()
-    val annotationValue = firstAnnotation?.arguments?.getValueArgument()
     val isNullable = param.type.resolve().isMarkedNullable
     return when (annotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(isNullable)
-        "${LazyParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.LazyParameterInject(annotationValue, isNullable)
-        "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(annotationValue, isNullable)
-        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(annotationValue, isNullable)
+        "${LazyParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.LazyParameterInject(lazyParamAnnotation?.getKoinQualifier(), null, isNullable)
+        "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(firstAnnotation.arguments.getValueArgument(), isNullable)
+        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(namedAnnotation?.getKoinQualifier(), null, isNullable)
         else -> KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable)
     }
 }

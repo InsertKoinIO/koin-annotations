@@ -27,7 +27,7 @@ class ComponentScanner(
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
         val className = ksClassDeclaration.simpleName.asString()
-        val qualifier = ksClassDeclaration.getStringQualifier()
+        val qualifier = element.getNamedAnnotations().firstOrNull()?.getKoinQualifier()
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
         return if (scopeAnnotation != null){
@@ -45,7 +45,7 @@ class ComponentScanner(
         ksClassDeclaration: KSClassDeclaration,
         annotationName: String,
         packageName: String,
-        qualifier: String?,
+        qualifier: KoinMetaData.KoinQualifier?,
         className: String,
         annotations: Map<String, KSAnnotation> = emptyMap()
     ): KoinMetaData.Definition.ClassDefinition {
@@ -82,7 +82,7 @@ class ComponentScanner(
     private fun createSingleDefinition(
         annotation: KSAnnotation,
         packageName: String,
-        qualifier: String?,
+        qualifier: KoinMetaData.KoinQualifier?,
         className: String,
         ctorParams: List<KoinMetaData.ConstructorParameter>?,
         allBindings: List<KSDeclaration>
@@ -95,7 +95,7 @@ class ComponentScanner(
     private fun createClassDefinition(
         keyword : DefinitionAnnotation,
         packageName: String,
-        qualifier: String?,
+        qualifier: KoinMetaData.KoinQualifier?,
         className: String,
         ctorParams: List<KoinMetaData.ConstructorParameter>?,
         allBindings: List<KSDeclaration>,
