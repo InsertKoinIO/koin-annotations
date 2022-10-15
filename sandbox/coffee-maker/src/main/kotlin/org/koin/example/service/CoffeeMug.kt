@@ -6,7 +6,7 @@ import org.koin.core.annotation.Named
 /**
  * Coffee mugs to be injected in different ways
  *
- * They provide their unique name to base class @see [Cup]
+ * They provide their unique name to base class @see  [Cup]
  *
  * @author Alperen Babagil
  */
