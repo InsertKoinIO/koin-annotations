@@ -6,8 +6,8 @@ import org.koin.sample.androidx.data.TaskDatasource
 
 @Single
 class Repository(
-    @Named("local")
+    @Named(name = "local")
     val local: TaskDatasource,
-    @Named("remote")
+    @Named(name = "remote")
     val remote: TaskDatasource
 )

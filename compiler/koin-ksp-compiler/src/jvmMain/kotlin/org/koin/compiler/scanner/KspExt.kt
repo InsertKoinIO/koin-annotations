@@ -20,6 +20,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.isScopeAnnotation
 import org.koin.compiler.metadata.isValidAnnotation
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.LazyParam
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Property
 

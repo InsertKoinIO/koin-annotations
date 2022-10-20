@@ -6,10 +6,10 @@ import org.koin.core.annotation.Single
 interface TaskDatasource
 
 @Single
-@Named("local")
+@Named(name = "local")
 class LocalDatasource : TaskDatasource
 
 @Single
-@Named("remote")
+@Named(name = "remote")
 class RemoteDatasource : TaskDatasource
 

@@ -11,6 +11,7 @@ import org.koin.core.time.measureDuration
 import org.koin.example.coffee.CoffeeMaker
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
+import org.koin.example.service.ServiceModule
 import org.koin.example.tea.TeaModule
 import org.koin.example.tea.TeaPot
 import org.koin.example.test.*
@@ -37,6 +38,7 @@ fun main() {
             CoffeeAppModule().module,
             CoffeeTesterModule().module,
             TeaModule().module,
+            ServiceModule().module
             ExternalModule().module,
             org.koin.example.test.ext2.ExternalModule().module,
             ScopeModule().module

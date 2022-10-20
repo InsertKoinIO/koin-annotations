@@ -109,18 +109,33 @@ You can add a "name" to definition (also called qualifier), to make distinction 
 
 ```kotlin
 @Single
-@Named("InMemoryLogger")
+@Named(name = "InMemoryLogger")
 class LoggerInMemoryDataSource : LoggerDataSource
 
 @Single
-@Named("DatabaseLogger")
+@Named(name = "DatabaseLogger")
 class LoggerLocalDataSource(private val logDao: LogDao) : LoggerDataSource
 ```
+or with type qualifier
+```kotlin
+@Single
+@Named(InMemoryLogger::class)
+class LoggerInMemoryDataSource : LoggerDataSource
+
+@Single
+@Named(DatabaseLogger::class)
+class LoggerLocalDataSource(private val logDao: LogDao) : LoggerDataSource
+```
+
 
 When resolving a dependency, just use the qualifier with `named` function:
 
 ```kotlin
 val logger: LoggerDataSource by inject(named("InMemoryLogger"))
+```
+or
+```kotlin
+val logger: LoggerDataSource by inject(named<InMemoryLogger>())
 ```
 
 ### Injected Parameters with @InjectedParam
@@ -141,8 +156,46 @@ val m = MyDependency
 // Resolve MyComponent while passing  MyDependency
 koin.get<MyComponent> { parametersOf(m) }
 ```
+### Injected Parameters with @LazyParam
 
-The generated DSL equivalent will be `single { params -> MyComponent(params.get()) }`
+You can tag a constructor member as "Lazy parameter", which means that the dependency will be
+injected lazily by using regular api `inject()`.
+
+For example:
+
+```kotlin
+@Single
+class MyComponent(@LazyParam val myDependency: Lazy<MyDependency>)
+```
+
+The generated DSL equivalent will be `single { MyComponent(inject()) }`
+
+or with named qualifier definition:
+```kotlin
+@Single
+@Named(name = "MyDependency")
+class MyDependency
+
+@Single
+@Named(MyDependency::class)
+class MyDependency
+```
+used as parameter like this
+```kotlin
+@Single
+class MyComponent(@LazyParam(name = "MyDependency") val myDependency: Lazy<MyDependency>) // string qualifier
+
+@Single
+class MyComponent(@LazyParam(MyDependency::class) val myDependency: Lazy<MyDependency>) // type qualifier
+```
+
+The generated DSL equivalent will be
+
+`single { MyComponent(inject(named("MyDependencyLocalImpl")))}` or
+
+`single { MyComponent(inject(named<MyDependencyLocalImpl>()))}`
+
+by this way your member it not initialized until it is accessed.
 
 ### Properties with @Property
 
