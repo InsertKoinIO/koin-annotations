@@ -39,7 +39,7 @@ fun main() {
             CoffeeTesterModule().module,
             TeaModule().module,
             ServiceModule().module,
-            ExternalModule().module
+            ExternalModule().module,
             ScopeModule().module
         )
     }
