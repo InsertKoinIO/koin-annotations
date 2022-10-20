@@ -38,9 +38,8 @@ fun main() {
             CoffeeAppModule().module,
             CoffeeTesterModule().module,
             TeaModule().module,
-            ServiceModule().module
-            ExternalModule().module,
-            org.koin.example.test.ext2.ExternalModule().module,
+            ServiceModule().module,
+            ExternalModule().module
             ScopeModule().module
         )
     }
