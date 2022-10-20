@@ -6,7 +6,7 @@ import org.koin.core.annotation.Single
 import org.koin.example.coffee.CoffeeMaker
 
 @Factory
-@Named("test")
+@Named(name = "test")
 class CoffeeMakerTester(val coffeeMaker: CoffeeMaker)
 
 interface CoffeeMakerTesterTest {

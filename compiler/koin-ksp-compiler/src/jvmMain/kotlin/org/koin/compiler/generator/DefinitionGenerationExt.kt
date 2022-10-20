@@ -26,7 +26,7 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> 
     val param = def.parameters.generateParamFunction()
     val ctor = generateConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
-    val qualifier = def.qualifier.generateQualifier()
+    val qualifier = def.qualifier.generateKoinQualifier()
     val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) CREATED_AT_START else ""
 
     val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
@@ -48,12 +48,26 @@ private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): Str
     return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
 }
 
-private fun String?.generateQualifier(): String = when {
-    this == "\"null\"" -> "qualifier=null"
-    this == "null" -> "qualifier=null"
-    !this.isNullOrBlank() -> "qualifier=org.koin.core.qualifier.StringQualifier(\"$this\")"
-    else -> "qualifier=null"
+private fun KoinMetaData.KoinQualifier?.generateKoinQualifier(): String = when(this){
+    is KoinMetaData.KoinQualifier.KoinStringQualifier -> {
+        when {
+            this.name == "\"null\"" -> "qualifier=null"
+            this.name == "null" -> "qualifier=null"
+            !this.name.isNullOrBlank() -> "qualifier=org.koin.core.qualifier.StringQualifier(\"${this.name}\")"
+            else -> "qualifier=null"
+        }
+
+    }
+    is KoinMetaData.KoinQualifier.KoinTypeQualifier -> {
+        val packageNamePrefix = type.containingFile?.packageName?.asString()?.let { "$it." } ?: ""
+        val className = type.simpleName.asString()
+        "qualifier=org.koin.core.qualifier.TypeQualifier($packageNamePrefix$className::class)"
+    }
+    null -> "qualifier=null"
 }
+
+
+
 
 val blocked_types =  listOf("Any","ViewModel")
 
@@ -114,11 +128,15 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
         val isNullable : Boolean = ctorParam.nullable
         when (ctorParam) {
             is KoinMetaData.ConstructorParameter.Dependency -> {
-                val qualifier = ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                val qualifier = ctorParam.qualifier.generateKoinQualifier()
                 if (!isNullable) "get($qualifier)" else "getOrNull($qualifier)"
             }
             is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
             is KoinMetaData.ConstructorParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
+            is KoinMetaData.ConstructorParameter.LazyParameterInject ->{
+                val qualifier = ctorParam.qualifier.generateKoinQualifier()
+                if (!isNullable) "inject($qualifier)" else "injectOrNull($qualifier)"
+            }
         }
     }
 }

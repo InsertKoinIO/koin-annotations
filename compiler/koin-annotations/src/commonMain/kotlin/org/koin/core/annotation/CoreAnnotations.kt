@@ -100,12 +100,13 @@ annotation class Scoped(val binds: Array<KClass<*>> = [])
 
 /**
  * Define a qualifier for a given definition (associated with Koin definition annotation)
- * Will generate `StringQualifier("...")`
+ * Will generate `StringQualifier("...")` or TypeQualifier(...::class)
  *
- * @param value: string qualifier
+ * @param value: type qualifier
+ * @param value: name qualifier
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
-annotation class Named(val value: String)
+annotation class Named(val value: KClass<*> = NoClass::class, val name: String = "")
 
 /**
  * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
@@ -119,6 +120,21 @@ annotation class Named(val value: String)
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class InjectedParam
+
+/**
+ * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
+ *
+ * example:
+ * @Single
+ * @LazyParam() or @LazyParam("XXX") or @LazyParam(XXX::class)
+ * class ParameterClass()
+ *
+ * will result in `single { MyComponent(inject(qualifier = null)) }`
+ * or `single { MyComponent(inject(qualifier = StringQualifier("XXX")) }`
+ * or `single { MyComponent(inject(qualifier = TypeQualifier(XXX::class)) }`
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class LazyParam(val value: KClass<*> = NoClass::class,val name: String = "")
 
 /**
  * Annotate a constructor parameter or function parameter, to resolve as Koin property

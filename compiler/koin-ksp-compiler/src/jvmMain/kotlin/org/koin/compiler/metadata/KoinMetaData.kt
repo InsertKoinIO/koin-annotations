@@ -17,6 +17,7 @@ package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
 import java.util.*
+import kotlin.reflect.KClass
 
 sealed class KoinMetaData {
 
@@ -58,11 +59,16 @@ sealed class KoinMetaData {
         data class StringScope(val name: String) : Scope()
     }
 
+    sealed class KoinQualifier{
+        data class KoinStringQualifier(val name:String) : KoinQualifier()
+        data class KoinTypeQualifier(val type: KSDeclaration) : KoinQualifier()
+    }
+
     sealed class Definition(
         val label: String,
         val parameters: List<ConstructorParameter>,
         val packageName: String,
-        val qualifier: String? = null,
+        val qualifier: KoinQualifier? = null,
         val isCreatedAtStart: Boolean? = null,
         val keyword: DefinitionAnnotation,
         val bindings: List<KSDeclaration>,
@@ -95,7 +101,7 @@ sealed class KoinMetaData {
 
         class FunctionDefinition(
             packageName: String,
-            qualifier: String?,
+            qualifier: KoinQualifier?,
             isCreatedAtStart: Boolean? = null,
             keyword: DefinitionAnnotation,
             val functionName: String,
@@ -106,7 +112,7 @@ sealed class KoinMetaData {
 
         class ClassDefinition(
             packageName: String,
-            qualifier: String?,
+            qualifier: KoinQualifier?,
             isCreatedAtStart: Boolean? = null,
             keyword: DefinitionAnnotation,
             val className: String,
@@ -119,11 +125,9 @@ sealed class KoinMetaData {
     }
 
     sealed class ConstructorParameter(val nullable: Boolean = false) {
-        data class Dependency(val value: String? = null, val isNullable: Boolean = false) :
-            ConstructorParameter(isNullable)
-
+        data class Dependency(val qualifier: KoinQualifier? = null, val annotationType: KClass<*>? = null, val isNullable: Boolean = false) : ConstructorParameter(isNullable)
         data class ParameterInject(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
-        data class Property(val value: String? = null, val isNullable: Boolean = false) :
-            ConstructorParameter(isNullable)
+        data class LazyParameterInject(val qualifier: KoinQualifier? = null, val annotationType: KClass<*>? = null, val isNullable: Boolean = false) : ConstructorParameter(isNullable)
+        data class Property(val value: String? = null, val isNullable: Boolean = false) : ConstructorParameter(isNullable)
     }
 }
