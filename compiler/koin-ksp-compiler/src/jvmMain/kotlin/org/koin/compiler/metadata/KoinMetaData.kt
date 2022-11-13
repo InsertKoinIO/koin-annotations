@@ -16,6 +16,7 @@
 package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.Visibility
 import java.util.*
 
 sealed class KoinMetaData {
@@ -26,7 +27,8 @@ sealed class KoinMetaData {
         val definitions: MutableList<Definition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
         val componentScan: ComponentScan? = null,
-        val includes : List<KSDeclaration>? = null
+        val includes : List<KSDeclaration>? = null,
+        val visibility: Visibility = Visibility.PUBLIC,
     ) : KoinMetaData() {
 
         fun packageName(separator : String) : String{

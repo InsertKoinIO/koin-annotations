@@ -53,7 +53,10 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     generateDefinitions(module, classFile)
 
     classFile.appendText("\n}")
-    classFile.appendText("\nval $modulePath.module : org.koin.core.module.Module get() = $generatedField")
+    val visibilityString = module.visibility.toSourceString()
+    classFile.appendText(
+        "\n${visibilityString}val $modulePath.module : org.koin.core.module.Module get() = $generatedField"
+    )
 
     classFile.flush()
     classFile.close()
@@ -101,7 +104,8 @@ private fun KoinMetaData.Module.generateModuleField(
 ): String {
     val packageName = packageName("_")
     val generatedField = "${packageName}_${name}"
-    classFile.appendText("\nval $generatedField = module {")
+    val visibilityString = visibility.toSourceString()
+    classFile.appendText("\n${visibilityString}val $generatedField = module {")
     return generatedField
 }
 
