@@ -35,11 +35,10 @@ class KoinMetaDataScanner(
     private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
 
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
-        val moduleSymbols =
-            resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
+        val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
-        val invalidSymbols = moduleSymbols.filter { !it.validate() }
 
+        val invalidSymbols = moduleSymbols.filter { !it.validate() }
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid Module symbols found")
             logInvalidEntities(invalidSymbols)
@@ -51,8 +50,8 @@ class KoinMetaDataScanner(
                 resolver.getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
             }
         validDefinitionSymbols.addAll(classSymbols.filter { it.validate() })
-        val invalidDefinitionSymbols = classSymbols.filter { !it.validate() }
 
+        val invalidDefinitionSymbols = classSymbols.filter { !it.validate() }
         if (invalidDefinitionSymbols.isNotEmpty()) {
             logger.logging("Invalid definition symbols found.")
             logInvalidEntities(invalidDefinitionSymbols)
@@ -60,7 +59,6 @@ class KoinMetaDataScanner(
         }
 
         logger.logging("All symbols are valid")
-
         return emptyList()
     }
 
