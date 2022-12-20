@@ -25,4 +25,6 @@ dependencies {
     implementation("io.insert-koin:koin-annotations:$koinKspVersion")
     ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
     implementation(project(":coffee-maker-module"))
+
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
 }

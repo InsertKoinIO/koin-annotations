@@ -1,4 +1,5 @@
 val koinVersion: String by project
+val koinAndroidVersion: String by project
 val appcompatVersion : String by project
 val koinKspVersion: String by project
 
@@ -16,7 +17,7 @@ repositories {
 }
 
 android {
-    compileSdkVersion(31)
+    compileSdkVersion(32)
     defaultConfig {
         applicationId = "org.gradle.kotlin.dsl.samples.androidstudio"
         minSdkVersion(21)
@@ -44,7 +45,7 @@ android {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.insert-koin:koin-android:$koinVersion")
+    implementation("io.insert-koin:koin-android:$koinAndroidVersion")
 
     implementation("io.insert-koin:koin-annotations:$koinKspVersion")
     ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
