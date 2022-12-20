@@ -250,7 +250,7 @@ This will scan current package and subpackages for annotated components.
 
 ### Definitions in Class Modules
 
-To define a definition directly in your can, you an annotate a function with definition annotations:
+To define a definition directly in your scan, you an annotate a function with definition annotations:
 
 ```kotlin
 // given 
