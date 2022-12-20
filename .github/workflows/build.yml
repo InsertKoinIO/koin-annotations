@@ -34,10 +34,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Build & install Compiler
-        run: cd compiler && ./build.sh && ./install.sh
+      - name: Install Compiler
+        run: cd compiler && ./install.sh
 
       - name: Run Sandbox Test
-        run: cd compiler && ./test.sh
+        run: cd sandbox && ./test.sh
 
 
