@@ -17,48 +17,76 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
+import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.core.annotation.Module
-import kotlin.reflect.KClass
 
 class KoinMetaDataScanner(
-    val logger: KSPLogger
+    private val logger: KSPLogger
 ) {
 
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ComponentScanner(logger)
 
-    fun scanAllMetaData(
-        resolver: Resolver,
-        defaultModule: KoinMetaData.Module
-    ): List<KoinMetaData.Module> {
-        val moduleList = scanClassModules(resolver)
+    private var validModuleSymbols = mutableListOf<KSAnnotated>()
+    private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
+
+    fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
+        val moduleSymbols =
+            resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
+        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
+        val invalidSymbols = moduleSymbols.filter { !it.validate() }
+
+        if (invalidSymbols.isNotEmpty()) {
+            logger.logging("Invalid Module symbols found")
+            logInvalidEntities(invalidSymbols)
+            return invalidSymbols
+        }
+
+        val classSymbols = DEFINITION_ANNOTATION_LIST_TYPES
+            .flatMap { annotationClass ->
+                resolver.getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
+            }
+        validDefinitionSymbols.addAll(classSymbols.filter { it.validate() })
+        val invalidDefinitionSymbols = classSymbols.filter { !it.validate() }
+
+        if (invalidDefinitionSymbols.isNotEmpty()) {
+            logger.logging("Invalid definition symbols found.")
+            logInvalidEntities(invalidDefinitionSymbols)
+            return invalidDefinitionSymbols
+        }
+
+        logger.logging("All symbols are valid")
+
+        return emptyList()
+    }
+
+    fun scanAllMetaData(defaultModule: KoinMetaData.Module): List<KoinMetaData.Module> {
+        val moduleList = scanClassModules()
         val scanComponentIndex = moduleList.generateScanComponentIndex()
-        scanClassComponents(resolver, defaultModule, scanComponentIndex)
+        scanClassComponents(defaultModule, scanComponentIndex)
         return moduleList
     }
 
-    private fun scanClassModules(
-        resolver: Resolver
-    ): List<KoinMetaData.Module> {
+    private fun scanClassModules(): List<KoinMetaData.Module> {
         logger.logging("scan modules ...")
-        return resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
+        return validModuleSymbols
             .filter { it is KSClassDeclaration && it.validate() }
             .map { moduleMetadataScanner.createClassModule(it) }
             .toList()
     }
 
     private fun List<KoinMetaData.Module>.generateScanComponentIndex(): List<KoinMetaData.Module> {
-        val moduleList = hashMapOf<String,KoinMetaData.Module>()
+        val moduleList = hashMapOf<String, KoinMetaData.Module>()
         val emptyScanList = arrayListOf<KoinMetaData.Module>()
         forEach { module ->
             module.componentScan?.let { scan ->
-                when(scan.packageName){
+                when (scan.packageName) {
                     "" -> emptyScanList.add(module)
-                    else -> if (moduleList.contains(scan.packageName)){
+                    else -> if (moduleList.contains(scan.packageName)) {
                         val existing = moduleList[scan.packageName]!!
                         error("@ComponentScan with '${scan.packageName}' from module ${module.name} is already declared in ${existing.name}. Please fix @ComponentScan value ")
                     } else {
@@ -71,25 +99,17 @@ class KoinMetaDataScanner(
     }
 
     private fun scanClassComponents(
-        resolver: Resolver,
         defaultModule: KoinMetaData.Module,
         scanComponentIndex: List<KoinMetaData.Module>
     ): List<KoinMetaData.Definition> {
-        // component scan
         logger.logging("scan definitions ...")
 
-        val definitions = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { a -> resolver.scanClassDefinition(a) }
-        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
-        return definitions
-    }
-
-    private fun Resolver.scanClassDefinition(
-        annotationClass: KClass<*>
-    ): List<KoinMetaData.Definition> {
-        return getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
-            .filter { it is KSClassDeclaration && it.validate() }
+        val definitions = validDefinitionSymbols
+            .filterIsInstance<KSClassDeclaration>()
             .map { componentMetadataScanner.extractClassDefinition(it) }
             .toList()
+        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
+        return definitions
     }
 
     private fun addToModule(
@@ -105,5 +125,18 @@ class KoinMetaDataScanner(
         } else {
             logger.logging("skip addToModule - definition(class) -> $definition -> module $foundModule - already exists")
         }
+    }
+
+    private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
+        classDeclarationList
+            .map { it as KSClassDeclaration }
+            .forEach { classDeclaration ->
+                logger.logging("Invalid entity: $classDeclaration")
+                logger.logging("   qualifiedName = ${classDeclaration.qualifiedName?.asString()}")
+                logger.logging("   classKind = ${classDeclaration.classKind}")
+                classDeclaration.superTypes.forEach {
+                    logger.logging("   superType = $it")
+                }
+            }
     }
 }
