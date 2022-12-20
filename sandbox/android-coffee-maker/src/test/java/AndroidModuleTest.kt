@@ -1,22 +1,20 @@
 package org.koin.sample.androidx
 
-import android.app.Application
+import org.junit.Test
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
-import org.koin.core.logger.Level
+import org.koin.core.context.stopKoin
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import org.koin.sample.androidx.di.AppModule
 import org.koin.sample.androidx.di.DataModule
 import org.koin.sample.androidx.repository.RepositoryModule
 
-class MainApplication : Application() {
+class AndroidModuleTest {
 
-    override fun onCreate() {
-        super.onCreate()
-
+    @Test
+    fun run_all_modules() {
         startKoin {
-            androidLogger(Level.DEBUG)
             modules(
                 defaultModule,
                 DataModule().module,
@@ -24,5 +22,6 @@ class MainApplication : Application() {
                 AppModule().module,
             )
         }
+        stopKoin()
     }
 }

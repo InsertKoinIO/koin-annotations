@@ -34,14 +34,15 @@ class MainActivity : AppCompatActivity() {
 
         button.setOnClickListener {
             textView.text = "I need coffee"
-            coffeeFactory.coffeeMakerTester.coffeeMaker.brew()
         }
 
-        coffeeViewModel.coffeeMaker.brew()
+        assert(coffeeViewModel.repository.getId() == "_ID_")
+
         assert(myPresenter.mainActivity == this)
 
         assert(todoViewModel.repository.local == getKoin().get<TaskDatasource>(named("local")))
         assert(todoViewModel.repository.remote == getKoin().get<TaskDatasource>(named("remote")))
         assert(heater != null)
+        assert(coffeeFactory != null)
     }
 }

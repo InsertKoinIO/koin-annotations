@@ -4,7 +4,7 @@ val appcompatVersion : String by project
 val koinKspVersion: String by project
 
 plugins {
-    id("com.android.application")
+    id("com.android.library")
     kotlin("android")
     id("com.google.devtools.ksp")
     idea
@@ -19,21 +19,10 @@ repositories {
 android {
     compileSdkVersion(32)
     defaultConfig {
-        applicationId = "org.gradle.kotlin.dsl.samples.androidstudio"
         minSdkVersion(21)
-        versionCode = 1
-        versionName = "1.0"
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-        }
-    }
-
     // to use KSP generated Code
-    applicationVariants.all {
+    libraryVariants.all {
         val variantName = name
         sourceSets {
             getByName("main") {
@@ -49,8 +38,6 @@ dependencies {
 
     implementation("io.insert-koin:koin-annotations:$koinKspVersion")
     ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
-
-    implementation(project(":android-library"))
 
     implementation ("androidx.appcompat:appcompat:$appcompatVersion")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
