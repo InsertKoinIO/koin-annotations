@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         title = "Android Coffee Maker"
 
         button.setOnClickListener {
-            textView.text = "I need coffee"
+            textView.text = "Coffee Inside !"
         }
 
         assert(coffeeViewModel.repository.getId() == "_ID_")
