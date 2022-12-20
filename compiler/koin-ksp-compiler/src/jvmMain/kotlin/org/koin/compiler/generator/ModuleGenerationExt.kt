@@ -125,7 +125,7 @@ private fun List<KSDeclaration>.generateModuleIncludes(): String {
 }
 
 private fun KSDeclaration.generateModuleInclude(): String {
-    val packageName: String = containingFile?.packageName?.asString() ?: ""
+    val packageName: String = packageName.asString()
     val className = simpleName.asString()
     return "$packageName.$className().module"
 }
