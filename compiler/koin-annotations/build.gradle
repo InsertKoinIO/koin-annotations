@@ -6,10 +6,12 @@ def ideaActive = System.getProperty('idea.active') == 'true'
 
 kotlin {
     jvm()
-    js(BOTH) {
-        nodejs()
-        browser()
-    }
+
+    // Array in Annotations not yet supported :/
+//    js(BOTH) {
+//        nodejs()
+//        browser()
+//    }
 
     if(ideaActive) {
         macosX64("native")
