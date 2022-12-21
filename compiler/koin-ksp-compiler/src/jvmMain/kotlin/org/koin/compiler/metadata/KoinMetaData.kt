@@ -121,11 +121,15 @@ sealed class KoinMetaData {
     }
 
     sealed class ConstructorParameter(val nullable: Boolean = false) {
-        data class Dependency(val value: String? = null, val isNullable: Boolean = false, val isList : Boolean = false) :
+        data class Dependency(val value: String? = null, val isNullable: Boolean = false, val kind : DependencyKind = DependencyKind.Single) :
             ConstructorParameter(isNullable)
 
         data class ParameterInject(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
         data class Property(val value: String? = null, val isNullable: Boolean = false) :
             ConstructorParameter(isNullable)
+    }
+
+    enum class DependencyKind {
+        Single, List, Lazy
     }
 }

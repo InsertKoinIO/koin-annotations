@@ -76,12 +76,20 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     val annotationValue = firstAnnotation?.arguments?.getValueArgument()
     val resolvedType = param.type.resolve()
     val isNullable = resolvedType.isMarkedNullable
-    val isList = resolvedType.toString().startsWith("List<")
+    val resolvedTypeString = resolvedType.toString()
+    //TODO check to see better way to detect this
+    val isList = resolvedTypeString.startsWith("List<")
+    val isLazy = resolvedTypeString.startsWith("Lazy<")
+
     return when (annotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(isNullable)
         "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(annotationValue, isNullable)
         "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(annotationValue, isNullable)
-        else -> KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, isList = isList)
+        else -> {
+            if (isList) KoinMetaData.ConstructorParameter.Dependency(kind = KoinMetaData.DependencyKind.List)
+            else if (isLazy) KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, kind = KoinMetaData.DependencyKind.Lazy)
+            else KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable)
+        }
     }
 }
 

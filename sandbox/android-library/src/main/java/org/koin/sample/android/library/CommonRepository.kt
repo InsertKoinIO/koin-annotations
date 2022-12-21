@@ -7,7 +7,9 @@ interface AbstractRepository {
 }
 
 @Single
-class CommonRepository : AbstractRepository{
-    override fun getId(): String = "_ID_"
+class OtherParam
 
+@Single
+class CommonRepository(val lazyParam: Lazy<OtherParam>) : AbstractRepository{
+    override fun getId(): String = "_ID_"
 }

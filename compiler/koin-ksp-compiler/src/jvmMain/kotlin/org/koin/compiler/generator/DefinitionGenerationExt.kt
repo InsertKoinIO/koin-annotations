@@ -118,12 +118,14 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
         val isNullable: Boolean = ctorParam.nullable
         when (ctorParam) {
             is KoinMetaData.ConstructorParameter.Dependency -> {
-                if (ctorParam.isList) {
-                    "getAll()"
-                } else {
-                    val qualifier =
-                        ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
-                    if (!isNullable) "get($qualifier)" else "getOrNull($qualifier)"
+                when(ctorParam.kind){
+                    KoinMetaData.DependencyKind.List -> "getAll()"
+                    else -> {
+                        val keyword = if (ctorParam.kind == KoinMetaData.DependencyKind.Lazy) "inject" else "get"
+                        val qualifier =
+                            ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                        if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
+                    }
                 }
             }
 
