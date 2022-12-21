@@ -21,7 +21,7 @@ rootProject.name = "playground"
 include(":coffee-maker")
 include(":coffee-maker-module")
 
-include(":compile-perf")
-
 include(":android-coffee-maker")
 include(":android-library")
+
+include(":compile-perf")
