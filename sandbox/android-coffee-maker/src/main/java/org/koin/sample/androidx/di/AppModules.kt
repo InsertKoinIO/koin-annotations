@@ -10,4 +10,4 @@ class AppModule
 
 @Module(includes = [CommonModule::class])
 @ComponentScan("org.koin.sample.androidx.data")
-class DataModule
+internal class DataModule
