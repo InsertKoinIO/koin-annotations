@@ -7,6 +7,7 @@ import org.koin.core.qualifier.StringQualifier
 import org.koin.core.qualifier.named
 import org.koin.example.CoffeeApp
 import org.koin.example.coffee.CoffeePumpList
+import org.koin.example.coffee.pump.PumpCounter
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
 import org.koin.example.measureDuration
@@ -78,6 +79,7 @@ class CoffeeAppTest {
         koin.get<IncludedComponent>()
 
         assert(koin.get<CoffeePumpList>().list.size == 2)
+        assert(koin.get<PumpCounter>().count == 2)
 
         stopKoin()
     }
