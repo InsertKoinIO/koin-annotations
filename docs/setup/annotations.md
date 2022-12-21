@@ -1,13 +1,13 @@
 ---
-title: Koin Annotations 1.0
+title: Koin Annotations
 ---
 
 Setup Koin Annotations for your project 
 
-### Version
+## Version
 
 ```groovy
-koin_ksp_version= "1.0.2"
+koin_ksp_version= "1.1.0"
 ```
 
 Everything is hosted on maven central:
@@ -22,15 +22,15 @@ repositories {
 You can find all [Koin packages on maven central](https://search.maven.org/search?q=io.insert-koin).
 
 :::info
- Koin 3.2 or newer is required
+ Koin 3.3 or newer is required
 :::
 
-### KSP Plugin
+## KSP Plugin
 
 We need KSP Plugin to work (https://github.com/google/ksp). Jst add the gradle plugin:
 
 ```groovy
-ksp_version = "1.6.21-1.0.6""
+ksp_version = "1.7.21-1.0.8""
 ```
 
 ```groovy
@@ -41,7 +41,7 @@ plugins {
 }
 ```
 
-### Kotlin App Setup
+## Kotlin App Setup
 
 Here below how you can configure a kotlin (even a ktor) app:
 
@@ -62,7 +62,7 @@ dependencies {
 }
 ```
 
-### Android App Setup
+## Android App Setup
 
 Here below how you can configure an Android app:
 
@@ -95,7 +95,7 @@ libraryVariants.all { variant ->
 }
 ```
 
-### Kotlin KMP Setup
+## Kotlin KMP Setup
 
 Please follow KSP setup as described in official documentation: [KSP with Kotlin Multiplatform](https://kotlinlang.org/docs/ksp-multiplatform.html)
 
