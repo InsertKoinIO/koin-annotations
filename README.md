@@ -10,7 +10,7 @@ Here below is the current version:
 koin_annotations_version = "1.1.0"
 ```
 
-> Koin 3.2+ is required
+> Koin 3.3+ is required
 
 ## Setup
 
