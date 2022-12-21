@@ -21,8 +21,8 @@ import java.io.OutputStream
 
 const val NEW_LINE = "\n\t"
 
-fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> String) {
-    LOGGER.logging("generate $def")
+fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label: () -> String) {
+    LOGGER.logging("generate ${def.label} - $def")
     val param = def.parameters.generateParamFunction()
     val ctor = generateConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
@@ -34,12 +34,12 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label : () -> 
 }
 
 fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
-    generateDefinition(def){"moduleInstance.${def.functionName}"}
+    generateDefinition(def) { "moduleInstance.${def.functionName}" }
 }
 
 
 fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDefinition) {
-    generateDefinition(def){"${def.packageName}.${def.className}"}
+    generateDefinition(def) { "${def.packageName}.${def.className}" }
 }
 
 const val CREATED_AT_START = ",createdAtStart=true"
@@ -55,7 +55,7 @@ private fun String?.generateQualifier(): String = when {
     else -> "qualifier=null"
 }
 
-val blocked_types =  listOf("Any","ViewModel")
+val blocked_types = listOf("Any", "ViewModel")
 
 private fun generateBindings(bindings: List<KSDeclaration>): String {
     return when {
@@ -67,7 +67,10 @@ private fun generateBindings(bindings: List<KSDeclaration>): String {
                 "bind($generateBinding)"
             } else ""
         }
-        else -> bindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") { generateBinding(it) ?: "" }
+
+        else -> bindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") {
+            generateBinding(it) ?: ""
+        }
     }
 }
 
@@ -96,27 +99,34 @@ private fun getParentDeclarations(declaration: KSDeclaration): List<KSDeclaratio
 }
 
 fun generateScope(scope: KoinMetaData.Scope): String {
-    return when(scope){
+    return when (scope) {
         is KoinMetaData.Scope.ClassScope -> {
             val type = scope.type
             val packageName = type.containingFile!!.packageName.asString()
             val className = type.simpleName.asString()
             "${NEW_LINE}scope<$packageName.$className> {"
         }
+
         is KoinMetaData.Scope.StringScope -> "${NEW_LINE}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {\n"
     }
 }
 
-fun generateScopeClosing() : String = "${NEW_LINE}}"
+fun generateScopeClosing(): String = "${NEW_LINE}}"
 
 private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
     return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
-        val isNullable : Boolean = ctorParam.nullable
+        val isNullable: Boolean = ctorParam.nullable
         when (ctorParam) {
             is KoinMetaData.ConstructorParameter.Dependency -> {
-                val qualifier = ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
-                if (!isNullable) "get($qualifier)" else "getOrNull($qualifier)"
+                if (ctorParam.isList) {
+                    "getAll()"
+                } else {
+                    val qualifier =
+                        ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                    if (!isNullable) "get($qualifier)" else "getOrNull($qualifier)"
+                }
             }
+
             is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
             is KoinMetaData.ConstructorParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
         }

@@ -6,6 +6,7 @@ import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.StringQualifier
 import org.koin.core.qualifier.named
 import org.koin.example.CoffeeApp
+import org.koin.example.coffee.CoffeePumpList
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
 import org.koin.example.measureDuration
@@ -75,6 +76,8 @@ class CoffeeAppTest {
         assert(koin.get<TestComponentConsumer3>{ parametersOf("42") }.id == "42")
 
         koin.get<IncludedComponent>()
+
+        assert(koin.get<CoffeePumpList>().list.size == 2)
 
         stopKoin()
     }
