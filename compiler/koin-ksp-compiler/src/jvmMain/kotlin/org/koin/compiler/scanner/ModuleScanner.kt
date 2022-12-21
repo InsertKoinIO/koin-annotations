@@ -15,6 +15,7 @@
  */
 package org.koin.compiler.scanner
 
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
@@ -36,7 +37,8 @@ class ModuleScanner(
             name = name,
             type = KoinMetaData.ModuleType.CLASS,
             componentScan = componentScan,
-            includes = includes
+            includes = includes,
+            visibility = declaration.getVisibility()
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
