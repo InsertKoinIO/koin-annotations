@@ -3,6 +3,18 @@
 Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKING]`
 
 
+## [1.1.x]()
+
+- `[UPDATED]` - Kotlin `1.7.21`
+- `[UPDATED]` - Google KSP `1.7.21-1.0.8`
+- `[FIXED]` - Added macosArm64 Target
+- `[REMOVED]` - JS support, as array is not supported yet in annotations
+- `[UPDATED]` - Multiple Round Processing PR #62
+- `[FIXED]` - Import Module package generation is now fixed
+- `[NEW]` - Detect injection of List<A>, to generate `getAll<A>` 
+- `[NEW]` - Detect injection of Lazy<A>, to generate `inject<A>` 
+- `[FIXED]` - Module visibility is now fixed from PR #63
+
 ## [1.0.x]()
 
 ### [1.0.3]()
