@@ -1,4 +1,4 @@
-name: Release Core
+name: Release
 
 on:
   push:
