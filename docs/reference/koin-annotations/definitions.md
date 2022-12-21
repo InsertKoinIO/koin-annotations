@@ -93,9 +93,28 @@ koin.get<MyComponent> { parametersOf(m) }
 
 The generated DSL equivalent will be `single { params -> MyComponent(params.get()) }`
 
-## Injecting a list of dependencies
 
-Koin will automatically resolve all `LoggerDataSource`:
+## Injecting a lazy dependency - Lazy<T>
+
+Koin can automatically detect and resolve a lazy dependency. Here for example, we want to resolve lazily the `LoggerDataSource` definition. You just need to use the `Lazy` Kotlin type like follow:
+
+```kotlin
+@Single
+class LoggerInMemoryDataSource : LoggerDataSource
+
+@Single
+class LoggerAggregator(val lazyLogger : Lazy<LoggerDataSource>)
+```
+
+Behind it will generate the DSL like with `inject()` instead of `get()`:
+
+```kotlin
+single { LoggerAggregator(inject()) }
+```
+
+## Injecting a list of dependencies - List<T>
+
+Koin can automatically detect and resolve all a list of dependency. Here for example, we want to resolve all `LoggerDataSource` definition. You just need to use the `List` Kotlin type like follow:
 
 ```kotlin
 @Single
@@ -110,7 +129,7 @@ class LoggerLocalDataSource(private val logDao: LogDao) : LoggerDataSource
 class LoggerAggregator(val datasource : List<LoggerDataSource>)
 ```
 
-Behind it will generate the DSL like that:
+Behind it will generate the DSL like with `getAll()` function:
 
 ```kotlin
 single { LoggerAggregator(getAll()) }
