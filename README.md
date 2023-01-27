@@ -1,104 +1,65 @@
-# Koin Annotations
+![logo](https://github.com/InsertKoinIO/koin/blob/main/docs/img/koin_main_logo.png)
 
-The goal of Koin Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developer experience to scale and go fast 🚀, thanks to Kotlin Compilers.
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.7.21-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations)
+![Github Actions](https://github.com/InsertKoinIO/koin-annotations/actions/workflows/build.yml/badge.svg)
+[![Apache 2 License](https://img.shields.io/github/license/InsertKoinIO/koin)](https://github.com/InsertKoinIO/koin/blob/main/LICENSE.txt)
+[![Slack channel](https://img.shields.io/badge/Chat-Slack-orange.svg?style=flat&logo=slack)](https://kotlinlang.slack.com/messages/koin/)
 
-## Current Version
 
-Here below is the current version:
+# What is KOIN Annotations?
+ 
+Koin is a pragmatic lightweight dependency injection framework for Kotlin developers, developed by [Kotzilla](https://kotzilla.io) and open-source contributors.
 
-```kotlin
-koin_annotations_version = "1.1.0"
-```
+`Koin Annotations project brings annotation capacity yo Koin projects, powered by Google KSP`
 
-> Koin 3.3+ is required
+## Setup & Current Version
 
-## Setup
-
-First, setup KSP plugin like this, in your root `build.gradle`:
-
-```kotlin
-plugins {
-    id "com.google.devtools.ksp" version "1.7.21-1.0.8"
-}
-```
-
-Use the following dependencies in your Gradle dependencies section:
-
-```kotlin
-// Koin Annotations
-implementation "io.insert-koin:koin-annotations:$koin_annotations_version"
-
-// Koin Annotations - Ksp Compiler
-ksp "io.insert-koin:koin-ksp-compiler:$koin_annotations_version"
-```
-
-On your app add the following to see generated source code:
-
-* On Kotlin project:
+Here are the current available Koin projects versions:
 
 ```groovy
-sourceSets.main {
-    java.srcDirs("build/generated/ksp/main/kotlin")
-}
+koin_ksp_version= "1.1.0"
 ```
 
-* on Android project:
+Follow the [Koin Annotations setup page](https://insert-koin.io/docs/setup/annotations) for more details
 
-```groovy
-android {
-    applicationVariants.all { variant ->
-        variant.sourceSets.java.each {
-            it.srcDirs += "build/generated/ksp/${variant.name}/kotlin"
-        }
-    }
-}
-```
 
-## Getting Started
+## Get started with Koin Tutorials 🚀
 
-Not familiar with Koin? First take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
+You can find here tutorials to help you learn and get started with Koin framework:
+- [Kotlin](https://insert-koin.io/docs/quickstart/kotlin)
+- [Kotlin with Koin Annotations](https://insert-koin.io/docs/quickstart/kotlin-annotations)
+- [Android](https://insert-koin.io/docs/quickstart/android-viewmodel)
+- [Android with Koin Annotations](https://insert-koin.io/docs/quickstart/android-annotations)
+- [Android Jetpack Compose](https://insert-koin.io/docs/quickstart/android-compose)
+- [Kotlin Multiplatform](https://insert-koin.io/docs/quickstart/kmm)
+- [Ktor](https://insert-koin.io/docs/quickstart/ktor)
 
-Tag your components with definition & module annotations, and use the regular Koin API.
+## Latest News & Resources 🌐
+- The official Koin website: [insert-koin.io](https://insert-koin.io)
+- Twitter: [@insertkoin_io](https://twitter.com/insertkoin_io)
+- Medium: [Koin Developers Hub](https://medium.com/koin-developers)
+- Kotzilla Blog: [Kotzilla Blog](https://blog.kotzilla.io/)
 
-```kotlin
-// Tag your component to declare a definition
-@Single
-class MyComponent
-```
+## Community 💬
 
-```kotlin
-// Declare a module and scan for annotations
-@Module
-@ComponentScan
-class MyModule
-```
+- Come talk on slack [#koin](https://kotlinlang.slack.com/?redir=%2Fmessages%2Fkoin) channel
+- Post your question on [Stackoverflow](https://stackoverflow.com/questions/tagged/koin)
+- Found a bug or a problem? Open an issue on [Github issues](https://github.com/InsertKoinIO/koin/issues)
 
-Use the `org.koin.ksp.generated.*` import as follow to be able to use generated code:
+## Contributing 🛠
 
-```kotlin
-// Use Koin Generation
-import org.koin.ksp.generated.*
+Want to help or share a proposal about Koin? problem on a specific feature? 
 
-fun main() {
-    val koin = startKoin {
-        printLogger()
-        modules(
-          // use your modules here, with generated ".module" extension on Module classes
-          MyModule().module
-        )
-    }
+- Open an issue to explain the issue you want to solve [Open an issue](https://github.com/InsertKoinIO/koin/issues)
+- Come talk on slack [#koin-dev](https://kotlinlang.slack.com/?redir=%2Fmessages%2Fkoin-dev) channel
+- After discussion to validate your ideas, you can open a PR or even a draft PR if the contribution is a big one [Current PRs](https://github.com/InsertKoinIO/koin/pulls)
 
-    // Just use your Koin API as regular
-    koin.get<MyComponent>()
-}
-```
+Additional readings about basic setup: https://github.com/InsertKoinIO/koin/blob/master/CONTRIBUTING.adoc
 
-That's it, you can use your new definitions in Koin with the [regular Koin API](https://insert-koin.io/docs/reference/introduction)
+<a href="https://github.com/InsertKoinIO/koin/graphs/contributors"><img src="https://opencollective.com/koin/contributors.svg?width=890&button=false" /></a>
 
-## QuickStart
+## Sponsorship ❤️
 
-Below some quickstart apps:
-* [Kotlin app](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/quickstart-kotlin-annotations)
-* [Android app](https://github.com/InsertKoinIO/koin-annotations/tree/main/quickstart/quickstart-android-annotations)
+Support this project by becoming a sponsor and be displayed on the offcial website. [[Become a sponsor](https://opencollective.com/koin#sponsor)]
 
-## [Documentation](https://insert-koin.io/docs/reference/koin-annotations/annotations)
