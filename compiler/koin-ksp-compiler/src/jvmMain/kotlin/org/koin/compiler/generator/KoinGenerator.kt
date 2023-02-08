@@ -43,19 +43,20 @@ class KoinGenerator(
 
         if (defaultModule.definitions.isNotEmpty()) {
             logger.logging("generate default module ...")
-            val defaultModuleFile = codeGenerator.getDefaultFile()
+            val defaultModuleFile = codeGenerator.getFile(fileName = "Default")
             defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
-            generateModule(defaultModule)
+            generateModule(defaultModule, defaultModuleFile)
             defaultModuleFile.generateDefaultModuleFooter()
+            defaultModuleFile.close()
         }
     }
 
-    private fun generateModule(module: KoinMetaData.Module) {
+    private fun generateModule(module: KoinMetaData.Module, defaultFile: OutputStream? = null) {
         logger.logging("generate $module - ${module.type}")
         if (module.definitions.isNotEmpty()) {
             when (module.type) {
                 KoinMetaData.ModuleType.FIELD -> {
-                    codeGenerator.getDefaultFile().generateFieldDefaultModule(module.definitions)
+                    defaultFile!!.generateFieldDefaultModule(module.definitions)
                 }
                 KoinMetaData.ModuleType.CLASS -> {
                     val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
@@ -78,21 +79,14 @@ class KoinGenerator(
     }
 }
 
-private var defaultFile: OutputStream? = null
-fun CodeGenerator.getDefaultFile(): OutputStream {
-    return if (defaultFile != null) defaultFile!!
-    else {
-        defaultFile = createNewFile(
+fun CodeGenerator.getFile(packageName: String = "org.koin.ksp.generated", fileName: String): OutputStream {
+    return try {
+        createNewFile(
             Dependencies.ALL_FILES,
-            "org.koin.ksp.generated",
-            "Default"
+            packageName,
+            fileName
         )
-        defaultFile!!
+    } catch (ex: FileAlreadyExistsException){
+        ex.file.outputStream()
     }
 }
-
-fun CodeGenerator.getFile(packageName: String = "org.koin.ksp.generated", fileName: String) = createNewFile(
-    Dependencies.ALL_FILES,
-    packageName,
-    fileName
-)

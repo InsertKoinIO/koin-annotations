@@ -28,18 +28,11 @@ class BuilderProcessor(
 
     private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-
-    private var codeGenerated = false
-
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (codeGenerated) {
-            return emptyList()
-        }
-
         logger.logging("Scanning symbols ...")
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
-            logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting second round")
+            logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting for next round")
             return invalidSymbols
         }
 
@@ -53,7 +46,6 @@ class BuilderProcessor(
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule)
-        codeGenerated = true
 
         return emptyList()
     }
