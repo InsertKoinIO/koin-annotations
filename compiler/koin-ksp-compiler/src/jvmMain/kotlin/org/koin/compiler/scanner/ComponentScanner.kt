@@ -23,7 +23,7 @@ class ComponentScanner(
     val logger: KSPLogger,
 ) {
 
-    fun extractClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
+    fun createClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
         val className = ksClassDeclaration.simpleName.asString()

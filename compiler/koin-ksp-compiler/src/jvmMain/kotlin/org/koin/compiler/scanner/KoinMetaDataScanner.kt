@@ -36,43 +36,38 @@ class KoinMetaDataScanner(
 
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
         val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
-        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
+        val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
+            resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!)
+        }
 
-        val invalidSymbols = moduleSymbols.filter { !it.validate() }
+        val invalidModuleSymbols = moduleSymbols.filter { !it.validate() }
+        val invalidDefinitionSymbols = definitionSymbols.filter { !it.validate() }
+        val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
         if (invalidSymbols.isNotEmpty()) {
-            logger.logging("Invalid Module symbols found")
+            logger.logging("Invalid definition symbols found.")
             logInvalidEntities(invalidSymbols)
             return invalidSymbols
         }
 
-        val classSymbols = DEFINITION_ANNOTATION_LIST_TYPES
-            .flatMap { annotationClass ->
-                resolver.getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
-            }
-        validDefinitionSymbols.addAll(classSymbols.filter { it.validate() })
-
-        val invalidDefinitionSymbols = classSymbols.filter { !it.validate() }
-        if (invalidDefinitionSymbols.isNotEmpty()) {
-            logger.logging("Invalid definition symbols found.")
-            logInvalidEntities(invalidDefinitionSymbols)
-            return invalidDefinitionSymbols
-        }
+        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
+        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
 
         logger.logging("All symbols are valid")
         return emptyList()
     }
 
-    fun scanAllMetaData(defaultModule: KoinMetaData.Module): List<KoinMetaData.Module> {
+    fun extractKoinMetaData(defaultModule: KoinMetaData.Module): List<KoinMetaData.Module> {
         val moduleList = scanClassModules()
-        val scanComponentIndex = moduleList.generateScanComponentIndex()
-        scanClassComponents(defaultModule, scanComponentIndex)
+        val index = moduleList.generateScanComponentIndex()
+        scanClassComponents(defaultModule, index)
+        //TODO Top level function declarations - Filter KSFunctionDeclaration
         return moduleList
     }
 
     private fun scanClassModules(): List<KoinMetaData.Module> {
         logger.logging("scan modules ...")
         return validModuleSymbols
-            .filter { it is KSClassDeclaration && it.validate() }
+            .filterIsInstance<KSClassDeclaration>()
             .map { moduleMetadataScanner.createClassModule(it) }
             .toList()
     }
@@ -104,7 +99,7 @@ class KoinMetaDataScanner(
 
         val definitions = validDefinitionSymbols
             .filterIsInstance<KSClassDeclaration>()
-            .map { componentMetadataScanner.extractClassDefinition(it) }
+            .map { componentMetadataScanner.createClassDefinition(it) }
             .toList()
         definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
         return definitions
@@ -126,15 +121,6 @@ class KoinMetaDataScanner(
     }
 
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
-        classDeclarationList
-            .map { it as KSClassDeclaration }
-            .forEach { classDeclaration ->
-                logger.logging("Invalid entity: $classDeclaration")
-                logger.logging("   qualifiedName = ${classDeclaration.qualifiedName?.asString()}")
-                logger.logging("   classKind = ${classDeclaration.classKind}")
-                classDeclaration.superTypes.forEach {
-                    logger.logging("   superType = $it")
-                }
-            }
+        classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
     }
 }

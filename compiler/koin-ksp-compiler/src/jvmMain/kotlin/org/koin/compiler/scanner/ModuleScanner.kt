@@ -47,7 +47,7 @@ class ModuleScanner(
             }
             .toList()
 
-        val definitions = annotatedFunctions.mapNotNull { addDefinition(it) }
+        val definitions = annotatedFunctions.mapNotNull { addFunctionDefinition(it) }
         moduleMetadata.definitions += definitions
 
         return moduleMetadata
@@ -66,7 +66,7 @@ class ModuleScanner(
         }
     }
 
-    private fun addDefinition(element: KSAnnotated): KoinMetaData.Definition? {
+    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
@@ -102,10 +102,10 @@ class ModuleScanner(
 
         return when (annotationName) {
             SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings)
+                createFunctionDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings)
             }
             SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings)
+                createFunctionDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings)
             }
             FACTORY.annotationName -> {
                 createFunctionDefinition(FACTORY,packageName,qualifier,functionName,functionParameters,allBindings)
@@ -122,7 +122,7 @@ class ModuleScanner(
         }
     }
 
-    private fun createSingleDefinition(
+    private fun createFunctionDefinition(
         annotation: KSAnnotation,
         packageName: String,
         qualifier: String?,

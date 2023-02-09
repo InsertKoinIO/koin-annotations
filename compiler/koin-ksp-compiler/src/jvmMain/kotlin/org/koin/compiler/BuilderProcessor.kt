@@ -42,7 +42,7 @@ class BuilderProcessor(
         )
 
         logger.logging("Scan metadata ...")
-        val moduleList = koinMetaDataScanner.scanAllMetaData(defaultModule)
+        val moduleList = koinMetaDataScanner.extractKoinMetaData(defaultModule)
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule)
