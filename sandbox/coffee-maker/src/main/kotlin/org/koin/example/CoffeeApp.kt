@@ -4,21 +4,14 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import org.koin.core.parameter.parametersOf
-import org.koin.core.qualifier.StringQualifier
-import org.koin.core.qualifier.named
 import org.koin.core.time.measureDuration
 import org.koin.example.coffee.CoffeeMaker
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
 import org.koin.example.tea.TeaModule
-import org.koin.example.tea.TeaPot
-import org.koin.example.test.*
-import org.koin.example.test.ext.*
-import org.koin.example.test.include.IncludedComponent
-import org.koin.example.test.scope.*
+import org.koin.example.test.ext.ExternalModule
+import org.koin.example.test.scope.ScopeModule
 import org.koin.ksp.generated.*
-import org.koin.mp.KoinPlatformTools
 
 class CoffeeApp : KoinComponent {
     val maker: CoffeeMaker by inject()
