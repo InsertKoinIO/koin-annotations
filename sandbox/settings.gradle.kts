@@ -20,7 +20,6 @@ rootProject.name = "playground"
 
 include(":coffee-maker")
 include(":coffee-maker-module")
-
 include(":android-coffee-maker")
 include(":android-library")
 
