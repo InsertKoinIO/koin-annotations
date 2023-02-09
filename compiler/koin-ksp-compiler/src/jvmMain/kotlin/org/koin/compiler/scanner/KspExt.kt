@@ -16,7 +16,6 @@
 package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.symbol.*
-import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.isScopeAnnotation
 import org.koin.compiler.metadata.isValidAnnotation
@@ -95,4 +94,13 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
 
 internal fun List<KSValueArgument>.getValueArgument(): String? {
     return firstOrNull { a -> a.name?.asString() == "value" }?.value as? String?
+}
+
+fun KSClassDeclaration.getPackageName() : String = containingFile!!.packageName.asString()
+
+val forbiddenKeywords = listOf("interface")
+fun String.filterForbiddenKeywords() : String{
+    return split(".").joinToString(".") {
+        if (it in forbiddenKeywords) "`$it`" else it
+    }
 }

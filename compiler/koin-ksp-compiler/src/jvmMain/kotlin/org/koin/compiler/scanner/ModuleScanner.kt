@@ -26,7 +26,7 @@ class ModuleScanner(
 
     fun createClassModule(element: KSAnnotated): KoinMetaData.Module {
         val declaration = (element as KSClassDeclaration)
-        val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
+        val modulePackage = declaration.getPackageName().filterForbiddenKeywords()
         val annotations = declaration.annotations
         val includes = getIncludedModules(annotations)
         val componentScan = getComponentScan(annotations)

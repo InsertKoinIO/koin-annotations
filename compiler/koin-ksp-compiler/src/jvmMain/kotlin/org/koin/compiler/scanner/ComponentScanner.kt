@@ -25,7 +25,7 @@ class ComponentScanner(
 
     fun createClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
         val ksClassDeclaration = (element as KSClassDeclaration)
-        val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
+        val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
         val className = ksClassDeclaration.simpleName.asString()
         val qualifier = ksClassDeclaration.getStringQualifier()
         val annotations = element.getKoinAnnotations()

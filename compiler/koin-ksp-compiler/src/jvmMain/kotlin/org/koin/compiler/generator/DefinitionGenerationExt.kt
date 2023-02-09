@@ -17,6 +17,7 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.SINGLE
+import org.koin.compiler.scanner.filterForbiddenKeywords
 import java.io.OutputStream
 
 const val NEW_LINE = "\n\t"
@@ -75,7 +76,7 @@ private fun generateBindings(bindings: List<KSDeclaration>): String {
 }
 
 private fun generateBinding(declaration: KSDeclaration): String {
-    val packageName = declaration.packageName.asString()
+    val packageName = declaration.packageName.asString().filterForbiddenKeywords()
     val className = declaration.simpleName.asString()
     val parents = getParentDeclarations(declaration)
     return if (parents.isNotEmpty()) {
@@ -102,7 +103,7 @@ fun generateScope(scope: KoinMetaData.Scope): String {
     return when (scope) {
         is KoinMetaData.Scope.ClassScope -> {
             val type = scope.type
-            val packageName = type.containingFile!!.packageName.asString()
+            val packageName = type.containingFile!!.packageName.asString().filterForbiddenKeywords()
             val className = type.simpleName.asString()
             "${NEW_LINE}scope<$packageName.$className> {"
         }
