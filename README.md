@@ -1,7 +1,6 @@
 ![logo](https://github.com/InsertKoinIO/koin/blob/main/docs/img/koin_main_logo.png)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.7.21-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations)
 ![Github Actions](https://github.com/InsertKoinIO/koin-annotations/actions/workflows/build.yml/badge.svg)
 [![Apache 2 License](https://img.shields.io/github/license/InsertKoinIO/koin)](https://github.com/InsertKoinIO/koin/blob/main/LICENSE.txt)
 [![Slack channel](https://img.shields.io/badge/Chat-Slack-orange.svg?style=flat&logo=slack)](https://kotlinlang.slack.com/messages/koin/)
@@ -17,9 +16,9 @@ Koin is a pragmatic lightweight dependency injection framework for Kotlin develo
 
 Here are the current available Koin projects versions:
 
-```groovy
-koin_ksp_version= "1.1.0"
-```
+
+- koin_annotations_version = [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations)
+
 
 Follow the [Koin Annotations setup page](https://insert-koin.io/docs/setup/annotations) for more details
 

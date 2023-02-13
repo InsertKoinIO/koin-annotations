@@ -5,8 +5,17 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 ## [1.1.x]()
 
+### [1.1.1]()
+
+- `[FIXED]` - fix #70 - `interface` forbidden package name
+- `[FIXED]` - fix #66 #67 - KSP Multiple round PR merge + Code clean
+- `[UPDATED]` - Update Lib Koin 3.3.3
+
+### [1.1.0]()
+
 - `[UPDATED]` - Kotlin `1.7.21`
 - `[UPDATED]` - Google KSP `1.7.21-1.0.8`
+- `[UPDATED]` - Update Lib Koin 3.3.1
 - `[FIXED]` - Added macosArm64 Target
 - `[REMOVED]` - JS support, as array is not supported yet in annotations
 - `[UPDATED]` - Multiple Round Processing PR #62
