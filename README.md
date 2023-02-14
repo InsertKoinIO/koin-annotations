@@ -17,7 +17,19 @@ Koin is a pragmatic lightweight dependency injection framework for Kotlin develo
 Here are the current available Koin projects versions:
 
 
-- koin_annotations_version = [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations)
+## Setup & Current Version
+
+Here are the current available Koin projects versions:
+
+| Project   |      Version      |
+|----------|:-------------:|
+| koin-core |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-core)](https://mvnrepository.com/artifact/io.insert-koin/koin-core) |
+| koin-test |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-test)](https://mvnrepository.com/artifact/io.insert-koin/koin-test) |
+| koin-android |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-android)](https://mvnrepository.com/artifact/io.insert-koin/koin-android) |
+| koin-androidx-compose |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-androidx-compose)](https://mvnrepository.com/artifact/io.insert-koin/koin-androidx-compose) |
+| koin-ktor |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-ktor)](https://mvnrepository.com/artifact/io.insert-koin/koin-ktor) |
+| koin-logger-slf4j |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-logger-slf4j)](https://mvnrepository.com/artifact/io.insert-koin/koin-logger-slf4j) |
+| koin-annotations |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations) |
 
 
 Follow the [Koin Annotations setup page](https://insert-koin.io/docs/setup/annotations) for more details
