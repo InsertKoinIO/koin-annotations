@@ -18,7 +18,7 @@ package org.koin.android.annotation
 import kotlin.reflect.KClass
 
 /**
- * Koin definition annotation
+ * ViewModel annotation for Koin definition
  * Declare a type, a function as `viewModel` definition in Koin
  *
  * example:
@@ -34,3 +34,18 @@ import kotlin.reflect.KClass
  */
 @Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
 annotation class KoinViewModel(val binds: Array<KClass<*>> = [])
+
+/**
+ * Worker annotation for Koin Definition
+ * Declare type as `worker` definition
+ *
+ * example:
+ *
+ * @KoinWorker
+ * class MyWorker() :
+ *
+ * @Worker
+ * class
+ */
+@Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
+annotation class KoinWorker(val binds: Array<KClass<*>> = [])

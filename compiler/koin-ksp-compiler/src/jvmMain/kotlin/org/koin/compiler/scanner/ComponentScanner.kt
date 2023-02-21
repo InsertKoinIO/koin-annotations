@@ -67,6 +67,9 @@ class ComponentScanner(
             KOIN_VIEWMODEL.annotationName -> {
                 createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings)
             }
+            KOIN_WORKER.annotationName -> {
+                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings)
+            }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
                 val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)

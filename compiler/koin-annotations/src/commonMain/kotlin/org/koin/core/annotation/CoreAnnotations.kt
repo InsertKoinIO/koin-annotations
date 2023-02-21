@@ -46,6 +46,7 @@ annotation class Single(val binds: Array<KClass<*>> = [], val createdAtStart: Bo
  * same as @Single
  * @see Single
  */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class Singleton(val binds: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
 
 /**

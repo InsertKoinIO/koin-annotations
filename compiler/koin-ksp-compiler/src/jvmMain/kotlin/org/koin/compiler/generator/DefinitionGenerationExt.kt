@@ -56,20 +56,22 @@ private fun String?.generateQualifier(): String = when {
     else -> "qualifier=null"
 }
 
-val blocked_types = listOf("Any", "ViewModel")
+val BLOCKED_TYPES = listOf("Any", "ViewModel", "CoroutineWorker", "ListenableWorker")
 
 private fun generateBindings(bindings: List<KSDeclaration>): String {
+    val validBindings = bindings.filter {
+        val clazzName = it.simpleName.asString()
+        clazzName !in BLOCKED_TYPES
+    }
+
     return when {
-        bindings.isEmpty() -> ""
-        bindings.size == 1 -> {
-            val declaration = bindings.first()
-            if (declaration.simpleName.asString() !in blocked_types) {
-                val generateBinding = generateBinding(declaration)
-                "bind($generateBinding)"
-            } else ""
+        validBindings.isEmpty() -> ""
+        validBindings.size == 1 -> {
+            val generateBinding = generateBinding(validBindings.first())
+            "bind($generateBinding)"
         }
 
-        else -> bindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") {
+        else -> validBindings.joinToString(prefix = "binds(arrayOf(", separator = ",", postfix = "))") {
             generateBinding(it) ?: ""
         }
     }
@@ -119,12 +121,13 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
         val isNullable: Boolean = ctorParam.nullable
         when (ctorParam) {
             is KoinMetaData.ConstructorParameter.Dependency -> {
-                when(ctorParam.kind){
+                when (ctorParam.kind) {
                     KoinMetaData.DependencyKind.List -> "getAll()"
                     else -> {
                         val keyword = if (ctorParam.kind == KoinMetaData.DependencyKind.Lazy) "inject" else "get"
                         val qualifier =
-                            ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                            ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" }
+                                ?: ""
                         if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
                     }
                 }

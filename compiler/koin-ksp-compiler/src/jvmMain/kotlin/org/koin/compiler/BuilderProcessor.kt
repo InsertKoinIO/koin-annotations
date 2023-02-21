@@ -28,6 +28,7 @@ class BuilderProcessor(
 
     private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.logging("Scanning symbols ...")
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)

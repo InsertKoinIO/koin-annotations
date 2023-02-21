@@ -113,6 +113,9 @@ class ModuleScanner(
             KOIN_VIEWMODEL.annotationName -> {
                 createFunctionDefinition(KOIN_VIEWMODEL,packageName,qualifier,functionName,functionParameters,allBindings)
             }
+            KOIN_WORKER.annotationName -> {
+                createFunctionDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings)
+            }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
                 val extraAnnotation = getExtraScopeAnnotation(annotations)
