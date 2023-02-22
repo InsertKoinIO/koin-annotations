@@ -5,6 +5,15 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 ## [1.1.x]()
 
+### []()
+
+- `[NEW]` - Added `@KoinWorker` annotation to declare a `worker` definition
+- `[NEW]` - Allow to declare a pure function as a component with definition annotation on it. It will alocated to the nearest module definition. For example:
+```kotlin
+@Single
+fun createMyOtherComponent(i: MyInterfaceExt) = MyOtherComponent(i)
+```
+
 ### [1.1.1]()
 
 - `[FIXED]` - fix #70 - `interface` forbidden package name
