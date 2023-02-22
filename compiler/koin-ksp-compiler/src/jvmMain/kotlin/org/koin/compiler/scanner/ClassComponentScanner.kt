@@ -19,7 +19,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
 
-class ComponentScanner(
+class ClassComponentScanner(
     val logger: KSPLogger,
 ) {
 

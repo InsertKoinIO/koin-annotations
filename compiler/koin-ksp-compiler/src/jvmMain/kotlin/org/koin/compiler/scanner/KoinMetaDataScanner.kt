@@ -19,6 +19,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
@@ -29,7 +30,8 @@ class KoinMetaDataScanner(
 ) {
 
     private val moduleMetadataScanner = ModuleScanner(logger)
-    private val componentMetadataScanner = ComponentScanner(logger)
+    private val componentMetadataScanner = ClassComponentScanner(logger)
+    private val functionMetadataScanner = FunctionComponentScanner(logger)
 
     private var validModuleSymbols = mutableListOf<KSAnnotated>()
     private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
@@ -60,7 +62,7 @@ class KoinMetaDataScanner(
         val moduleList = scanClassModules()
         val index = moduleList.generateScanComponentIndex()
         scanClassComponents(defaultModule, index)
-        //TODO Top level function declarations - Filter KSFunctionDeclaration
+        scanFunctionComponents(defaultModule, index)
         return moduleList
     }
 
@@ -89,6 +91,21 @@ class KoinMetaDataScanner(
             }
         }
         return moduleList.values + emptyScanList
+    }
+
+    private fun scanFunctionComponents(
+        defaultModule: KoinMetaData.Module,
+        scanComponentIndex: List<KoinMetaData.Module>
+    ): List<KoinMetaData.Definition> {
+        logger.logging("scan functions ...")
+
+        val definitions = validDefinitionSymbols
+            .filterIsInstance<KSFunctionDeclaration>()
+            .map { functionMetadataScanner.createFunctionDefinition(it) }
+            .toList()
+
+        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
+        return definitions
     }
 
     private fun scanClassComponents(

@@ -15,58 +15,19 @@
  */
 package org.koin.compiler.scanner
 
-import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
 
-class ModuleScanner(
+class FunctionComponentScanner(
     val logger: KSPLogger
 ) {
 
-    fun createClassModule(element: KSAnnotated): KoinMetaData.Module {
-        val declaration = (element as KSClassDeclaration)
-        val modulePackage = declaration.getPackageName().filterForbiddenKeywords()
-        val annotations = declaration.annotations
-        val includes = getIncludedModules(annotations)
-        val componentScan = getComponentScan(annotations)
-
-        val name = "$element"
-        val moduleMetadata = KoinMetaData.Module(
-            packageName = modulePackage,
-            name = name,
-            type = KoinMetaData.ModuleType.CLASS,
-            componentScan = componentScan,
-            includes = includes,
-            visibility = declaration.getVisibility()
-        )
-
-        val annotatedFunctions = declaration.getAllFunctions()
-            .filter {
-                it.annotations.map { a -> a.shortName.asString() }.any { a -> isValidAnnotation(a) }
-            }
-            .toList()
-
-        val definitions = annotatedFunctions.mapNotNull { addFunctionDefinition(it) }
-        moduleMetadata.definitions += definitions
-
-        return moduleMetadata
+    fun createFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition {
+        return addFunctionDefinition(element)
     }
 
-    private fun getIncludedModules(annotations: Sequence<KSAnnotation>) : List<KSDeclaration>? {
-        val module = annotations.firstOrNull { it.shortName.asString() == "Module" }
-        return module?.let { includedModules(it) }
-    }
-
-    private fun getComponentScan(annotations: Sequence<KSAnnotation>): KoinMetaData.Module.ComponentScan? {
-        val componentScan = annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
-        return componentScan?.let { a ->
-            val value : String = a.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? String? ?: ""
-            KoinMetaData.Module.ComponentScan(value)
-        }
-    }
-
-    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
+    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
@@ -78,15 +39,18 @@ class ModuleScanner(
             val annotations = element.getKoinAnnotations()
             val scopeAnnotation = annotations.getScopeAnnotation()
 
-            return if (scopeAnnotation != null){
+            val definition = if (scopeAnnotation != null){
                 declareDefinition(scopeAnnotation.first, scopeAnnotation.second, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
             } else {
                 annotations.firstNotNullOf { (annotationName, annotation) ->
                     declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
                 }
             }
-        }
+            definition ?: error("Couldn't create function definition for $ksFunctionDeclaration from $packageName")
+        } ?: error("Can't resolve function definition $ksFunctionDeclaration from $packageName as returned type can't be resolved")
     }
+
+    //TODO Refactor/Extract here?
 
     private fun declareDefinition(
         annotationName: String,
@@ -164,6 +128,7 @@ class ModuleScanner(
         parameters = parameters ?: emptyList(),
         bindings = allBindings,
         keyword = keyword,
-        scope = scope
+        scope = scope,
+        isClassFunction = false
     )
 }

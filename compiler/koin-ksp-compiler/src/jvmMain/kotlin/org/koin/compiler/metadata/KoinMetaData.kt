@@ -103,7 +103,8 @@ sealed class KoinMetaData {
             val functionName: String,
             parameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSDeclaration>,
-            scope: Scope? = null
+            scope: Scope? = null,
+            val isClassFunction : Boolean = true
         ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope)
 
         class ClassDefinition(

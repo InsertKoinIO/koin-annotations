@@ -19,22 +19,30 @@ import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
 fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Definition>) {
-    val classDefinitions = definitions.filterIsInstance<KoinMetaData.Definition.ClassDefinition>()
-    val standardDefinitions = classDefinitions.filter { it.isNotScoped() }.toSet()
-    val scopeDefinitions = classDefinitions.filter { it.isScoped() }.toSet()
+    val standardDefinitions = definitions.filter { it.isNotScoped() }.toSet()
+    val scopeDefinitions = definitions.filter { it.isScoped() }.toSet()
 
-    standardDefinitions.forEach { generateClassDeclarationDefinition(it) }
+    standardDefinitions.forEach { generateDefaultModuleDefinition(it) }
     scopeDefinitions
         .groupBy { it.scope }
         .forEach { (scope, definitions) ->
             appendText(generateScope(scope!!))
-            definitions.forEach { generateClassDeclarationDefinition(it) }
+            definitions.forEach { definition ->
+                generateDefaultModuleDefinition(definition)
+            }
             appendText(generateScopeClosing())
         }
 }
 
+fun OutputStream.generateDefaultModuleDefinition(definition: KoinMetaData.Definition) {
+    if (definition is KoinMetaData.Definition.ClassDefinition){
+        generateClassDeclarationDefinition(definition)
+    } else if (definition is KoinMetaData.Definition.FunctionDefinition && !definition.isClassFunction) {
+        generateFunctionDeclarationDefinition(definition)
+    }
+}
+
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
-    // classFile.appendText(moduleHeader(module.name)) -> previously generating header #JvmName
     classFile.appendText(moduleHeader())
     classFile.appendText(module.definitions.generateImports())
 
@@ -86,7 +94,13 @@ private fun KoinMetaData.Definition.generateTargetDefinition(
     classFile: OutputStream
 ) {
     when (this) {
-        is KoinMetaData.Definition.FunctionDefinition -> classFile.generateFunctionDeclarationDefinition(this)
+        is KoinMetaData.Definition.FunctionDefinition -> {
+            if (isClassFunction) {
+                classFile.generateModuleFunctionDeclarationDefinition(this)
+            } else {
+                classFile.generateFunctionDeclarationDefinition(this)
+            }
+        }
         is KoinMetaData.Definition.ClassDefinition -> classFile.generateClassDeclarationDefinition(this)
     }
 }

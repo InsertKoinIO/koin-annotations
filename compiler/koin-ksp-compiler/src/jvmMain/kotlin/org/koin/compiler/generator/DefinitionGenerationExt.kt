@@ -34,10 +34,13 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label: () -> S
     appendText("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
 
-fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
+fun OutputStream.generateModuleFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
     generateDefinition(def) { "moduleInstance.${def.functionName}" }
 }
 
+fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
+    generateDefinition(def) { "${def.packageName}.${def.functionName}" }
+}
 
 fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDefinition) {
     generateDefinition(def) { "${def.packageName}.${def.className}" }
