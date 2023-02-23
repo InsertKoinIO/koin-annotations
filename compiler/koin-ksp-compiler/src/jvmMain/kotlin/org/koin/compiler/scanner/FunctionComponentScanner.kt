@@ -23,18 +23,24 @@ class FunctionComponentScanner(
     val logger: KSPLogger
 ) {
 
-    fun createFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition {
+    fun createFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
         return addFunctionDefinition(element)
     }
 
-    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition {
+    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
         val qualifier = ksFunctionDeclaration.getStringQualifier()
 
+
+
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
+            if (ksFunctionDeclaration.parent is KSClassDeclaration){
+                logger.logging("parent is KClass ${ksFunctionDeclaration.parent} skipping as it should be in an inner class")
+                return null
+            }
 
             val annotations = element.getKoinAnnotations()
             val scopeAnnotation = annotations.getScopeAnnotation()
@@ -46,8 +52,8 @@ class FunctionComponentScanner(
                     declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
                 }
             }
-            definition ?: error("Couldn't create function definition for $ksFunctionDeclaration from $packageName")
-        } ?: error("Can't resolve function definition $ksFunctionDeclaration from $packageName as returned type can't be resolved")
+            definition
+        }
     }
 
     //TODO Refactor/Extract here?
@@ -128,7 +134,6 @@ class FunctionComponentScanner(
         parameters = parameters ?: emptyList(),
         bindings = allBindings,
         keyword = keyword,
-        scope = scope,
-        isClassFunction = false
-    )
+        scope = scope
+    ).apply { isClassFunction = false }
 }

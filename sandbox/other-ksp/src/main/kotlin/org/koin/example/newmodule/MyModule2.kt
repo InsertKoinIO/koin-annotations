@@ -7,9 +7,9 @@ import org.koin.example.`interface`.MyInterfaceExt
 
 class MyOtherComponent2(val i : MyInterfaceExt)
 
-@Single
-fun createMyOtherComponent(i: MyInterfaceExt) = MyOtherComponent2(i)
-
 @Module
-@ComponentScan
-class MyModule
+class MyModule2 {
+
+    @Single
+    fun myOtherComponent2(i: MyInterfaceExt) = MyOtherComponent2(i)
+}

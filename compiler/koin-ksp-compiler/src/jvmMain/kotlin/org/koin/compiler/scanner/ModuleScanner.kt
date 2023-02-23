@@ -72,9 +72,9 @@ class ModuleScanner(
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
         val qualifier = ksFunctionDeclaration.getStringQualifier()
 
+
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
-
             val annotations = element.getKoinAnnotations()
             val scopeAnnotation = annotations.getScopeAnnotation()
 

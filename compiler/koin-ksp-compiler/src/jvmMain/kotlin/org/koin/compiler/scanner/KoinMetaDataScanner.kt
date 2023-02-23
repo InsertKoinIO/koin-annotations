@@ -101,7 +101,7 @@ class KoinMetaDataScanner(
 
         val definitions = validDefinitionSymbols
             .filterIsInstance<KSFunctionDeclaration>()
-            .map { functionMetadataScanner.createFunctionDefinition(it) }
+            .mapNotNull { functionMetadataScanner.createFunctionDefinition(it) }
             .toList()
 
         definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
@@ -129,6 +129,7 @@ class KoinMetaDataScanner(
     ) {
         val definitionPackage = definition.packageName
         val foundModule = modules.firstOrNull { it.acceptDefinition(definitionPackage) } ?: defaultModule
+
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             foundModule.definitions.add(definition)
