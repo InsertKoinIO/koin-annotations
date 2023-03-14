@@ -132,7 +132,8 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
                         val qualifier =
                             ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" }
                                 ?: ""
-                        if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
+                        val operator = if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
+                        if (ctorParam.name == null) operator else "${ctorParam.name}=$operator"
                     }
                 }
             }
