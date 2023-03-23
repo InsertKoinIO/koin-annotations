@@ -21,7 +21,7 @@ fun createMyOtherComponent(i: MyInterfaceExt) = MyOtherComponent(i)
 
 fun main() {
     startKoin {
-        printLogger(Level.DEBUG)
+        printLogger()
         // else let's use our modules
         modules(
             defaultModule, MyModule3().module, MyModule2().module,
