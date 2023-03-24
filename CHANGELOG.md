@@ -3,16 +3,18 @@
 Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKING]`
 
 
-## [1.1.x]()
+## [1.2.x]()
 
-### []()
+### [1.2.0]()
 
-- `[NEW]` - Added `@KoinWorker` annotation to declare a `worker` definition
+- `[NEW]` - Added `@KoinWorker` annotation to declare a Android `worker` definition
 - `[NEW]` - Allow to declare a pure function as a component with definition annotation on it. It will alocated to the nearest module definition. For example:
 ```kotlin
 @Single
 fun createMyOtherComponent(i: MyInterfaceExt) = MyOtherComponent(i)
 ```
+
+## [1.1.x]()
 
 ### [1.1.1]()
 
