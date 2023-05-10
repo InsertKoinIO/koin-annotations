@@ -42,6 +42,9 @@ class KoinMetaDataScanner(
             resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!)
         }
 
+        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
+        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
+
         val invalidModuleSymbols = moduleSymbols.filter { !it.validate() }
         val invalidDefinitionSymbols = definitionSymbols.filter { !it.validate() }
         val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
@@ -50,9 +53,6 @@ class KoinMetaDataScanner(
             logInvalidEntities(invalidSymbols)
             return invalidSymbols
         }
-
-        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
-        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
 
         logger.logging("All symbols are valid")
         return emptyList()
