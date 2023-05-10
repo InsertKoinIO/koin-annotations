@@ -17,9 +17,10 @@ repositories {
 }
 
 android {
-    compileSdkVersion(32)
+    compileSdkVersion(33)
     defaultConfig {
         applicationId = "org.gradle.kotlin.dsl.samples.androidstudio"
+        targetSdkVersion(33)
         minSdkVersion(21)
         versionCode = 1
         versionName = "1.0"
