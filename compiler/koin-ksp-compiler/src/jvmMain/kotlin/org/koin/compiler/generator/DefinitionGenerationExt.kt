@@ -53,10 +53,10 @@ private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): Str
 }
 
 private fun String?.generateQualifier(): String = when {
-    this == "\"null\"" -> "qualifier=null"
-    this == "null" -> "qualifier=null"
+    this == "\"null\"" -> ""
+    this == "null" -> ""
     !this.isNullOrBlank() -> "qualifier=org.koin.core.qualifier.StringQualifier(\"$this\")"
-    else -> "qualifier=null"
+    else -> ""
 }
 
 val BLOCKED_TYPES = listOf("Any", "ViewModel", "CoroutineWorker", "ListenableWorker")
