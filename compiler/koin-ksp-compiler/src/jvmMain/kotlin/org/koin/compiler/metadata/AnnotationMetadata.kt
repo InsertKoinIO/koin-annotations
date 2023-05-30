@@ -70,6 +70,10 @@ fun declaredBindings(annotation: KSAnnotation): List<KSDeclaration>? {
     return declaredBindingsTypes?.map { it.declaration }
 }
 
+fun List<KSDeclaration>.hasDefaultUnitValue() : Boolean {
+    return size == 1 && first().simpleName.asString() == "Unit"
+}
+
 fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
     val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "includes" }?.value as? List<KSType>?
     return declaredBindingsTypes?.map { it.declaration }
