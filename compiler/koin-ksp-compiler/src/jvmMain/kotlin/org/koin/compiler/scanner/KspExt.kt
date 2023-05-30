@@ -50,7 +50,7 @@ fun List<KSValueArgument>.getScope(): KoinMetaData.Scope {
     val scopeStringType: String? = firstOrNull { it.name?.asString() == "name" }?.value as? String
     return scopeKClassType?.let {
         val type = it.declaration
-        if (type.simpleName.asString() != "NoClass") {
+        if (type.simpleName.asString() != "Unit") {
             KoinMetaData.Scope.ClassScope(type)
         } else null
     }

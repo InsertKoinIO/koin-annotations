@@ -19,6 +19,7 @@ repositories {
 android {
     compileSdkVersion(33)
     defaultConfig {
+        targetSdkVersion(33)
         minSdkVersion(21)
     }
     // to use KSP generated Code
