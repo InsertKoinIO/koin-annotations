@@ -40,14 +40,14 @@ import kotlin.reflect.KClass
  * @param createdAtStart: create instance at Koin start
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Single(val binds: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
+annotation class Single(val binds: Array<KClass<*>> = [Unit::class], val createdAtStart: Boolean = false)
 
 /**
  * same as @Single
  * @see Single
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Singleton(val binds: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
+annotation class Singleton(val binds: Array<KClass<*>> = [Unit::class], val createdAtStart: Boolean = false)
 
 /**
  * Koin definition annotation
@@ -65,7 +65,7 @@ annotation class Singleton(val binds: Array<KClass<*>> = [], val createdAtStart:
  * @param binds: declared explicit types to bind to this definition. Supertypes are automatically detected
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Factory(val binds: Array<KClass<*>> = [])
+annotation class Factory(val binds: Array<KClass<*>> = [Unit::class])
 
 /**
  * Declare a class in a Koin scope. Scope name is described by either value (class) or name (string)
@@ -96,7 +96,7 @@ annotation class Scope(val value: KClass<*> = Unit::class, val name: String = ""
  * @param binds: declared explicit types to bind to this definition. Supertypes are automatically detected
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Scoped(val binds: Array<KClass<*>> = [])
+annotation class Scoped(val binds: Array<KClass<*>> = [Unit::class])
 
 /**
  * Define a qualifier for a given definition (associated with Koin definition annotation)
