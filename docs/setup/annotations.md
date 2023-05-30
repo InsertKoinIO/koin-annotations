@@ -6,24 +6,19 @@ Setup Koin Annotations for your project
 
 ## Version
 
-```groovy
-koin_ksp_version= "1.1.0"
-```
+You can find all Koin packages on [maven central](https://search.maven.org/search?q=io.insert-koin).
 
-Everything is hosted on maven central:
+Here are the current available versions:
 
-```groovy
-// Add Maven Central to your repositories if needed
-repositories {
-	mavenCentral()    
-}
-```
+## Setup & Current Version
 
-You can find all [Koin packages on maven central](https://search.maven.org/search?q=io.insert-koin).
+Here are the current available Koin projects versions:
 
-:::info
- Koin 3.3 or newer is required
-:::
+| Project   |      Version      |
+|----------|:-------------:|
+| koin-annotations |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations) |
+| koin-ksp-compiler |  [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-ksp-compiler)](https://mvnrepository.com/artifact/io.insert-koin/koin-ksp-compiler) |
+
 
 ## KSP Plugin
 
