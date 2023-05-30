@@ -11,15 +11,15 @@ import org.koin.ksp.generated.*
 
 
 @Single
-class MyComponent : MyInterfaceExt
+public class MyComponent : MyInterfaceExt
 
-class MyOtherComponent(val i: MyInterfaceExt)
+public class MyOtherComponent(public val i: MyInterfaceExt)
 
 @Single
-fun createMyOtherComponent(i: MyInterfaceExt) = MyOtherComponent(i)
+public fun createMyOtherComponent(i: MyInterfaceExt) : MyOtherComponent= MyOtherComponent(i)
 
 
-fun main() {
+public fun main() {
     startKoin {
         printLogger()
         // else let's use our modules

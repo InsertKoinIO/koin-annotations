@@ -119,7 +119,7 @@ private fun KoinMetaData.Module.generateModuleField(
     val packageName = packageName("_")
     val generatedField = "${packageName}_${name}"
     val visibilityString = visibility.toSourceString()
-    classFile.appendText("\n${visibilityString}val $generatedField = module {")
+    classFile.appendText("\n${visibilityString}val $generatedField : Module = module {")
     return generatedField
 }
 

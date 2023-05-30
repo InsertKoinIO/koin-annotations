@@ -6,20 +6,20 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 import kotlin.random.Random
 
-interface Animal
+public interface Animal
 
 @Single(binds = [])
-class Dog : Animal
+public class Dog : Animal
 
 @Single(binds = [])
-class Cat : Animal
+public class Cat : Animal
 
 @Module
 @ComponentScan
-class AnimalModule {
+public class AnimalModule {
 
     @Factory
-    fun animal(cat: Cat, dog: Dog): Animal = if (randomBoolean()) cat else dog
+    public fun animal(cat: Cat, dog: Dog): Animal = if (randomBoolean()) cat else dog
 
     private fun randomBoolean(): Boolean = Random.nextBoolean()
 }

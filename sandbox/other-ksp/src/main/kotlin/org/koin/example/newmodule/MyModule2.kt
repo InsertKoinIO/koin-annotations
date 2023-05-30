@@ -5,11 +5,11 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 import org.koin.example.`interface`.MyInterfaceExt
 
-class MyOtherComponent2(val i : MyInterfaceExt)
+public class MyOtherComponent2(public val i : MyInterfaceExt)
 
 @Module
-class MyModule2 {
+public class MyModule2 {
 
     @Single
-    fun myOtherComponent2(i: MyInterfaceExt) = MyOtherComponent2(i)
+    public fun myOtherComponent2(i: MyInterfaceExt): MyOtherComponent2 = MyOtherComponent2(i)
 }
