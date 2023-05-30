@@ -87,8 +87,7 @@ annotation class Factory(val binds: Array<KClass<*>> = [])
  * @param name: scope string value
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Scope(val value: KClass<*> = NoClass::class, val name: String = "")
-private object NoClass
+annotation class Scope(val value: KClass<*> = Unit::class, val name: String = "")
 
 /**
  * Declare a type, a function as `scoped` definition in Koin. Must be associated with @Scope annotation
