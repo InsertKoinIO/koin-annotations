@@ -53,12 +53,14 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
     module.includes?.let { includes ->
         if (includes.isNotEmpty()) { generateIncludes(includes, classFile) }
     }
+    
+    if (module.definitions.isNotEmpty()){
+        if (module.definitions.any { it is KoinMetaData.Definition.FunctionDefinition }) {
+            classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
+        }
 
-    if (module.definitions.any { it is KoinMetaData.Definition.FunctionDefinition }) {
-        classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
+        generateDefinitions(module, classFile)
     }
-
-    generateDefinitions(module, classFile)
 
     classFile.appendText("\n}")
     val visibilityString = module.visibility.toSourceString()
