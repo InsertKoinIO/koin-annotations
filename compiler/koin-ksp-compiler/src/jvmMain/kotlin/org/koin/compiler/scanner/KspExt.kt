@@ -96,7 +96,7 @@ internal fun List<KSValueArgument>.getValueArgument(): String? {
     return firstOrNull { a -> a.name?.asString() == "value" }?.value as? String?
 }
 
-fun KSClassDeclaration.getPackageName() : String = containingFile!!.packageName.asString()
+fun KSClassDeclaration.getPackageName() : String = packageName.asString()
 
 val forbiddenKeywords = listOf("interface")
 fun String.filterForbiddenKeywords() : String{

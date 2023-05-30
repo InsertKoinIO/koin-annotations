@@ -108,7 +108,7 @@ fun generateScope(scope: KoinMetaData.Scope): String {
     return when (scope) {
         is KoinMetaData.Scope.ClassScope -> {
             val type = scope.type
-            val packageName = type.containingFile!!.packageName.asString().filterForbiddenKeywords()
+            val packageName = type.packageName.asString().filterForbiddenKeywords()
             val className = type.simpleName.asString()
             "${NEW_LINE}scope<$packageName.$className> {"
         }

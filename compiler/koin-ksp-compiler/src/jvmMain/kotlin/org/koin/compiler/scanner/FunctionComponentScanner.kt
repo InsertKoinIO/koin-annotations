@@ -29,7 +29,7 @@ class FunctionComponentScanner(
 
     private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
-        val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString().filterForbiddenKeywords()
+        val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
         val qualifier = ksFunctionDeclaration.getStringQualifier()
 
