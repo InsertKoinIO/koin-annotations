@@ -11,10 +11,6 @@ Koin is a pragmatic lightweight dependency injection framework for Kotlin develo
 
 `Koin Annotations project brings annotation capacity to Koin projects, powered by Google KSP`
 
-## Setup & Current Version
-
-Here are the current available Koin projects versions:
-
 
 ## Setup & Current Version
 

@@ -5,6 +5,17 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 ## [1.2.x]()
 
+### [1.2.1](https://github.com/InsertKoinIO/koin-annotations/milestone/7?closed=1) - 2023-05-31
+- `[FIXED]` - Fix generation of empty qualifier. Also fix using `worker` API
+- `[FIXED]` - Fix code generation from using KSP `containgFile?.packageName` but use `packageName` direclty - Fixes #78
+- `[FIXED]` - Allow to force empty bidings with `binds = []` in annotation, to avoid using default bdindings proposed by Koin - Fixes #82
+- `[FIXED]` - Code generation more complete to allow to use `explicit API` compilation mode - Fixes #21
+- `[FIXED]` - Code generation allowed for empty module (Will generate Module class code) - Fixes #80
+- `[UPDATED]` - Use `Unit` as default parameter - PR #81 - Thanks @jakoss
+- `[UPDATED]` - Kotlin `1.8.21`
+- `[UPDATED]` - Google KSP `1.8.21-1.0.11`
+
+
 ### [1.2.0]()
 
 - `[NEW]` - Added `@KoinWorker` annotation to declare a Android `worker` definition
