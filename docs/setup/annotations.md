@@ -25,7 +25,7 @@ Here are the current available Koin projects versions:
 We need KSP Plugin to work (https://github.com/google/ksp). Just add the Gradle plugin:
 
 ```groovy
-ksp_version = "1.7.21-1.0.8""
+ksp_version = "1.8.21-1.0.11"
 ```
 
 ```groovy
