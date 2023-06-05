@@ -28,8 +28,9 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label: () -> S
     val ctor = generateConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
-    val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) CREATED_AT_START else ""
-
+    val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) {
+        if (qualifier == "") CREATED_AT_START else ",$CREATED_AT_START"
+    } else ""
     val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
     appendText("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
@@ -46,7 +47,7 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
     generateDefinition(def) { "${def.packageName}.${def.className}" }
 }
 
-const val CREATED_AT_START = ",createdAtStart=true"
+const val CREATED_AT_START = "createdAtStart=true"
 
 private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): String {
     return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
