@@ -5,6 +5,10 @@ Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKIN
 
 ## [1.2.x]()
 
+### [1.2.2]() - 2023-06-05
+- `[FIXED]` - Fix createOnStart single generation - Fix #84
+
+
 ### [1.2.1](https://github.com/InsertKoinIO/koin-annotations/milestone/7?closed=1) - 2023-05-31
 - `[FIXED]` - Fix generation of empty qualifier. Also fix using `worker` API
 - `[FIXED]` - Fix code generation from using KSP `containgFile?.packageName` but use `packageName` direclty - Fixes #78
