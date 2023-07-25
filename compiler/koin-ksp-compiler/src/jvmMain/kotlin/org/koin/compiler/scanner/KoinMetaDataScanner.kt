@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ class KoinMetaDataScanner(
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
-                logger.warn("adding ${definition.label} to default module")
+                logger.warn("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
             }
             foundModule.definitions.add(definition)
         } else {

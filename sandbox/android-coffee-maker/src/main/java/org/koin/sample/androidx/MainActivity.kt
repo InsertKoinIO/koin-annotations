@@ -10,10 +10,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.sample.android.library.MyScope
-import org.koin.sample.androidx.app.CoffeeViewModel
-import org.koin.sample.androidx.app.MyPresenter
-import org.koin.sample.androidx.app.ScopedStuff
-import org.koin.sample.androidx.app.TodoViewModel
+import org.koin.sample.androidx.app.*
 import org.koin.sample.androidx.data.TaskDatasource
 
 class MainActivity : AppCompatActivity() {

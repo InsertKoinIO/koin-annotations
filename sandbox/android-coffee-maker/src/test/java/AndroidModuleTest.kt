@@ -1,11 +1,8 @@
 package org.koin.sample.androidx
 
 import org.junit.Test
-import org.koin.android.ext.android.getKoin
-import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import org.koin.sample.android.library.CommonRepository
 import org.koin.sample.android.library.MyScope
@@ -20,7 +17,7 @@ class AndroidModuleTest {
     fun run_all_modules() {
         val koin = startKoin {
             modules(
-                defaultModule,
+//                defaultModule,
                 DataModule().module,
                 RepositoryModule().module,
                 AppModule().module,

@@ -1,4 +1,4 @@
-package org.koin.sample.androidx
+package org.koin.sample.androidx.app
 
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Named

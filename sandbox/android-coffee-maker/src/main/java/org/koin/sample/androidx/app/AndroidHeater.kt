@@ -1,4 +1,4 @@
-package org.koin.sample.androidx
+package org.koin.sample.androidx.app
 
 import android.util.Log
 import org.koin.core.annotation.Single

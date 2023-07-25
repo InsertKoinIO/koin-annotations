@@ -5,6 +5,7 @@ import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.qualifier.named
+import org.koin.dsl.koinApplication
 import org.koin.example.animal.Animal
 import org.koin.example.animal.AnimalModule
 import org.koin.example.animal.Cat
@@ -22,7 +23,7 @@ class TestModule {
 
     @Test
     fun testApp() {
-        val koin = startKoin {
+        val koin = koinApplication {
             printLogger(Level.DEBUG)
             // else let's use our modules
             modules(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,29 @@
  */
 package org.koin.compiler
 
-import appendText
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
+import org.koin.compiler.KspOptions.KOIN_CONFIG_CHECK
 import org.koin.compiler.generator.KoinGenerator
-import org.koin.compiler.generator.getFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
+import org.koin.compiler.verify.KoinConfigVerification
 
 class BuilderProcessor(
     codeGenerator: CodeGenerator,
-    private val logger: KSPLogger
+    private val logger: KSPLogger,
+    private val options: Map<String, String>
 ) : SymbolProcessor {
 
     private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
+    private val koinConfigVerification = KoinConfigVerification(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.logging("Scanning symbols ...")
+
+        //TODO Handle allowDefaultModule option
+
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting for next round")
@@ -41,7 +46,8 @@ class BuilderProcessor(
 
         val defaultModule = KoinMetaData.Module(
             packageName = "",
-            name = "defaultModule"
+            name = "defaultModule",
+            isDefault = true
         )
 
         logger.logging("Scan metadata ...")
@@ -50,49 +56,24 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule)
 
-        //TODO Use argument here to activate this part
-        val genSize = koinCodeGenerator.codeGenerator.generatedFile.size
-
-        val ignored = listOf("kotlin.Lazy", "kotlin.Any")
-        (moduleList + defaultModule).map { module ->
-            module.definitions.forEach { def ->
-                val label = def.label
-                val cn = label.first().toString().toUpperCase() + label.takeLast(label.length - 1)
-                val file = koinCodeGenerator.codeGenerator.getFile(fileName = cn)
-                file.appendText("package org.koin.ksp.generated")
-                def.bindings.forEach { d ->
-                    val cn = d.simpleName.asString()
-                    file.appendText("\nclass KoinDef$cn")
-                }
-                if (genSize == 0) {
-                    def.parameters.forEach { param ->
-                        if (param is KoinMetaData.ConstructorParameter.Dependency) {
-                            val p = param.type.declaration.qualifiedName?.asString()
-//                            logger.warn("$label look at dependency => $p")
-                            if (p !in ignored && p != null) {
-                                val d =
-                                    resolver.getKSNameFromString("org.koin.ksp.generated.KoinDef" + param.type.declaration.simpleName.asString())
-//                                logger.warn("ksn => ${d.asString()}")
-                                val dc = resolver.getClassDeclarationByName(d)
-                                if (dc != null) {
-//                                    logger.warn("ks => $it")
-                                } else {
-                                    logger.error("$label need dependency type '$p', but is not found. Check your Koin configuration to add the right definition or type binding.")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if (isVerificationActivated()) {
+            logger.warn("[Experimental] Koin Configuration Check ...")
+            koinConfigVerification.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
+            koinConfigVerification.verifyModuleIncludes(moduleList + defaultModule, resolver)
         }
         return emptyList()
     }
+
+    private fun isVerificationActivated(): Boolean {
+        return options[KOIN_CONFIG_CHECK] == true.toString()
+    }
 }
+
 
 class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(
         environment: SymbolProcessorEnvironment
     ): SymbolProcessor {
-        return BuilderProcessor(environment.codeGenerator, environment.logger)
+        return BuilderProcessor(environment.codeGenerator, environment.logger, environment.options)
     }
 }

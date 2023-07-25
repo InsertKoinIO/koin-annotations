@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.google.devtools.ksp.symbol.Visibility
-import java.io.OutputStream
+package org.koin.compiler
 
-fun String.dotPackage() = if (isNotBlank()) "$this." else ""
-
-fun OutputStream.appendText(str: String) {
-    this.write(str.toByteArray())
-}
-
-fun Visibility.toSourceString() = when(this) {
-    Visibility.PUBLIC -> "public "
-    Visibility.INTERNAL -> "internal "
-    Visibility.PRIVATE -> "private "
-    Visibility.PROTECTED -> "protected "
-    else -> ""
+object KspOptions {
+    const val KOIN_CONFIG_CHECK = "KOIN_CONFIG_CHECK"
 }

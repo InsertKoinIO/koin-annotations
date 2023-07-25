@@ -33,3 +33,8 @@ dependencies {
 
     testImplementation("io.insert-koin:koin-test:$koinVersion")
 }
+
+ksp {
+    arg("KOIN_CONFIG_CHECK","true")
+}
+
