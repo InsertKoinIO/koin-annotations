@@ -17,6 +17,7 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.*
 
 class ClassComponentScanner(
@@ -104,14 +105,16 @@ class ClassComponentScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
-    ) = KoinMetaData.Definition.ClassDefinition(
-        packageName = packageName,
-        qualifier = qualifier,
-        isCreatedAtStart = isCreatedAtStart,
-        className = className,
-        constructorParameters = ctorParams ?: emptyList(),
-        bindings = allBindings,
-        keyword = keyword,
-        scope = scope
-    )
+    ): KoinMetaData.Definition.ClassDefinition {
+        return KoinMetaData.Definition.ClassDefinition(
+            packageName = packageName,
+            qualifier = qualifier,
+            isCreatedAtStart = isCreatedAtStart,
+            className = className,
+            constructorParameters = ctorParams ?: emptyList(),
+            bindings = allBindings,
+            keyword = keyword,
+            scope = scope
+        )
+    }
 }

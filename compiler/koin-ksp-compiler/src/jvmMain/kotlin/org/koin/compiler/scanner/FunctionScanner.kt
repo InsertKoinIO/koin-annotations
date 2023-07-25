@@ -18,6 +18,7 @@ package org.koin.compiler.scanner
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 
 /**
@@ -38,7 +39,9 @@ abstract class FunctionScanner(
         ksFunctionDeclaration: KSFunctionDeclaration,
         annotations: Map<String, KSAnnotation> = emptyMap()
     ): KoinMetaData.Definition.FunctionDefinition? {
-        val allBindings = declaredBindings(annotation)?.let { if (!it.hasDefaultUnitValue()) it else emptyList() } ?: emptyList()
+        val foundBindings: List<KSDeclaration> = declaredBindings(annotation)?.let { if (!it.hasDefaultUnitValue()) it else emptyList() } ?: emptyList()
+        val returnedType: KSDeclaration? = ksFunctionDeclaration.returnType?.resolve()?.declaration
+        val allBindings: List<KSDeclaration> =  returnedType?.let { foundBindings + it } ?: foundBindings
         val functionParameters = ksFunctionDeclaration.parameters.getConstructorParameters()
 
         return when (annotationName) {
@@ -97,15 +100,17 @@ abstract class FunctionScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
-    ) = KoinMetaData.Definition.FunctionDefinition(
-        packageName = packageName,
-        qualifier = qualifier,
-        isCreatedAtStart = isCreatedAtStart,
-        functionName = functionName,
-        parameters = parameters ?: emptyList(),
-        bindings = allBindings,
-        keyword = keyword,
-        scope = scope
-    ).apply { isClassFunction = isModuleFunction }
+    ): KoinMetaData.Definition.FunctionDefinition {
+        return KoinMetaData.Definition.FunctionDefinition(
+            packageName = packageName,
+            qualifier = qualifier,
+            isCreatedAtStart = isCreatedAtStart,
+            functionName = functionName,
+            parameters = parameters ?: emptyList(),
+            bindings = allBindings,
+            keyword = keyword,
+            scope = scope
+        ).apply { isClassFunction = isModuleFunction }
+    }
 
 }

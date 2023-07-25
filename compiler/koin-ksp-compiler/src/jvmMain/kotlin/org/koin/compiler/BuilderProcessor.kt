@@ -15,9 +15,11 @@
  */
 package org.koin.compiler
 
+import appendText
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.generator.KoinGenerator
+import org.koin.compiler.generator.getFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
 
@@ -48,6 +50,41 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule)
 
+        //TODO Use argument here to activate this part
+        val genSize = koinCodeGenerator.codeGenerator.generatedFile.size
+
+        val ignored = listOf("kotlin.Lazy", "kotlin.Any")
+        (moduleList + defaultModule).map { module ->
+            module.definitions.forEach { def ->
+                val label = def.label
+                val cn = label.first().toString().toUpperCase() + label.takeLast(label.length - 1)
+                val file = koinCodeGenerator.codeGenerator.getFile(fileName = cn)
+                file.appendText("package org.koin.ksp.generated")
+                def.bindings.forEach { d ->
+                    val cn = d.simpleName.asString()
+                    file.appendText("\nclass KoinDef$cn")
+                }
+                if (genSize == 0) {
+                    def.parameters.forEach { param ->
+                        if (param is KoinMetaData.ConstructorParameter.Dependency) {
+                            val p = param.type.declaration.qualifiedName?.asString()
+//                            logger.warn("$label look at dependency => $p")
+                            if (p !in ignored && p != null) {
+                                val d =
+                                    resolver.getKSNameFromString("org.koin.ksp.generated.KoinDef" + param.type.declaration.simpleName.asString())
+//                                logger.warn("ksn => ${d.asString()}")
+                                val dc = resolver.getClassDeclarationByName(d)
+                                if (dc != null) {
+//                                    logger.warn("ks => $it")
+                                } else {
+                                    logger.error("$label need dependency type '$p', but is not found. Check your Koin configuration to add the right definition or type binding.")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return emptyList()
     }
 }

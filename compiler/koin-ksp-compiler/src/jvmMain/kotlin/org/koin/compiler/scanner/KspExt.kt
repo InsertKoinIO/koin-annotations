@@ -16,6 +16,7 @@
 package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.symbol.*
+import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.isScopeAnnotation
 import org.koin.compiler.metadata.isValidAnnotation
@@ -73,9 +74,10 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     val firstAnnotation = param.annotations.firstOrNull()
     val annotationName = firstAnnotation?.shortName?.asString()
     val annotationValue = firstAnnotation?.arguments?.getValueArgument()
-    val resolvedType = param.type.resolve()
+    val resolvedType: KSType = param.type.resolve()
     val isNullable = resolvedType.isMarkedNullable
     val resolvedTypeString = resolvedType.toString()
+
     //TODO check to see better way to detect this
     val isList = resolvedTypeString.startsWith("List<")
     val isLazy = resolvedTypeString.startsWith("Lazy<")
@@ -83,11 +85,11 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     return when (annotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(isNullable)
         "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(annotationValue, isNullable)
-        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(annotationValue, isNullable)
+        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(annotationValue, isNullable, type = resolvedType)
         else -> {
-            if (isList) KoinMetaData.ConstructorParameter.Dependency(kind = KoinMetaData.DependencyKind.List)
-            else if (isLazy) KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, kind = KoinMetaData.DependencyKind.Lazy)
-            else KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable)
+            if (isList) KoinMetaData.ConstructorParameter.Dependency(kind = KoinMetaData.DependencyKind.List, type = resolvedType)
+            else if (isLazy) KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, kind = KoinMetaData.DependencyKind.Lazy, type = resolvedType)
+            else KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, type = resolvedType)
         }
     }
 }

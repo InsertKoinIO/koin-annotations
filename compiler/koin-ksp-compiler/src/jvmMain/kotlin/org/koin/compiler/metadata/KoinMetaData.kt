@@ -16,6 +16,7 @@
 package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
 import java.util.*
 
@@ -123,7 +124,7 @@ sealed class KoinMetaData {
     }
 
     sealed class ConstructorParameter(val nullable: Boolean = false) {
-        data class Dependency(val value: String? = null, val isNullable: Boolean = false, val kind : DependencyKind = DependencyKind.Single) :
+        data class Dependency(val value: String? = null, val isNullable: Boolean = false, val type : KSType, val kind : DependencyKind = DependencyKind.Single) :
             ConstructorParameter(isNullable)
 
         data class ParameterInject(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
