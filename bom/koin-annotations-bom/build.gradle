@@ -10,3 +10,5 @@ dependencies {
         api "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
     }
 }
+
+apply from: '../gradle/publish.gradle'

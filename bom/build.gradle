@@ -13,12 +13,4 @@ allprojects {
     javaPlatform {
         allowDependencies()
     }
-
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                from components.javaPlatform
-            }
-        }
-    }
 }
