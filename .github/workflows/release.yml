@@ -36,4 +36,10 @@ jobs:
       - name: Release
         run: cd compiler && ./release.sh
 
+      - name: Install BOM
+        run: cd bom && ./install.sh
+      
+      - name: Release BOM
+        run: cd bom && ./release.sh
+
 
