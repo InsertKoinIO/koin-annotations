@@ -87,7 +87,7 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
                 isLazy -> KoinMetaData.DependencyKind.Lazy
                 else -> KoinMetaData.DependencyKind.Single
             }
-            KoinMetaData.ConstructorParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind, type = resolvedType)
+            KoinMetaData.ConstructorParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind,  isNullable = isNullable, type = resolvedType)
         }
     }
 }
