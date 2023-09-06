@@ -47,7 +47,9 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
                     def.parameters
                         .filterIsInstance<KoinMetaData.ConstructorParameter.Dependency>()
                         .forEach { param ->
-                            checkDependencyIsDefined(param, resolver, def)
+                            if (!param.hasDefault){
+                                checkDependencyIsDefined(param, resolver, def)
+                            }
 
                             //TODO Check Cycle
                         }
