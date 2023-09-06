@@ -8,10 +8,10 @@ kotlin {
     jvm()
 
     // Array in Annotations not yet supported :/
-//    js(BOTH) {
-//        nodejs()
-//        browser()
-//    }
+    js(IR) {
+        nodejs()
+        browser()
+    }
 
     if(ideaActive) {
         macosX64("native")
