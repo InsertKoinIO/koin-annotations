@@ -5,9 +5,9 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 import org.koin.example.`interface`.MyInterfaceExt
 
-@Single
-class MyOtherComponent3(val i : MyInterfaceExt)
+@Single(createdAtStart = true)
+public class MyOtherComponent3(public val i : MyInterfaceExt)
 
 @Module
 @ComponentScan
-class MyModule3
+public class MyModule3

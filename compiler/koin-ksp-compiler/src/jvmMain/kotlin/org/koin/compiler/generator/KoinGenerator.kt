@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,18 +53,15 @@ class KoinGenerator(
 
     private fun generateModule(module: KoinMetaData.Module, defaultFile: OutputStream? = null) {
         logger.logging("generate $module - ${module.type}")
-        if (module.definitions.isNotEmpty()) {
-            when (module.type) {
-                KoinMetaData.ModuleType.FIELD -> {
-                    defaultFile!!.generateFieldDefaultModule(module.definitions)
-                }
-                KoinMetaData.ModuleType.CLASS -> {
-                    val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
-                    generateClassModule(moduleFile, module)
-                }
-            }
+
+        val isFieldModule = module.type == KoinMetaData.ModuleType.FIELD && module.definitions.isNotEmpty()
+        if (isFieldModule){
+            // generate field module
+            defaultFile!!.generateFieldDefaultModule(module.definitions)
         } else {
-            logger.logging("no definition for $module")
+            // generate class module
+            val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
+            generateClassModule(moduleFile, module)
         }
     }
 

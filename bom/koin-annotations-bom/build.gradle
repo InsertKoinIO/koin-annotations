@@ -1,0 +1,14 @@
+apply from: "../gradle/versions.gradle"
+apply from: "../../gradle/versions.gradle"
+
+version = "$koin_annotations_bom_version"
+
+dependencies {
+    constraints {
+        // koin annotations
+        api "io.insert-koin:koin-annotations:$koin_ksp_version"
+        api "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
+    }
+}
+
+apply from: '../gradle/publish.gradle'

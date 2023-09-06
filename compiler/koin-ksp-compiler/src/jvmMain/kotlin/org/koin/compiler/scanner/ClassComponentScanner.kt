@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.*
 
 class ClassComponentScanner(
@@ -51,7 +52,7 @@ class ClassComponentScanner(
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-        val allBindings: List<KSDeclaration> = if (declaredBindings?.isNotEmpty() == true) declaredBindings else defaultBindings
+        val allBindings: List<KSDeclaration> = if (declaredBindings?.hasDefaultUnitValue() == false) declaredBindings else defaultBindings
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getConstructorParameters()
 
         return when (annotationName) {
@@ -75,7 +76,7 @@ class ClassComponentScanner(
                 val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
                 val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
                 val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
-                val extraScopeBindings = if(extraDeclaredBindings?.isNotEmpty() == true) extraDeclaredBindings else allBindings
+                val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
                 createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData)
             }
             else -> error("Unknown annotation type: $annotationName")
@@ -104,14 +105,16 @@ class ClassComponentScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
-    ) = KoinMetaData.Definition.ClassDefinition(
-        packageName = packageName,
-        qualifier = qualifier,
-        isCreatedAtStart = isCreatedAtStart,
-        className = className,
-        constructorParameters = ctorParams ?: emptyList(),
-        bindings = allBindings,
-        keyword = keyword,
-        scope = scope
-    )
+    ): KoinMetaData.Definition.ClassDefinition {
+        return KoinMetaData.Definition.ClassDefinition(
+            packageName = packageName,
+            qualifier = qualifier,
+            isCreatedAtStart = isCreatedAtStart,
+            className = className,
+            constructorParameters = ctorParams ?: emptyList(),
+            bindings = allBindings,
+            keyword = keyword,
+            scope = scope
+        )
+    }
 }

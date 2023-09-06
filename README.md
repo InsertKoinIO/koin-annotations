@@ -1,7 +1,6 @@
 ![logo](https://github.com/InsertKoinIO/koin/blob/main/docs/img/koin_main_logo.png)
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.7.21-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-![Github Actions](https://github.com/InsertKoinIO/koin-annotations/actions/workflows/build.yml/badge.svg)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.8.10-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Apache 2 License](https://img.shields.io/github/license/InsertKoinIO/koin)](https://github.com/InsertKoinIO/koin/blob/main/LICENSE.txt)
 [![Slack channel](https://img.shields.io/badge/Chat-Slack-orange.svg?style=flat&logo=slack)](https://kotlinlang.slack.com/messages/koin/)
 
@@ -10,11 +9,7 @@
  
 Koin is a pragmatic lightweight dependency injection framework for Kotlin developers, developed by [Kotzilla](https://kotzilla.io) and open-source contributors.
 
-`Koin Annotations project brings annotation capacity yo Koin projects, powered by Google KSP`
-
-## Setup & Current Version
-
-Here are the current available Koin projects versions:
+`Koin Annotations project brings annotation capacity to Koin projects, powered by Google KSP`
 
 
 ## Setup & Current Version

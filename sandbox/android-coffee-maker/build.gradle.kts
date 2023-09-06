@@ -17,9 +17,10 @@ repositories {
 }
 
 android {
-    compileSdkVersion(32)
+    compileSdkVersion(33)
     defaultConfig {
         applicationId = "org.gradle.kotlin.dsl.samples.androidstudio"
+        targetSdkVersion(33)
         minSdkVersion(21)
         versionCode = 1
         versionName = "1.0"
@@ -55,4 +56,9 @@ dependencies {
     implementation ("androidx.appcompat:appcompat:$appcompatVersion")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     testImplementation("junit:junit:4.13.2")
+}
+
+ksp {
+    arg("KOIN_CONFIG_CHECK","true")
+    arg("KOIN_DEFAULT_MODULE","false")
 }

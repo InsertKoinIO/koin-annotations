@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,9 @@ class KoinMetaDataScanner(
             resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!)
         }
 
+        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
+        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
+
         val invalidModuleSymbols = moduleSymbols.filter { !it.validate() }
         val invalidDefinitionSymbols = definitionSymbols.filter { !it.validate() }
         val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
@@ -50,9 +53,6 @@ class KoinMetaDataScanner(
             logInvalidEntities(invalidSymbols)
             return invalidSymbols
         }
-
-        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
-        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
 
         logger.logging("All symbols are valid")
         return emptyList()
@@ -132,7 +132,7 @@ class KoinMetaDataScanner(
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
-                logger.warn("adding ${definition.label} to default module")
+                logger.warn("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
             }
             foundModule.definitions.add(definition)
         } else {

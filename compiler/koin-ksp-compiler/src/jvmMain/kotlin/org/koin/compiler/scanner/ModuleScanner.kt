@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ class ModuleScanner(
 
     private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
-        val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString().filterForbiddenKeywords()
+        val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
         val qualifier = ksFunctionDeclaration.getStringQualifier()
 

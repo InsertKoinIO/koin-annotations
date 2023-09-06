@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ val DEFAULT_MODULE_HEADER = """
     """.trimIndent()
 
 val DEFAULT_MODULE_FUNCTION = """
-        fun KoinApplication.defaultModule() = modules(defaultModule)
-        val defaultModule = module {
+        public fun KoinApplication.defaultModule(): KoinApplication = modules(defaultModule)
+        public val defaultModule : Module = module {
     """.trimIndent()
 
 val DEFAULT_MODULE_FOOTER = """
@@ -37,18 +37,7 @@ val DEFAULT_MODULE_FOOTER = """
 fun moduleHeader() = """
     package org.koin.ksp.generated
     
+    import org.koin.core.module.Module
     import org.koin.dsl.*
     
 """.trimIndent()
-
-val MODULE_HEADER = """
-            package org.koin.ksp.generated
-            import org.koin.dsl.*
-            
-        """.trimIndent()
-
-//const val STRING_QUALIFIER_IMPORT = "import org.koin.core.qualifier.StringQualifier"
-
-//val MODULE_HEADER_STRING_QUALIFIER = """
-//            $STRING_QUALIFIER_IMPORT
-//        """.trimIndent()

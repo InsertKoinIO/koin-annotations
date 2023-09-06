@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,14 @@ import kotlin.reflect.KClass
  * @param createdAtStart: create instance at Koin start
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Single(val binds: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
+annotation class Single(val binds: Array<KClass<*>> = [Unit::class], val createdAtStart: Boolean = false)
 
 /**
  * same as @Single
  * @see Single
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Singleton(val binds: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
+annotation class Singleton(val binds: Array<KClass<*>> = [Unit::class], val createdAtStart: Boolean = false)
 
 /**
  * Koin definition annotation
@@ -65,7 +65,7 @@ annotation class Singleton(val binds: Array<KClass<*>> = [], val createdAtStart:
  * @param binds: declared explicit types to bind to this definition. Supertypes are automatically detected
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Factory(val binds: Array<KClass<*>> = [])
+annotation class Factory(val binds: Array<KClass<*>> = [Unit::class])
 
 /**
  * Declare a class in a Koin scope. Scope name is described by either value (class) or name (string)
@@ -87,8 +87,7 @@ annotation class Factory(val binds: Array<KClass<*>> = [])
  * @param name: scope string value
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Scope(val value: KClass<*> = NoClass::class, val name: String = "")
-private object NoClass
+annotation class Scope(val value: KClass<*> = Unit::class, val name: String = "")
 
 /**
  * Declare a type, a function as `scoped` definition in Koin. Must be associated with @Scope annotation
@@ -97,7 +96,7 @@ private object NoClass
  * @param binds: declared explicit types to bind to this definition. Supertypes are automatically detected
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class Scoped(val binds: Array<KClass<*>> = [])
+annotation class Scoped(val binds: Array<KClass<*>> = [Unit::class])
 
 /**
  * Define a qualifier for a given definition (associated with Koin definition annotation)

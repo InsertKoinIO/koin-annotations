@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label: () -> S
     val ctor = generateConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
-    val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) CREATED_AT_START else ""
-
+    val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) {
+        if (qualifier == "") CREATED_AT_START else ",$CREATED_AT_START"
+    } else ""
     val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
     appendText("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
@@ -46,17 +47,17 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
     generateDefinition(def) { "${def.packageName}.${def.className}" }
 }
 
-const val CREATED_AT_START = ",createdAtStart=true"
+const val CREATED_AT_START = "createdAtStart=true"
 
 private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): String {
     return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
 }
 
 private fun String?.generateQualifier(): String = when {
-    this == "\"null\"" -> "qualifier=null"
-    this == "null" -> "qualifier=null"
+    this == "\"null\"" -> ""
+    this == "null" -> ""
     !this.isNullOrBlank() -> "qualifier=org.koin.core.qualifier.StringQualifier(\"$this\")"
-    else -> "qualifier=null"
+    else -> ""
 }
 
 val BLOCKED_TYPES = listOf("Any", "ViewModel", "CoroutineWorker", "ListenableWorker")
@@ -108,7 +109,7 @@ fun generateScope(scope: KoinMetaData.Scope): String {
     return when (scope) {
         is KoinMetaData.Scope.ClassScope -> {
             val type = scope.type
-            val packageName = type.containingFile!!.packageName.asString().filterForbiddenKeywords()
+            val packageName = type.packageName.asString().filterForbiddenKeywords()
             val className = type.simpleName.asString()
             "${NEW_LINE}scope<$packageName.$className> {"
         }

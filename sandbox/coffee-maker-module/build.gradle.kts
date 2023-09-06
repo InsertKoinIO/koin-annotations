@@ -25,3 +25,7 @@ dependencies {
     implementation("io.insert-koin:koin-annotations:$koinKspVersion")
     ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
 }
+
+ksp {
+    arg("KOIN_CONFIG_CHECK","true")
+}

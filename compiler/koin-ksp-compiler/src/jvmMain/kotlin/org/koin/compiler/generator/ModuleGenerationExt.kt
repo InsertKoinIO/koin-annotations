@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,11 +54,18 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
         if (includes.isNotEmpty()) { generateIncludes(includes, classFile) }
     }
 
-    if (module.definitions.any { it is KoinMetaData.Definition.FunctionDefinition }) {
-        classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
-    }
+    if (module.definitions.isNotEmpty()) {
+        if (module.definitions.any {
+                // if any definition is a class function, we need to instantiate the module instance
+                // to able to call the function on this instance.
+                it is KoinMetaData.Definition.FunctionDefinition &&
+                    it.isClassFunction
+            }) {
+            classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
+        }
 
-    generateDefinitions(module, classFile)
+        generateDefinitions(module, classFile)
+    }
 
     classFile.appendText("\n}")
     val visibilityString = module.visibility.toSourceString()
@@ -119,7 +126,7 @@ private fun KoinMetaData.Module.generateModuleField(
     val packageName = packageName("_")
     val generatedField = "${packageName}_${name}"
     val visibilityString = visibility.toSourceString()
-    classFile.appendText("\n${visibilityString}val $generatedField = module {")
+    classFile.appendText("\n${visibilityString}val $generatedField : Module = module {")
     return generatedField
 }
 

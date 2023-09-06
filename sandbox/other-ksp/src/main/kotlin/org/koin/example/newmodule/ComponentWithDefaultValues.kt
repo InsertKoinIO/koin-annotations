@@ -2,12 +2,12 @@ package org.koin.example.newmodule
 
 import org.koin.core.annotation.Single
 
-interface ComponentInterface {
+public interface ComponentInterface {
 
-    companion object Default : ComponentInterface
+    public companion object Default : ComponentInterface
 }
 
 @Single
-class ComponentWithDefaultValues(
+public class ComponentWithDefaultValues(
     private val dependency: ComponentInterface = ComponentInterface.Default
 )

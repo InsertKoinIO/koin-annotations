@@ -3,16 +3,33 @@
 Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKING]`
 
 
-## [1.1.x]()
+## [1.2.x]()
 
-### []()
+### [1.2.2]() - 2023-06-05
+- `[FIXED]` - Fix createOnStart single generation - Fix #84
 
-- `[NEW]` - Added `@KoinWorker` annotation to declare a `worker` definition
+
+### [1.2.1](https://github.com/InsertKoinIO/koin-annotations/milestone/7?closed=1) - 2023-05-31
+- `[FIXED]` - Fix generation of empty qualifier. Also fix using `worker` API
+- `[FIXED]` - Fix code generation from using KSP `containgFile?.packageName` but use `packageName` direclty - Fixes #78
+- `[FIXED]` - Allow to force empty bidings with `binds = []` in annotation, to avoid using default bdindings proposed by Koin - Fixes #82
+- `[FIXED]` - Code generation more complete to allow to use `explicit API` compilation mode - Fixes #21
+- `[FIXED]` - Code generation allowed for empty module (Will generate Module class code) - Fixes #80
+- `[UPDATED]` - Use `Unit` as default parameter - PR #81 - Thanks @jakoss
+- `[UPDATED]` - Kotlin `1.8.21`
+- `[UPDATED]` - Google KSP `1.8.21-1.0.11`
+
+
+### [1.2.0]()
+
+- `[NEW]` - Added `@KoinWorker` annotation to declare a Android `worker` definition
 - `[NEW]` - Allow to declare a pure function as a component with definition annotation on it. It will alocated to the nearest module definition. For example:
 ```kotlin
 @Single
 fun createMyOtherComponent(i: MyInterfaceExt) = MyOtherComponent(i)
 ```
+
+## [1.1.x]()
 
 ### [1.1.1]()
 

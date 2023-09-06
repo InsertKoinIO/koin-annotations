@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,10 @@ fun getExtraScopeAnnotation(annotations: Map<String, KSAnnotation>): DefinitionA
 fun declaredBindings(annotation: KSAnnotation): List<KSDeclaration>? {
     val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
     return declaredBindingsTypes?.map { it.declaration }
+}
+
+fun List<KSDeclaration>.hasDefaultUnitValue() : Boolean {
+    return size == 1 && first().simpleName.asString() == "Unit"
 }
 
 fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {

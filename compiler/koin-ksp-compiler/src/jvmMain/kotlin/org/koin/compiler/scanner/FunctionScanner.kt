@@ -1,10 +1,31 @@
+/*
+ * Copyright 2017-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 
+/**
+ * Scan for Koin function component metadata
+ *
+ * @author Arnaud Giuliani
+ */
 abstract class FunctionScanner(
     private val isModuleFunction : Boolean
 ) {
@@ -18,7 +39,9 @@ abstract class FunctionScanner(
         ksFunctionDeclaration: KSFunctionDeclaration,
         annotations: Map<String, KSAnnotation> = emptyMap()
     ): KoinMetaData.Definition.FunctionDefinition? {
-        val allBindings = declaredBindings(annotation) ?: emptyList()
+        val foundBindings: List<KSDeclaration> = declaredBindings(annotation)?.let { if (!it.hasDefaultUnitValue()) it else emptyList() } ?: emptyList()
+        val returnedType: KSDeclaration? = ksFunctionDeclaration.returnType?.resolve()?.declaration
+        val allBindings: List<KSDeclaration> =  returnedType?.let { foundBindings + it } ?: foundBindings
         val functionParameters = ksFunctionDeclaration.parameters.getConstructorParameters()
 
         return when (annotationName) {
@@ -77,15 +100,17 @@ abstract class FunctionScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
-    ) = KoinMetaData.Definition.FunctionDefinition(
-        packageName = packageName,
-        qualifier = qualifier,
-        isCreatedAtStart = isCreatedAtStart,
-        functionName = functionName,
-        parameters = parameters ?: emptyList(),
-        bindings = allBindings,
-        keyword = keyword,
-        scope = scope
-    ).apply { isClassFunction = isModuleFunction }
+    ): KoinMetaData.Definition.FunctionDefinition {
+        return KoinMetaData.Definition.FunctionDefinition(
+            packageName = packageName,
+            qualifier = qualifier,
+            isCreatedAtStart = isCreatedAtStart,
+            functionName = functionName,
+            parameters = parameters ?: emptyList(),
+            bindings = allBindings,
+            keyword = keyword,
+            scope = scope
+        ).apply { isClassFunction = isModuleFunction }
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 the original author or authors.
+ * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,27 @@ package org.koin.compiler
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
+import org.koin.compiler.KspOptions.KOIN_CONFIG_CHECK
 import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
+import org.koin.compiler.verify.KoinConfigVerification
 
 class BuilderProcessor(
     codeGenerator: CodeGenerator,
-    private val logger: KSPLogger
+    private val logger: KSPLogger,
+    private val options: Map<String, String>
 ) : SymbolProcessor {
 
     private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
+    private val koinConfigVerification = KoinConfigVerification(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.logging("Scanning symbols ...")
+
+        //TODO Handle allowDefaultModule option
+
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting for next round")
@@ -39,23 +46,47 @@ class BuilderProcessor(
 
         val defaultModule = KoinMetaData.Module(
             packageName = "",
-            name = "defaultModule"
+            name = "defaultModule",
+            isDefault = true
         )
 
         logger.logging("Scan metadata ...")
         val moduleList = koinMetaDataScanner.extractKoinMetaData(defaultModule)
 
+        if (isDefaultModuleDisabled()){
+            if (defaultModule.definitions.isNotEmpty()){
+                logger.error("Default module is disabled!")
+                defaultModule.definitions.forEach { def ->
+                    logger.error("definition '${def.packageName}.${def.label}' needs to be defined in a module")
+                }
+            }
+        }
+
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule)
 
+        if (isConfigCheckActive()) {
+            logger.warn("[Experimental] Koin Configuration Check")
+            koinConfigVerification.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
+            koinConfigVerification.verifyModuleIncludes(moduleList + defaultModule, resolver)
+        }
         return emptyList()
     }
+
+    private fun isConfigCheckActive(): Boolean {
+        return options[KOIN_CONFIG_CHECK.name] == true.toString()
+    }
+
+    private fun isDefaultModuleDisabled(): Boolean {
+        return options[KspOptions.KOIN_DEFAULT_MODULE.name] == false.toString()
+    }
 }
+
 
 class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(
         environment: SymbolProcessorEnvironment
     ): SymbolProcessor {
-        return BuilderProcessor(environment.codeGenerator, environment.logger)
+        return BuilderProcessor(environment.codeGenerator, environment.logger, environment.options)
     }
 }

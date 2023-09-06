@@ -1,4 +1,4 @@
 package org.koin.example.`interface`
 
-interface MyInterfaceExt {
+public interface MyInterfaceExt {
 }
