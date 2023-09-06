@@ -11,10 +11,8 @@ import org.koin.example.animal.AnimalModule
 import org.koin.example.animal.Cat
 import org.koin.example.animal.Dog
 import org.koin.example.`interface`.MyInterfaceExt
-import org.koin.example.newmodule.ComponentWithDefaultValues
-import org.koin.example.newmodule.MyModule2
-import org.koin.example.newmodule.MyOtherComponent2
-import org.koin.example.newmodule.MyOtherComponent3F
+import org.koin.example.newmodule.*
+import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
 import org.koin.example.newmodule.mymodule.MyModule3
 import org.koin.example.newmodule.mymodule.MyOtherComponent3
 import org.koin.ksp.generated.defaultModule
@@ -39,6 +37,12 @@ class TestModule {
         koin.get<MyOtherComponent3>()
         koin.get<ComponentWithDefaultValues>()
         koin.get<MyOtherComponent3F>()
+
+        //TODO Handle default prop
+        koin.setProperty("id","new_id")
+        koin.get<ComponentWithProps>().let {
+            assertTrue { it.id == "new_id" }
+        }
 
         val animals = (1..10).map { randomGetAnimal(koin) }
         assertTrue { animals.any { it is Dog } }

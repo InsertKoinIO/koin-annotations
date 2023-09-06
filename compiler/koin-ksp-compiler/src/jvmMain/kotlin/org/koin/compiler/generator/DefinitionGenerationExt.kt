@@ -121,7 +121,7 @@ fun generateScope(scope: KoinMetaData.Scope): String {
 fun generateScopeClosing(): String = "${NEW_LINE}}"
 
 private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
-    val paramsWithoutDefaultValues = constructorParameters.filter { !it.hasDefault }
+    val paramsWithoutDefaultValues = constructorParameters.filter { !it.hasDefault || it is KoinMetaData.ConstructorParameter.Property}
     return paramsWithoutDefaultValues.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
         val isNullable: Boolean = ctorParam.nullable
         when (ctorParam) {
@@ -141,6 +141,12 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
 
             is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
             is KoinMetaData.ConstructorParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
+            //TODO handle default param property
+//            is KoinMetaData.ConstructorParameter.Property ->{
+//                val first = if (isNullable || ctorParam.hasDefault) "getPropertyOrNull(\"${ctorParam.value}\"" else "getProperty(\"${ctorParam.value}\""
+//                val second = if (!isNullable && ctorParam.hasDefault) ") ?: ${ctorParam.value}" else ")"
+//                first + second
+//            }
         }
     }
 }
