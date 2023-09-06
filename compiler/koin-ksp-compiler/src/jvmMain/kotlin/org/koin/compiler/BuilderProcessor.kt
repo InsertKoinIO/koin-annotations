@@ -53,19 +53,32 @@ class BuilderProcessor(
         logger.logging("Scan metadata ...")
         val moduleList = koinMetaDataScanner.extractKoinMetaData(defaultModule)
 
+        if (isDefaultModuleDisabled()){
+            if (defaultModule.definitions.isNotEmpty()){
+                logger.error("Default module is disabled!")
+                defaultModule.definitions.forEach { def ->
+                    logger.error("definition '${def.packageName}.${def.label}' needs to be defined in a module")
+                }
+            }
+        }
+
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule)
 
-        if (isVerificationActivated()) {
-            logger.warn("[Experimental] Koin Configuration Check ...")
+        if (isConfigCheckActive()) {
+            logger.warn("[Experimental] Koin Configuration Check")
             koinConfigVerification.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
             koinConfigVerification.verifyModuleIncludes(moduleList + defaultModule, resolver)
         }
         return emptyList()
     }
 
-    private fun isVerificationActivated(): Boolean {
-        return options[KOIN_CONFIG_CHECK] == true.toString()
+    private fun isConfigCheckActive(): Boolean {
+        return options[KOIN_CONFIG_CHECK.name] == true.toString()
+    }
+
+    private fun isDefaultModuleDisabled(): Boolean {
+        return options[KspOptions.KOIN_DEFAULT_MODULE.name] == false.toString()
     }
 }
 

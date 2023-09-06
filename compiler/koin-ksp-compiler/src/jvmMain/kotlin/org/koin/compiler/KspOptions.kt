@@ -15,6 +15,7 @@
  */
 package org.koin.compiler
 
-object KspOptions {
-    const val KOIN_CONFIG_CHECK = "KOIN_CONFIG_CHECK"
+enum class KspOptions {
+    KOIN_CONFIG_CHECK,
+    KOIN_DEFAULT_MODULE
 }
