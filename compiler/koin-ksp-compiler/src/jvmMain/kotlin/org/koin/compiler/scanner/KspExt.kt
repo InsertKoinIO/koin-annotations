@@ -74,8 +74,10 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     val firstAnnotation = param.annotations.firstOrNull()
     val annotationName = firstAnnotation?.shortName?.asString()
     val annotationValue = firstAnnotation?.arguments?.getValueArgument()
+    val paramName = param.name?.asString()
     val resolvedType: KSType = param.type.resolve()
     val isNullable = resolvedType.isMarkedNullable
+    val hasDefault = param.hasDefault
     val resolvedTypeString = resolvedType.toString()
 
     //TODO check to see better way to detect this
@@ -83,13 +85,13 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     val isLazy = resolvedTypeString.startsWith("Lazy<")
 
     return when (annotationName) {
-        "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(isNullable)
-        "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(annotationValue, isNullable)
-        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(annotationValue, isNullable, type = resolvedType)
+        "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault)
+        "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault)
+        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(name = paramName, value = annotationValue, isNullable, hasDefault, type = resolvedType)
         else -> {
-            if (isList) KoinMetaData.ConstructorParameter.Dependency(kind = KoinMetaData.DependencyKind.List, type = resolvedType)
-            else if (isLazy) KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, kind = KoinMetaData.DependencyKind.Lazy, type = resolvedType)
-            else KoinMetaData.ConstructorParameter.Dependency(isNullable = isNullable, type = resolvedType)
+            if (isList) KoinMetaData.ConstructorParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = KoinMetaData.DependencyKind.List, type = resolvedType)
+            else if (isLazy) KoinMetaData.ConstructorParameter.Dependency(name = paramName, isNullable = isNullable, hasDefault = hasDefault, kind = KoinMetaData.DependencyKind.Lazy, type = resolvedType)
+            else KoinMetaData.ConstructorParameter.Dependency(name = paramName, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType)
         }
     }
 }

@@ -11,6 +11,7 @@ import org.koin.example.animal.AnimalModule
 import org.koin.example.animal.Cat
 import org.koin.example.animal.Dog
 import org.koin.example.`interface`.MyInterfaceExt
+import org.koin.example.newmodule.ComponentWithDefaultValues
 import org.koin.example.newmodule.MyModule2
 import org.koin.example.newmodule.MyOtherComponent2
 import org.koin.example.newmodule.MyOtherComponent3F
@@ -36,6 +37,7 @@ class TestModule {
         koin.get<MyOtherComponent>()
         koin.get<MyOtherComponent2>()
         koin.get<MyOtherComponent3>()
+        koin.get<ComponentWithDefaultValues>()
         koin.get<MyOtherComponent3F>()
 
         val animals = (1..10).map { randomGetAnimal(koin) }

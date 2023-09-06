@@ -121,7 +121,8 @@ fun generateScope(scope: KoinMetaData.Scope): String {
 fun generateScopeClosing(): String = "${NEW_LINE}}"
 
 private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
-    return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
+    val paramsWithoutDefaultValues = constructorParameters.filter { !it.hasDefault }
+    return paramsWithoutDefaultValues.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
         val isNullable: Boolean = ctorParam.nullable
         when (ctorParam) {
             is KoinMetaData.ConstructorParameter.Dependency -> {
@@ -132,7 +133,8 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Constru
                         val qualifier =
                             ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" }
                                 ?: ""
-                        if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
+                        val operator = if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
+                        if (ctorParam.name == null) operator else "${ctorParam.name}=$operator"
                     }
                 }
             }

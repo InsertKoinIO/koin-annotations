@@ -125,12 +125,30 @@ sealed class KoinMetaData {
     }
 
     sealed class ConstructorParameter(val nullable: Boolean = false) {
-        data class Dependency(val value: String? = null, val isNullable: Boolean = false, val type : KSType, val kind : DependencyKind = DependencyKind.Single) :
-            ConstructorParameter(isNullable)
 
-        data class ParameterInject(val isNullable: Boolean = false) : ConstructorParameter(isNullable)
-        data class Property(val value: String? = null, val isNullable: Boolean = false) :
-            ConstructorParameter(isNullable)
+        abstract val name: String?
+        abstract val hasDefault: Boolean
+
+        data class Dependency(
+            override val name: String?,
+            val value: String? = null,
+            val isNullable: Boolean = false,
+            override val hasDefault: Boolean,
+            val type : KSType, val kind: DependencyKind = DependencyKind.Single
+        ) : ConstructorParameter(isNullable)
+
+        data class ParameterInject(
+            override val name: String?,
+            val isNullable: Boolean = false,
+            override val hasDefault: Boolean
+        ) : ConstructorParameter(isNullable)
+
+        data class Property(
+            override val name: String?,
+            val value: String? = null,
+            val isNullable: Boolean = false,
+            override val hasDefault: Boolean
+        ) : ConstructorParameter(isNullable)
     }
 
     enum class DependencyKind {
