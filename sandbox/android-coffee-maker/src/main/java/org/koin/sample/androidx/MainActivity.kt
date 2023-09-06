@@ -41,8 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         assert(todoViewModel.repository.local == getKoin().get<TaskDatasource>(named("local")))
         assert(todoViewModel.repository.remote == getKoin().get<TaskDatasource>(named("remote")))
-        assert(heater != null)
-        assert(coffeeFactory != null)
+        println("resolved: $heater - $coffeeFactory")
 
         val scope = getKoin().createScope<MyScope>()
         scope.get<ScopedStuff>()

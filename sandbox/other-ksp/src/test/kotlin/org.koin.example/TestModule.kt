@@ -13,6 +13,7 @@ import org.koin.example.animal.Dog
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.MyModule2
 import org.koin.example.newmodule.MyOtherComponent2
+import org.koin.example.newmodule.MyOtherComponent3F
 import org.koin.example.newmodule.mymodule.MyModule3
 import org.koin.example.newmodule.mymodule.MyOtherComponent3
 import org.koin.ksp.generated.defaultModule
@@ -35,6 +36,7 @@ class TestModule {
         koin.get<MyOtherComponent>()
         koin.get<MyOtherComponent2>()
         koin.get<MyOtherComponent3>()
+        koin.get<MyOtherComponent3F>()
 
         val animals = (1..10).map { randomGetAnimal(koin) }
         assertTrue { animals.any { it is Dog } }

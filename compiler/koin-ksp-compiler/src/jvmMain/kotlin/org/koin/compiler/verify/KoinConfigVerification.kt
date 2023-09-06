@@ -24,9 +24,9 @@ import org.koin.compiler.generator.getFile
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
-val ignored = listOf("kotlin.List", "kotlin.Lazy", "kotlin.Any")
-val classPrefix = "KoinDef"
-val generationPackage = "org.koin.ksp.generated"
+private val ignored = listOf("kotlin.Any",)
+private val classPrefix = "KoinDef"
+private val generationPackage = "org.koin.ksp.generated"
 
 /**
  * Koin Configuration Checker
@@ -47,8 +47,9 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
                     def.parameters
                         .filterIsInstance<KoinMetaData.ConstructorParameter.Dependency>()
                         .forEach { param ->
-                            //TODO scope dependency check
                             checkDependencyIsDefined(param, resolver, def)
+
+                            //TODO Check Cycle
                         }
                 } else {
                     writeDefinitionTag(def, alreadyDeclared)
@@ -105,24 +106,28 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
     }
 
     private fun checkDependencyIsDefined(
-        param: KoinMetaData.ConstructorParameter.Dependency,
+        dependencyToCheck: KoinMetaData.ConstructorParameter.Dependency,
         resolver: Resolver,
-        def: KoinMetaData.Definition,
+        definition: KoinMetaData.Definition,
     ) {
-        val label = def.label
-        val scope = (def.scope as? KoinMetaData.Scope.ClassScope)?.type?.qualifiedName?.asString()
-        val parameterFullName = param.type.declaration.qualifiedName?.asString()
+        val label = definition.label
+        val scope = (definition.scope as? KoinMetaData.Scope.ClassScope)?.type?.qualifiedName?.asString()
+        var targetTypeToCheck: KSDeclaration = dependencyToCheck.type.declaration
 
+        if (targetTypeToCheck.simpleName.asString() == "List" || targetTypeToCheck.simpleName.asString() == "Lazy"){
+            targetTypeToCheck = dependencyToCheck.type.arguments.firstOrNull()?.type?.resolve()?.declaration ?: targetTypeToCheck
+        }
+
+        val parameterFullName = targetTypeToCheck.qualifiedName?.asString()
         if (parameterFullName !in ignored && parameterFullName != null) {
-            val cn = param.type.declaration.qualifiedNameCamelCase()
+            val cn = targetTypeToCheck.qualifiedNameCamelCase()
             val className = "$generationPackage.$classPrefix$cn"
             val resolution = resolver.getClassDeclarationByName(resolver.getKSNameFromString(className))
             val isNotScopeType = scope != parameterFullName
             if (resolution == null && isNotScopeType) {
-                logger.error("--> Missing Definition type '$parameterFullName' for '${def.packageName}.$label'. Fix your configuration to define type '${param.type.declaration.simpleName.asString()}'.")
+                logger.error("--> Missing Definition type '$parameterFullName' for '${definition.packageName}.$label'. Fix your configuration to define type '${targetTypeToCheck.simpleName.asString()}'.")
             }
         }
-        //TODO Check Cycle
     }
 
     fun verifyModuleIncludes(modules: List<KoinMetaData.Module>, resolver: Resolver) {
