@@ -1,5 +1,5 @@
 ---
-title: Definitions
+title: Definitions with Annotations
 ---
 
 
@@ -146,32 +146,4 @@ class MyComponent(@Property("my_key") val myProperty : String)
 
 The generated DSL equivalent will be `single { MyComponent(getProperty("my_key")) }`
 
-## Declaring Scopes with @Scope
 
-You can declare definition inside a scope, by using the `@Scope` annotation. The target scope can be specified as a class, or a name:
-
-```kotlin
-// scope by type
-@Scope(MyScope::class)
-class MyComponent
-
-// scope by name
-@Scope(name = "MyScopeName")
-class MyComponent
-```  
-
-The generated DSL equivalent will be:
-
-```kotlin
-scope<MyScope> {
-  scoped { MyComponent() }
-}
-// or
-scope(named("MyScopeName")) {
-  scoped { MyComponent() }
-}
-```
-
-> You can cumulate `@Factory` or `@KoinViewModel`, to specify a scoped Factory or a ViewModel. Also you can use the `@Scoped` annotation to let define specific bindings on a `@Scope` tagged components.
-
----

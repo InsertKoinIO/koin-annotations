@@ -1,5 +1,5 @@
 ---
-title: Starting with Annotations
+title: Starting with Koin Annotations
 ---
 
 The goal of Koin Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developer experience to scale and go fast 🚀, thanks to Kotlin Compilers.

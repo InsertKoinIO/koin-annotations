@@ -1,5 +1,5 @@
 ---
-title: Modules
+title: Modules with @Module 
 ---
 
 While using definitions, you may need to organize them in modules or not. You can even not use any module at all and use the "default" generated module. 
