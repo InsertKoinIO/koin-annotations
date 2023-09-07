@@ -20,7 +20,8 @@ rootProject.name = "playground"
 
 include(":coffee-maker")
 include(":coffee-maker-module")
-include(":android-coffee-maker")
-include(":android-library")
 include(":compile-perf")
 include(":other-ksp")
+
+include(":android-coffee-maker")
+include(":android-library")

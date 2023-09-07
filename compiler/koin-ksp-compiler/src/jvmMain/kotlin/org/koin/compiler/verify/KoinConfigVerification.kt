@@ -45,7 +45,7 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
             .forEach { def ->
                 if (noGenFile) {
                     def.parameters
-                        .filterIsInstance<KoinMetaData.ConstructorParameter.Dependency>()
+                        .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
                         .forEach { param ->
                             if (!param.hasDefault){
                                 checkDependencyIsDefined(param, resolver, def)
@@ -108,7 +108,7 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
     }
 
     private fun checkDependencyIsDefined(
-        dependencyToCheck: KoinMetaData.ConstructorParameter.Dependency,
+        dependencyToCheck: KoinMetaData.DefinitionParameter.Dependency,
         resolver: Resolver,
         definition: KoinMetaData.Definition,
     ) {

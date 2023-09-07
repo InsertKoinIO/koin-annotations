@@ -28,12 +28,12 @@ sealed class KoinMetaData {
         val definitions: MutableList<Definition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
         val componentScan: ComponentScan? = null,
-        val includes : List<KSDeclaration>? = null,
+        val includes: List<KSDeclaration>? = null,
         val visibility: Visibility = Visibility.PUBLIC,
-        val isDefault : Boolean = false
+        val isDefault: Boolean = false
     ) : KoinMetaData() {
 
-        fun packageName(separator : String) : String{
+        fun packageName(separator: String): String {
             val default = Locale.getDefault()
             return packageName.split(".").joinToString(separator) { it.lowercase(default) }
         }
@@ -47,6 +47,7 @@ sealed class KoinMetaData {
                     componentScan.packageName,
                     ignoreCase = true
                 )
+
                 componentScan.packageName.isEmpty() -> defPackageName.contains(packageName, ignoreCase = true)
                 else -> false
             }
@@ -60,11 +61,18 @@ sealed class KoinMetaData {
     sealed class Scope {
         data class ClassScope(val type: KSDeclaration) : Scope()
         data class StringScope(val name: String) : Scope()
+
+        fun getValue(): String {
+            return when (this) {
+                is StringScope -> name
+                is ClassScope -> "${type.packageName}.${type.simpleName}"
+            }
+        }
     }
 
     sealed class Definition(
         val label: String,
-        val parameters: List<ConstructorParameter>,
+        val parameters: List<DefinitionParameter>,
         val packageName: String,
         val qualifier: String? = null,
         val isCreatedAtStart: Boolean? = null,
@@ -103,11 +111,11 @@ sealed class KoinMetaData {
             isCreatedAtStart: Boolean? = null,
             keyword: DefinitionAnnotation,
             val functionName: String,
-            parameters: List<ConstructorParameter> = emptyList(),
+            parameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
             scope: Scope? = null
-        ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope){
-            var isClassFunction : Boolean = true
+        ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope) {
+            var isClassFunction: Boolean = true
         }
 
         class ClassDefinition(
@@ -116,39 +124,49 @@ sealed class KoinMetaData {
             isCreatedAtStart: Boolean? = null,
             keyword: DefinitionAnnotation,
             val className: String,
-            val constructorParameters: List<ConstructorParameter> = emptyList(),
+            val constructorParameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
             scope: Scope? = null
-        ) : Definition(className, constructorParameters,packageName, qualifier, isCreatedAtStart, keyword, bindings, scope)
+        ) : Definition(
+            className,
+            constructorParameters,
+            packageName,
+            qualifier,
+            isCreatedAtStart,
+            keyword,
+            bindings,
+            scope
+        )
 
 
     }
 
-    sealed class ConstructorParameter(val nullable: Boolean = false) {
+    sealed class DefinitionParameter(val nullable: Boolean = false) {
 
         abstract val name: String?
         abstract val hasDefault: Boolean
 
         data class Dependency(
             override val name: String?,
-            val value: String? = null,
+            val qualifier: String? = null,
             val isNullable: Boolean = false,
+            val scopeId: String? = null,
             override val hasDefault: Boolean,
-            val type : KSType, val kind: DependencyKind = DependencyKind.Single
-        ) : ConstructorParameter(isNullable)
+            val type: KSType, val kind: DependencyKind = DependencyKind.Single
+        ) : DefinitionParameter(isNullable)
 
         data class ParameterInject(
             override val name: String?,
             val isNullable: Boolean = false,
             override val hasDefault: Boolean
-        ) : ConstructorParameter(isNullable)
+        ) : DefinitionParameter(isNullable)
 
         data class Property(
             override val name: String?,
             val value: String? = null,
             val isNullable: Boolean = false,
             override val hasDefault: Boolean
-        ) : ConstructorParameter(isNullable)
+        ) : DefinitionParameter(isNullable)
     }
 
     enum class DependencyKind {

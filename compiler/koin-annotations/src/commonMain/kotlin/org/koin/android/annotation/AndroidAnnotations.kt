@@ -17,6 +17,8 @@ package org.koin.android.annotation
 
 import kotlin.reflect.KClass
 
+//TODO Seperate Android annotations, to have minimum requirement deps as Android
+
 /**
  * ViewModel annotation for Koin definition
  * Declare a type, a function as `viewModel` definition in Koin

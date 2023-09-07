@@ -18,7 +18,6 @@ package org.koin.compiler.scanner
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 
 /**
@@ -42,7 +41,7 @@ abstract class FunctionScanner(
         val foundBindings: List<KSDeclaration> = declaredBindings(annotation)?.let { if (!it.hasDefaultUnitValue()) it else emptyList() } ?: emptyList()
         val returnedType: KSDeclaration? = ksFunctionDeclaration.returnType?.resolve()?.declaration
         val allBindings: List<KSDeclaration> =  returnedType?.let { foundBindings + it } ?: foundBindings
-        val functionParameters = ksFunctionDeclaration.parameters.getConstructorParameters()
+        val functionParameters = ksFunctionDeclaration.parameters.getParameters()
 
         return when (annotationName) {
             SINGLE.annotationName -> {
@@ -74,7 +73,7 @@ abstract class FunctionScanner(
         packageName: String,
         qualifier: String?,
         functionName: String,
-        functionParameters: List<KoinMetaData.ConstructorParameter>,
+        functionParameters: List<KoinMetaData.DefinitionParameter>,
         allBindings: List<KSDeclaration>
     ): KoinMetaData.Definition.FunctionDefinition {
         val createdAtStart: Boolean =
@@ -96,7 +95,7 @@ abstract class FunctionScanner(
         packageName: String,
         qualifier: String?,
         functionName: String,
-        parameters: List<KoinMetaData.ConstructorParameter>?,
+        parameters: List<KoinMetaData.DefinitionParameter>?,
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,

@@ -49,8 +49,8 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
 
 const val CREATED_AT_START = "createdAtStart=true"
 
-private fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): String {
-    return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
+private fun List<KoinMetaData.DefinitionParameter>.generateParamFunction(): String {
+    return if (any { it is KoinMetaData.DefinitionParameter.ParameterInject }) "params -> " else ""
 }
 
 private fun String?.generateQualifier(): String = when {
@@ -120,33 +120,32 @@ fun generateScope(scope: KoinMetaData.Scope): String {
 
 fun generateScopeClosing(): String = "${NEW_LINE}}"
 
-private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
-    val paramsWithoutDefaultValues = constructorParameters.filter { !it.hasDefault || it is KoinMetaData.ConstructorParameter.Property}
+private fun generateConstructor(constructorParameters: List<KoinMetaData.DefinitionParameter>): String {
+    val paramsWithoutDefaultValues = constructorParameters.filter { !it.hasDefault || it is KoinMetaData.DefinitionParameter.Property}
     return paramsWithoutDefaultValues.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
         val isNullable: Boolean = ctorParam.nullable
         when (ctorParam) {
-            is KoinMetaData.ConstructorParameter.Dependency -> {
+            is KoinMetaData.DefinitionParameter.Dependency -> {
+                val scopeId = ctorParam.scopeId
                 when (ctorParam.kind) {
                     KoinMetaData.DependencyKind.List -> "getAll()"
                     else -> {
-                        val keyword = if (ctorParam.kind == KoinMetaData.DependencyKind.Lazy) "inject" else "get"
+                        val keyword = when (ctorParam.kind) {
+                            KoinMetaData.DependencyKind.Lazy -> "inject"
+                            else -> "get"
+                        }
                         val qualifier =
-                            ctorParam.value?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" }
+                            ctorParam.qualifier?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" }
                                 ?: ""
                         val operator = if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
-                        if (ctorParam.name == null) operator else "${ctorParam.name}=$operator"
+                        val scopeOperator = scopeId?.let { "getScope(\"$scopeId\").$operator" } ?: operator
+                        if (ctorParam.name == null) scopeOperator else "${ctorParam.name}=$scopeOperator"
                     }
                 }
             }
 
-            is KoinMetaData.ConstructorParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
-            is KoinMetaData.ConstructorParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
-            //TODO handle default param property
-//            is KoinMetaData.ConstructorParameter.Property ->{
-//                val first = if (isNullable || ctorParam.hasDefault) "getPropertyOrNull(\"${ctorParam.value}\"" else "getProperty(\"${ctorParam.value}\""
-//                val second = if (!isNullable && ctorParam.hasDefault) ") ?: ${ctorParam.value}" else ")"
-//                first + second
-//            }
+            is KoinMetaData.DefinitionParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
+            is KoinMetaData.DefinitionParameter.Property -> if (!isNullable) "getProperty(\"${ctorParam.value}\")" else "getPropertyOrNull(\"${ctorParam.value}\")"
         }
     }
 }

@@ -99,6 +99,21 @@ annotation class Scope(val value: KClass<*> = Unit::class, val name: String = ""
 annotation class Scoped(val binds: Array<KClass<*>> = [Unit::class])
 
 /**
+ * Annotate a parameter from class constructor or function, to ask resolution for given scope with Scope Id
+ *
+ * ScopedId can be defined with a String (name parameter) or a type (value parameter)
+ *
+ * example:
+ *
+ * @Factory
+ * class MyClass(@ScopeId(name = "my_scope_id") val d : MyDependency)
+ *
+ * will result in `factory { MyClass(getScope("my_scope_id").get()) }`
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class ScopeId(val value: KClass<*> = Unit::class, val name: String = "")
+
+/**
  * Define a qualifier for a given definition (associated with Koin definition annotation)
  * Will generate `StringQualifier("...")`
  *

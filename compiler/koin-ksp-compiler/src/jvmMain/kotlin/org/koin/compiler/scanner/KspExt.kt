@@ -15,15 +15,11 @@
  */
 package org.koin.compiler.scanner
 
-import com.google.devtools.ksp.outerType
 import com.google.devtools.ksp.symbol.*
-import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.isScopeAnnotation
 import org.koin.compiler.metadata.isValidAnnotation
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.Named
-import org.koin.core.annotation.Property
+import org.koin.core.annotation.*
 
 fun KSAnnotated.getKoinAnnotations(): Map<String, KSAnnotation> {
     return annotations
@@ -58,11 +54,11 @@ fun KSAnnotated.getStringQualifier(): String? {
     }
 }
 
-fun List<KSValueParameter>.getConstructorParameters(): List<KoinMetaData.ConstructorParameter> {
-    return map { param -> getConstructorParameter(param) }
+fun List<KSValueParameter>.getParameters(): List<KoinMetaData.DefinitionParameter> {
+    return map { param -> getParameter(param) }
 }
 
-private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.ConstructorParameter {
+private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParameter {
     val firstAnnotation = param.annotations.firstOrNull()
     val annotationName = firstAnnotation?.shortName?.asString()
     val annotationValue = firstAnnotation?.arguments?.getValueArgument()
@@ -72,22 +68,25 @@ private fun getConstructorParameter(param: KSValueParameter): KoinMetaData.Const
     val hasDefault = param.hasDefault
     val resolvedTypeString = resolvedType.toString()
 
-    //TODO check to see better way to detect this
     val isList = resolvedTypeString.startsWith("List<")
     val isLazy = resolvedTypeString.startsWith("Lazy<")
 
     return when (annotationName) {
-        "${InjectedParam::class.simpleName}" -> KoinMetaData.ConstructorParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault)
-        //TODO extract default value here?
-        "${Property::class.simpleName}" -> KoinMetaData.ConstructorParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault)
-        "${Named::class.simpleName}" -> KoinMetaData.ConstructorParameter.Dependency(name = paramName, value = annotationValue, isNullable, hasDefault, type = resolvedType)
+        "${InjectedParam::class.simpleName}" -> KoinMetaData.DefinitionParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault)
+        "${Property::class.simpleName}" -> KoinMetaData.DefinitionParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault)
+        "${Named::class.simpleName}" -> KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = annotationValue,isNullable = isNullable, hasDefault = hasDefault, type = resolvedType)
+        "${ScopeId::class.simpleName}" -> {
+            val scopeIdValue: String = firstAnnotation.arguments.getScope().getValue()
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, scopeId = scopeIdValue)
+        }
+        //TODO type value for ScopeId
         else -> {
             val kind = when {
                 isList -> KoinMetaData.DependencyKind.List
                 isLazy -> KoinMetaData.DependencyKind.Lazy
                 else -> KoinMetaData.DependencyKind.Single
             }
-            KoinMetaData.ConstructorParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind,  isNullable = isNullable, type = resolvedType)
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind,  isNullable = isNullable, type = resolvedType)
         }
     }
 }

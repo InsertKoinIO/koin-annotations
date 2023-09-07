@@ -17,7 +17,6 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
-import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.*
 
 class ClassComponentScanner(
@@ -53,7 +52,7 @@ class ClassComponentScanner(
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
         val allBindings: List<KSDeclaration> = if (declaredBindings?.hasDefaultUnitValue() == false) declaredBindings else defaultBindings
-        val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getConstructorParameters()
+        val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
 
         return when (annotationName) {
             SINGLE.annotationName -> {
@@ -88,7 +87,7 @@ class ClassComponentScanner(
         packageName: String,
         qualifier: String?,
         className: String,
-        ctorParams: List<KoinMetaData.ConstructorParameter>?,
+        ctorParams: List<KoinMetaData.DefinitionParameter>?,
         allBindings: List<KSDeclaration>
     ): KoinMetaData.Definition.ClassDefinition {
         val createdAtStart: Boolean =
@@ -101,7 +100,7 @@ class ClassComponentScanner(
         packageName: String,
         qualifier: String?,
         className: String,
-        ctorParams: List<KoinMetaData.ConstructorParameter>?,
+        ctorParams: List<KoinMetaData.DefinitionParameter>?,
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
