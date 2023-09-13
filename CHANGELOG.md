@@ -3,6 +3,35 @@
 Badges: `[UPDATED]`, `[FIXED]`, `[NEW]`, `[DEPRECATED]`, `[REMOVED]`,  `[BREAKING]`
 
 
+## [1.3.x]()
+
+### [1.3.0]() - 2023-09-13
+
+#### BOM Project
+
+* you can access bom project for Koin annotations with `io.insert-koin:koin-annotations-bom`, in the targeted version - by @arnaudgiuliani in c429eacc9da9151a656ec8f64e4e7efda4244bcb 8009a558c7af80184fc7d5a042b8e3dba1d2897d
+
+#### Fixes
+* upgrade ksp/kotlin `1.9.10-1.0.13` by @arnaudgiuliani in cc91d15fa7d5be82d43a5c1b5301dde13c10438f
+* Fix compiler warning issue #79 by @hoc081098 in https://github.com/InsertKoinIO/koin-annotations/pull/90
+
+#### New Features
+* Constructor with default arguments by @damianogiusti PR #74 @arnaudgiuliani in https://github.com/InsertKoinIO/koin-annotations/pull/91
+* Unlock Kotlin/JS support by @arnaudgiuliani in 6de014b1e2065e7e6a8a4dd193e83eda666a2602
+* [Experimental] Compile time safety - check Koin configuration at compile time by @arnaudgiuliani in 25bd81b9564f450c2db3b53cf1edefc50c9c9041 9f28710f919de9771b04b853d0fbe2935a7fcbf5 95b9d8465cdefe8205208e574d1c17a6bd215c74 e1d574fce6b93737ca49cb2a02206b623a123cae
+* Allow to tag a parameter with `@ScopeId` to specify a parameter resolved in given scope by @arnaudgiuliani in 1fd7ac9f72aabc016f41b5e35d9ee8a2d7d27349
+
+#### Documentation
+* Compile time safety options doc - by @arnaugiuliani in 704a55a8113063e98bdab7f89fb9da50944e3088
+* Update Koin annotations doc to explicit scope usage - by @arnaudgiuliani in 27913de4f965c12ba802eab3713caf63c30e1df9
+
+## Thanks to Contributors
+* @arnaudgiuliani made their first contribution in https://github.com/InsertKoinIO/koin-annotations/pull/85
+* @hoc081098 made their first contribution in https://github.com/InsertKoinIO/koin-annotations/pull/90
+
+**Full Changelog**: https://github.com/InsertKoinIO/koin-annotations/compare/1.2.2...1.3.0
+
+
 ## [1.2.x]()
 
 ### [1.2.2]() - 2023-06-05
