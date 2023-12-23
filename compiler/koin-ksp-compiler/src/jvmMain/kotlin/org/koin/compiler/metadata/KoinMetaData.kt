@@ -29,6 +29,7 @@ sealed class KoinMetaData {
         val type: ModuleType = ModuleType.FIELD,
         val componentScan: ComponentScan? = null,
         val includes: List<KSDeclaration>? = null,
+        val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false
     ) : KoinMetaData() {
