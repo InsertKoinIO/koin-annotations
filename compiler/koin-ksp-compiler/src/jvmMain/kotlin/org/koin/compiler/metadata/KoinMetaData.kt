@@ -70,6 +70,30 @@ sealed class KoinMetaData {
         }
     }
 
+    sealed class Named {
+        data class ClassNamed(val type: KSDeclaration) : Named()
+        data class StringNamed(val name: String) : Named()
+
+        fun getValue(): String {
+            return when (this) {
+                is StringNamed -> name
+                is ClassNamed -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+            }
+        }
+    }
+
+    sealed class Qualifier {
+        data class ClassQualifier(val type: KSDeclaration) : Qualifier()
+        data class StringQualifier(val name: String) : Qualifier()
+
+        fun getValue(): String {
+            return when (this) {
+                is StringQualifier -> name
+                is ClassQualifier -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+            }
+        }
+    }
+
     sealed class Definition(
         val label: String,
         val parameters: List<DefinitionParameter>,

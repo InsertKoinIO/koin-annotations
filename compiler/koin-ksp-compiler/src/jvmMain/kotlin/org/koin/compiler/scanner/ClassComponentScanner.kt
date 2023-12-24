@@ -27,7 +27,7 @@ class ClassComponentScanner(
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
         val className = ksClassDeclaration.simpleName.asString()
-        val qualifier = ksClassDeclaration.getStringQualifier()
+        val qualifier = ksClassDeclaration.getQualifier()
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
         return if (scopeAnnotation != null){
