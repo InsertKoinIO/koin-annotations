@@ -32,10 +32,16 @@ class ModuleScanner(
         val componentScan = getComponentScan(annotations)
 
         val name = "$element"
+        val type = if (declaration.classKind == ClassKind.OBJECT) {
+            KoinMetaData.ModuleType.OBJECT
+        } else  {
+            KoinMetaData.ModuleType.CLASS
+        }
+
         val moduleMetadata = KoinMetaData.Module(
             packageName = modulePackage,
             name = name,
-            type = KoinMetaData.ModuleType.CLASS,
+            type = type,
             componentScan = componentScan,
             includes = includes,
             visibility = declaration.getVisibility()

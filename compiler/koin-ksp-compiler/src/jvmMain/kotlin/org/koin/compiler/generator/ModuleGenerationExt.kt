@@ -60,7 +60,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
                 // to able to call the function on this instance.
                 it is KoinMetaData.Definition.FunctionDefinition &&
                     it.isClassFunction
-            }) {
+            } && !module.type.isObject) {
             classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
         }
 
@@ -82,7 +82,7 @@ private fun generateDefinitions(
     classFile: OutputStream
 ) {
     val standardDefinitions = module.definitions.filter { it.isNotScoped() }
-    standardDefinitions.forEach { it.generateTargetDefinition(classFile) }
+    standardDefinitions.forEach { it.generateTargetDefinition(module, classFile) }
 
     val scopeDefinitions = module.definitions.filter { it.isScoped() }
     scopeDefinitions
@@ -90,7 +90,7 @@ private fun generateDefinitions(
         .forEach { (scope, definitions) ->
             classFile.appendText(generateScope(scope!!))
             definitions.forEach {
-                it.generateTargetDefinition(classFile)
+                it.generateTargetDefinition(module, classFile)
             }
             // close scope
             classFile.appendText("\n\t\t\t\t}")
@@ -98,12 +98,18 @@ private fun generateDefinitions(
 }
 
 private fun KoinMetaData.Definition.generateTargetDefinition(
+    module: KoinMetaData.Module,
     classFile: OutputStream
 ) {
     when (this) {
         is KoinMetaData.Definition.FunctionDefinition -> {
             if (isClassFunction) {
-                classFile.generateModuleFunctionDeclarationDefinition(this)
+                if (module.type.isObject) {
+                    val modulePath = "${module.packageName}.${module.name}"
+                    classFile.generateObjectModuleFunctionDeclarationDefinition(this, modulePath)
+                } else{
+                    classFile.generateModuleFunctionDeclarationDefinition(this)
+                }
             } else {
                 classFile.generateFunctionDeclarationDefinition(this)
             }
