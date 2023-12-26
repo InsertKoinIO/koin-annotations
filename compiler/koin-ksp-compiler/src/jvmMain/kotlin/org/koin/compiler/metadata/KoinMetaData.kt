@@ -77,7 +77,7 @@ sealed class KoinMetaData {
         fun getValue(): String {
             return when (this) {
                 is StringNamed -> name
-                is ClassNamed -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ClassNamed -> type.getQualifiedName()
             }
         }
     }
@@ -89,7 +89,7 @@ sealed class KoinMetaData {
         fun getValue(): String {
             return when (this) {
                 is StringQualifier -> name
-                is ClassQualifier -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ClassQualifier -> type.getQualifiedName()
             }
         }
     }
@@ -195,5 +195,20 @@ sealed class KoinMetaData {
 
     enum class DependencyKind {
         Single, List, Lazy
+    }
+}
+
+
+private fun KSDeclaration.getQualifiedName(): String {
+    val packageName = packageName.asString()
+    val qualifiedName =  qualifiedName?.asString()
+
+    return qualifiedName?.let {
+        val kClassName = qualifiedName
+            .removePrefix("${packageName}.")
+            .replace(".", "\\$")
+        "$packageName.$kClassName"
+    } ?: run {
+        "${this.packageName.asString()}.${simpleName.asString()}"
     }
 }
