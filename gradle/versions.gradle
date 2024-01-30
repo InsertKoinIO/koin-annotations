@@ -5,9 +5,9 @@ ext {
     koin_version = '3.5.2-RC2'
 
     // Kotlin
-    kotlin_version = '1.9.20'
+    kotlin_version = '1.9.21'
     // KSP
-    ksp_version = "1.9.20-1.0.14"
+    ksp_version = "1.9.21-1.0.15"
     // Dokka
     dokka_version = '1.8.10'
 }
