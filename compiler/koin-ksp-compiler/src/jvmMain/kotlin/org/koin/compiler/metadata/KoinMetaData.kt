@@ -85,6 +85,8 @@ sealed class KoinMetaData {
         fun isNotScoped(): Boolean = !isScoped()
         fun isType(keyword: DefinitionAnnotation): Boolean = this.keyword == keyword
 
+        val packageNamePrefix : String = if (packageName.isEmpty()) "" else "${packageName}."
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false

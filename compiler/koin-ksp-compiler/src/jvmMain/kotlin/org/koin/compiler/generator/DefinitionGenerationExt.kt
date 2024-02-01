@@ -40,11 +40,11 @@ fun OutputStream.generateModuleFunctionDeclarationDefinition(def: KoinMetaData.D
 }
 
 fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
-    generateDefinition(def) { "${def.packageName}.${def.functionName}" }
+    generateDefinition(def) { "${def.packageNamePrefix}${def.functionName}" }
 }
 
 fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDefinition) {
-    generateDefinition(def) { "${def.packageName}.${def.className}" }
+    generateDefinition(def) { "${def.packageNamePrefix}${def.className}" }
 }
 
 const val CREATED_AT_START = "createdAtStart=true"
