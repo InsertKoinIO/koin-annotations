@@ -1,3 +1,3 @@
 #!/bin/sh
 
-../gradlew testDebug --no-build-cache
+./gradlew testDebug --no-build-cache

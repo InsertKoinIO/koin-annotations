@@ -1,5 +1,3 @@
 #!/bin/sh
 
-../gradlew publishToMavenLocal;
-
-
+./gradlew publishToMavenLocal
