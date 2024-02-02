@@ -126,7 +126,8 @@ private fun KoinMetaData.Module.generateModuleField(
     val packageName = packageName("_")
     val generatedField = "${packageName}_${name}"
     val visibilityString = visibility.toSourceString()
-    classFile.appendText("\n${visibilityString}val $generatedField : Module = module {")
+    val createdAtStartString = if (isCreatedAtStart != null && isCreatedAtStart) "($CREATED_AT_START)" else ""
+    classFile.appendText("\n${visibilityString}val $generatedField : Module = module$createdAtStartString {")
     return generatedField
 }
 

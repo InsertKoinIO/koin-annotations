@@ -29,6 +29,7 @@ class ModuleScanner(
         val modulePackage = declaration.getPackageName().filterForbiddenKeywords()
         val annotations = declaration.annotations
         val includes = getIncludedModules(annotations)
+        val isCreatedAtStart = getIsCreatedAtStart(annotations)
         val componentScan = getComponentScan(annotations)
 
         val name = "$element"
@@ -38,6 +39,7 @@ class ModuleScanner(
             type = KoinMetaData.ModuleType.CLASS,
             componentScan = componentScan,
             includes = includes,
+            isCreatedAtStart = isCreatedAtStart,
             visibility = declaration.getVisibility()
         )
 
@@ -56,6 +58,11 @@ class ModuleScanner(
     private fun getIncludedModules(annotations: Sequence<KSAnnotation>) : List<KSDeclaration>? {
         val module = annotations.firstOrNull { it.shortName.asString() == "Module" }
         return module?.let { includedModules(it) }
+    }
+
+    private fun getIsCreatedAtStart(annotations: Sequence<KSAnnotation>) : Boolean? {
+        val module = annotations.firstOrNull { it.shortName.asString() == "Module" }
+        return module?.let { isCreatedAtStart(it) }
     }
 
     private fun getComponentScan(annotations: Sequence<KSAnnotation>): KoinMetaData.Module.ComponentScan? {

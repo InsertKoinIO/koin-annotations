@@ -78,3 +78,7 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
     val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "includes" }?.value as? List<KSType>?
     return declaredBindingsTypes?.map { it.declaration }
 }
+
+fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {
+    return annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as? Boolean
+}
