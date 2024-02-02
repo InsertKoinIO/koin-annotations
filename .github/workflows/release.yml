@@ -31,15 +31,10 @@ jobs:
           java-version: 11
 
       - name: Install
-        run: cd compiler && ./install.sh
+        run: cd projects && ./install.sh
       
       - name: Release
-        run: cd compiler && ./release.sh
-
-      - name: Install BOM
-        run: cd bom && ./install.sh
-      
-      - name: Release BOM
-        run: cd bom && ./release.sh
+        run: cd projects && ./release.sh
+        
 
 
