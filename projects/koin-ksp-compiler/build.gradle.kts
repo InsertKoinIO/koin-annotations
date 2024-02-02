@@ -11,8 +11,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":koin-annotations"))
-            implementation(libs.koin.core)
+            api(project(":koin-annotations"))
+            api(libs.koin.core)
         }
         jvmMain.dependencies {
             implementation(libs.ksp.api)
