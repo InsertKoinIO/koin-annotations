@@ -83,7 +83,7 @@ For example:
 class MyComponent(@InjectedParam val myDependency : MyDependency)
 ```
 
-Then you can call your `MyComponent` and pass a instance of `MyDependency`:
+Then you can call your `MyComponent` and pass an instance of `MyDependency`:
 
 ```kotlin
 val m = MyDependency

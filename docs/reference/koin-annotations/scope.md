@@ -98,7 +98,7 @@ class MyFactory(
 )
 ```
 
-The above code is equivalent to generated:
+The above code is equivalent to generate:
 
 ```kotlin
 factory { Myfactory(getScope("my_scope_id").get()) }
