@@ -6,7 +6,7 @@ While using definitions and modules, you may need to define scopes for particula
 
 ## Defining a Scope with @Scope
 
-Koin allows to use scopes, please refer to [Koin Scopes](../koin-core/scopes.md) section for more details on basics. 
+Koin allows to use scopes, please refer to [Koin Scopes](/docs/reference/koin-core/scopes.md) section for more details on basics. 
 
 To declare a scope with annotations, just use `@Scope` annotation on a class, like this
 
