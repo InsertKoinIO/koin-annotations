@@ -51,7 +51,7 @@ The Koin compiler offers some options to configure. Following the official doc, 
 
 ### Compile Safety - check your Koin config at compile time (since 1.3.0)
 
-Koin Annotations allows the compiler plugin to verify yout Koin configuration at compile time. This can be activated with the following Ksp options, to add to your Gradle module: 
+Koin Annotations allows the compiler plugin to verify your Koin configuration at compile time. This can be activated with the following Ksp options, to add to your Gradle module: 
 
 ```groovy
 // in build.gradle or build.gradle.kts
