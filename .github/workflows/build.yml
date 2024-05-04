@@ -1,11 +1,6 @@
 name: Build & Test
 
 on:
-  push:
-    branches:
-      - '*'
-      - '*/*'
-  
   pull_request:
     branches:    
       - '*'
@@ -37,9 +32,9 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Install Compiler
-        run: cd compiler && ./install.sh
+        run: cd projects && ./install.sh
 
       - name: Run Sandbox Test
-        run: cd sandbox && ./test.sh
+        run: cd examples && ./test.sh
 
 
