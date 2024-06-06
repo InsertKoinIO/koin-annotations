@@ -174,7 +174,7 @@ annotation class Property(val value: String)
  * @param includes: Module Classes to include
  */
 @Target(AnnotationTarget.CLASS)
-annotation class Module(val includes: Array<KClass<*>> = [])
+annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
 
 /**
  * Gather definitions declared with Koin definition annotation
