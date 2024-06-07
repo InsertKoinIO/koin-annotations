@@ -3,7 +3,7 @@ package org.koin.compiler.util
 object GlobToRegex {
     private const val DOT = '.'
     private const val ESCAPED_DOT = "\\$DOT"
-    private const val NOT_DOT = "[^$DOT]+"
+    private const val NOT_DOT = "[^$DOT]*"
 
     private const val MULTI_LEVEL_WILDCARD = "**"
     private const val SINGLE_LEVEL_WILDCARD = "*"
@@ -14,10 +14,13 @@ object GlobToRegex {
     fun convert(globPattern: String, ignoreCase: Boolean = false): Regex {
         val parts = globPattern.split(DOT)
         val regexParts = parts.mapIndexed { index, part ->
-            when {
-                part == MULTI_LEVEL_WILDCARD -> multiLevelPatternFor(index == parts.lastIndex)
-                part.contains(SINGLE_LEVEL_WILDCARD) -> part.replace(SINGLE_LEVEL_WILDCARD, SINGLE_LEVEL_PATTERN)
-                else -> Regex.escape(part) + if (index < parts.lastIndex) ESCAPED_DOT else ""
+            when (part) {
+                MULTI_LEVEL_WILDCARD -> multiLevelPatternFor(index == parts.lastIndex)
+                SINGLE_LEVEL_WILDCARD -> SINGLE_LEVEL_PATTERN
+                else -> part.replace(
+                    SINGLE_LEVEL_WILDCARD,
+                    NOT_DOT
+                ) + if (index < parts.lastIndex) ESCAPED_DOT else ""
             }
         }
         return with("^${regexParts.joinToString("")}$") {
