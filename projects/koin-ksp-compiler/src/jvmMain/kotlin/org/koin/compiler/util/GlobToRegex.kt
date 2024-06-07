@@ -8,7 +8,7 @@ object GlobToRegex {
     private const val MULTI_LEVEL_WILDCARD = "**"
     private const val SINGLE_LEVEL_WILDCARD = "*"
 
-    private const val SINGLE_LEVEL_PATTERN = "$NOT_DOT$ESCAPED_DOT?"
+    private const val SINGLE_LEVEL_PATTERN = "$NOT_DOT$ESCAPED_DOT"
     private const val MULTI_LEVEL_PATTERN = "($SINGLE_LEVEL_PATTERN)*"
 
     fun convert(globPattern: String, ignoreCase: Boolean = false): Regex {
