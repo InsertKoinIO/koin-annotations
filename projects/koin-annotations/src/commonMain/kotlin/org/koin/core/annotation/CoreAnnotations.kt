@@ -205,7 +205,26 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  * Gather definitions declared with Koin definition annotation
  * Will scan in current package or with the explicit package name
  *
- * @param value: package to scan
+ * The [value] parameter supports both exact package names and glob patterns:
+ *
+ * 1. Exact package: `"com.example.service"`
+ *    - Scans only the `com.example.service` package.
+ *
+ * 2. Single-level wildcard (`*`): `"com.example.*.service"`
+ *    - Matches one level of package hierarchy.
+ *    - E.g., `com.example.user.service`, `com.example.order.service`.
+ *    - Does NOT match `com.example.service` or `com.example.user.impl.service`.
+ *
+ * 3. Multi-level wildcard (`**`): `"com.example.**"`
+ *    - Matches any number of package levels.
+ *    - E.g., `com.example`, `com.example.service`, `com.example.service.user`.
+ *
+ * Wildcards can be combined and used at any level:
+ * - `"com.**.service.*data"`: All packages that ends with "data" in any `service` subpackage.
+ * - `"com.*.service.**"`: All classes in `com.X.service` and its subpackages.
+ *
+ * @param value The package to scan. Can be an exact package name or a glob pattern.
+ *              Defaults to the package of the annotated element if empty.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(val value: String = "")
