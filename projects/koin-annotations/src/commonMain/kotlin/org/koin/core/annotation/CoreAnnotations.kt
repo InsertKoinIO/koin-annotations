@@ -184,3 +184,21 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(val value: String = "")
+
+/**
+ * ViewModel annotation for Koin definition
+ * Declare a type, a function as `viewModel` definition in Koin
+ *
+ * example:
+ *
+ * @KoinViewModel
+ * class MyViewModel(val d : MyDependency) : ViewModel()
+ *
+ * will result in `viewModel { MyViewModel(get()) }`
+ *
+ * All dependencies are filled by constructor.
+ *
+ * @param binds: declared explicit types to bind to this definition. Supertypes are automatically detected
+ */
+@Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
+annotation class KoinViewModel(val binds: Array<KClass<*>> = [])

@@ -56,6 +56,9 @@ abstract class FunctionScanner(
             KOIN_VIEWMODEL.annotationName -> {
                 createDefinition(KOIN_VIEWMODEL,packageName,qualifier,functionName,functionParameters,allBindings)
             }
+            KOIN_VIEWMODEL_KMP.annotationName -> {
+                createDefinition(KOIN_VIEWMODEL_KMP,packageName,qualifier,functionName,functionParameters,allBindings)
+            }
             KOIN_WORKER.annotationName -> {
                 createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings)
             }
