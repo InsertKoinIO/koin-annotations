@@ -24,12 +24,7 @@ import org.koin.compiler.generator.getFile
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
-private val ignored = listOf(
-    "kotlin.Any",
-    "androidx.lifecycle.SavedStateHandle",
-    "android.content.Context",
-    "android.app.Application"
-)
+private val ignored = listOf("kotlin.Any",)
 private val classPrefix = "KoinDef"
 private val generationPackage = "org.koin.ksp.generated"
 
