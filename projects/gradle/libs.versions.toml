@@ -3,10 +3,10 @@
 # /!\ Koin in gradle.properties /!\
 
 # Core
-kotlin = "1.9.21"
-koin = "3.5.3"
-ksp = "1.9.21-1.0.16"
-publish = "2.0.0-rc-1"
+kotlin = "1.9.23"
+koin = "3.5.6"
+ksp = "1.9.23-1.0.20"
+publish = "2.0.0"
 dokka = "1.9.10"
 
 [libraries]
