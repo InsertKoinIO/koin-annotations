@@ -1,27 +1,24 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
-
-    val kotlinVersion: String by settings
-    val kspVersion: String by settings
-
-    plugins {
-        kotlin("jvm") version kotlinVersion
-        id("com.google.devtools.ksp") version kspVersion
-        id("com.android.application")
-        id("kotlin-android")
-    }
     repositories {
-        mavenLocal()
-        gradlePluginPortal()
         google()
+        gradlePluginPortal()
+        mavenCentral()
     }
 }
 
-rootProject.name = "playground"
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 
-include(":coffee-maker")
-include(":coffee-maker-module")
-include(":compile-perf")
-include(":other-ksp")
-
-include(":android-coffee-maker")
-include(":android-library")
+include(
+    ":coffee-maker",
+    ":coffee-maker-module",
+    ":other-ksp",
+    ":compile-perf",
+    ":android-coffee-maker",
+    ":android-library"
+)

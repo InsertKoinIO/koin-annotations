@@ -1,26 +1,16 @@
-val koinVersion: String by project
-val koinAndroidVersion: String by project
-val appcompatVersion : String by project
-val koinKspVersion: String by project
-
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("com.google.devtools.ksp")
-    idea
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.ksp)
 }
 
-repositories {
-    google()
-    mavenCentral()
-    mavenLocal()
-}
+val androidCompileSDK : String by project
+val androidMinSDK : String by project
 
 android {
-    compileSdkVersion(33)
+    compileSdk = androidCompileSDK.toInt()
     defaultConfig {
-        targetSdkVersion(33)
-        minSdkVersion(21)
+        minSdk = androidMinSDK.toInt()
     }
     // to use KSP generated Code
     libraryVariants.all {
@@ -34,15 +24,13 @@ android {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation("io.insert-koin:koin-android:$koinAndroidVersion")
+    implementation(libs.koin.android)
+    implementation(libs.koin.annotations)
+    implementation(libs.android.appcompat)
+    ksp(libs.koin.ksp)
+    implementation(project(":coffee-maker-module"))
 
-    implementation("io.insert-koin:koin-annotations:$koinKspVersion")
-    ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
-
-    implementation ("androidx.appcompat:appcompat:$appcompatVersion")
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.koin.test)
 }
 
 ksp {

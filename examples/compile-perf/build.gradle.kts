@@ -1,17 +1,11 @@
-val koinVersion: String by project
-val koinKspVersion: String by project
-
 plugins {
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
     kotlin("jvm")
-    idea
 }
 
 sourceSets.main {
     java.srcDirs("build/generated/ksp/main/kotlin")
 }
-
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -20,12 +14,12 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation("io.insert-koin:koin-core:$koinVersion")
-    implementation("io.insert-koin:koin-annotations:$koinKspVersion")
-    ksp("io.insert-koin:koin-ksp-compiler:$koinKspVersion")
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
+    ksp(libs.koin.ksp)
 
-    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation(libs.koin.test)
+    testImplementation(libs.junit)
 }
 
 ksp {
