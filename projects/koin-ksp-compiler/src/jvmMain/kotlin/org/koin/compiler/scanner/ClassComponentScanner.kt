@@ -67,6 +67,9 @@ class ClassComponentScanner(
             KOIN_VIEWMODEL.annotationName -> {
                 createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings)
             }
+            KOIN_VIEWMODEL_KMP.annotationName -> {
+                createClassDefinition(KOIN_VIEWMODEL_KMP,packageName, qualifier, className, ctorParams, allBindings)
+            }
             KOIN_WORKER.annotationName -> {
                 createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings)
             }
