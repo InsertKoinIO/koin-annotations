@@ -23,7 +23,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.util.containsGlob
+import org.koin.compiler.util.anyMatch
 import org.koin.core.annotation.Module
 
 class KoinMetaDataScanner(
@@ -131,7 +131,7 @@ class KoinMetaDataScanner(
             module.componentScan?.let { scan ->
                 when (scan.packageName) {
                     "" -> emptyScanList.add(module)
-                    else -> if (moduleList.containsGlob(scan.packageName)) {
+                    else -> if (moduleList.anyMatch(scan.packageName)) {
                         val existing = moduleList[scan.packageName]!!
                         error("@ComponentScan with '${scan.packageName}' from module ${module.name} is already declared in ${existing.name}. Please fix @ComponentScan value ")
                     } else {

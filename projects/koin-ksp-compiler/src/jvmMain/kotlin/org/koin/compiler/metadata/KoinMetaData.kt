@@ -18,7 +18,7 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
-import org.koin.compiler.util.containsGlob
+import org.koin.compiler.util.matchesGlob
 import java.util.*
 
 typealias PackageName = String
@@ -59,7 +59,7 @@ sealed class KoinMetaData {
         fun acceptDefinition(defPackageName: String): Boolean {
             return when {
                 componentScan == null -> false
-                componentScan.packageName.isNotEmpty() -> defPackageName.containsGlob(
+                componentScan.packageName.isNotEmpty() -> defPackageName.matchesGlob(
                     componentScan.packageName,
                     ignoreCase = true
                 )

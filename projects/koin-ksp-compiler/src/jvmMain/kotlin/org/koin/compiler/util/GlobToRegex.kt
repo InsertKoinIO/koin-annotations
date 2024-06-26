@@ -15,7 +15,7 @@ package org.koin.compiler.util
  * @author OffRange
  * @see [convert]
  * @see [String.toGlobRegex]
- * @see [String.containsGlob]
+ * @see [String.matchesGlob]
  */
 object GlobToRegex {
     private const val DOT = '.'
@@ -78,7 +78,7 @@ fun String.toGlobRegex(ignoreCase: Boolean = false): Regex = GlobToRegex.convert
  * @param keyGlob the glob pattern to match against keys.
  * @return true if any key matches the glob pattern, false otherwise.
  */
-operator fun Map<String, *>.contains(keyGlob: String): Boolean = keys.any { keyGlob.toGlobRegex().matches(it) }
+fun Map<String, *>.anyMatch(keyGlob: String): Boolean = keys.any { keyGlob.toGlobRegex().matches(it) }
 
 /**
  * Checks if this string matches the given glob pattern.
@@ -88,5 +88,5 @@ operator fun Map<String, *>.contains(keyGlob: String): Boolean = keys.any { keyG
  *                  Default is false, as package and class names are typically case-sensitive.
  * @return true if this string matches the glob pattern, false otherwise.
  */
-fun String.containsGlob(glob: String, ignoreCase: Boolean = false): Boolean =
+fun String.matchesGlob(glob: String, ignoreCase: Boolean = false): Boolean =
     glob.toGlobRegex(ignoreCase = ignoreCase).matches(this)
