@@ -20,13 +20,13 @@ package org.koin.compiler.util
 object GlobToRegex {
     private const val DOT = '.'
     private const val ESCAPED_DOT = "\\$DOT"
-    private const val NOT_DOT = "[^$DOT]*"
+    private const val NOT_DOT = "[^$DOT]"
 
     private const val MULTI_LEVEL_WILDCARD = "**"
     private const val SINGLE_LEVEL_WILDCARD = "*"
 
-    private const val SINGLE_LEVEL_PATTERN = "$NOT_DOT$ESCAPED_DOT"
-    private const val MULTI_LEVEL_PATTERN = "($SINGLE_LEVEL_PATTERN)*"
+    private const val GENERAL_SINGLE_LEVEL_PATTERN = "$NOT_DOT*"
+    private const val GENERAL_MULTI_LEVEL_PATTERN = "($GENERAL_SINGLE_LEVEL_PATTERN$ESCAPED_DOT)*$NOT_DOT+"
 
     /**
      * Converts a glob pattern to a regular expression.
@@ -44,23 +44,20 @@ object GlobToRegex {
      */
     fun convert(globPattern: String, ignoreCase: Boolean = false): Regex {
         val parts = globPattern.split(DOT)
-        val regexParts = parts.mapIndexed { index, part ->
+        val regexParts = parts.map { part ->
             when (part) {
-                MULTI_LEVEL_WILDCARD -> multiLevelPatternFor(index == parts.lastIndex)
-                SINGLE_LEVEL_WILDCARD -> SINGLE_LEVEL_PATTERN
+                MULTI_LEVEL_WILDCARD -> GENERAL_MULTI_LEVEL_PATTERN
+                SINGLE_LEVEL_WILDCARD -> GENERAL_SINGLE_LEVEL_PATTERN
                 else -> part.replace(
                     SINGLE_LEVEL_WILDCARD,
-                    NOT_DOT
-                ) + if (index < parts.lastIndex) ESCAPED_DOT else ""
+                    GENERAL_SINGLE_LEVEL_PATTERN
+                )
             }
         }
-        return with("^${regexParts.joinToString("")}$") {
+        return with("^${regexParts.joinToString(ESCAPED_DOT)}$") {
             if (ignoreCase) toRegex(RegexOption.IGNORE_CASE) else toRegex()
         }
     }
-
-    private fun multiLevelPatternFor(isLast: Boolean) =
-        if (isLast) "$MULTI_LEVEL_PATTERN$NOT_DOT" else MULTI_LEVEL_PATTERN
 }
 
 /**
