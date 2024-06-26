@@ -18,6 +18,7 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
+import org.koin.compiler.util.matchesGlob
 import java.util.*
 
 sealed class KoinMetaData {
@@ -44,7 +45,7 @@ sealed class KoinMetaData {
         fun acceptDefinition(defPackageName: String): Boolean {
             return when {
                 componentScan == null -> false
-                componentScan.packageName.isNotEmpty() -> defPackageName.contains(
+                componentScan.packageName.isNotEmpty() -> defPackageName.matchesGlob(
                     componentScan.packageName,
                     ignoreCase = true
                 )
@@ -86,7 +87,7 @@ sealed class KoinMetaData {
         fun isNotScoped(): Boolean = !isScoped()
         fun isType(keyword: DefinitionAnnotation): Boolean = this.keyword == keyword
 
-        val packageNamePrefix : String = if (packageName.isEmpty()) "" else "${packageName}."
+        val packageNamePrefix: String = if (packageName.isEmpty()) "" else "${packageName}."
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
