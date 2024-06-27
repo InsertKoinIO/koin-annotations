@@ -56,7 +56,10 @@ sealed class KoinMetaData {
     }
 
     enum class ModuleType {
-        FIELD, CLASS
+        FIELD, CLASS, OBJECT;
+
+        val isObject: Boolean
+            get() = this == OBJECT
     }
 
     sealed class Scope {

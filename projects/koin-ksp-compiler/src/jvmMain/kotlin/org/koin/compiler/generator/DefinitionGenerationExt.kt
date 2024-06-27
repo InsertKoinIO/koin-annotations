@@ -39,6 +39,13 @@ fun OutputStream.generateModuleFunctionDeclarationDefinition(def: KoinMetaData.D
     generateDefinition(def) { "moduleInstance.${def.functionName}" }
 }
 
+fun OutputStream.generateObjectModuleFunctionDeclarationDefinition(
+    def: KoinMetaData.Definition.FunctionDefinition,
+    modulePath: String
+) {
+    generateDefinition(def) { "$modulePath.${def.functionName}" }
+}
+
 fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
     generateDefinition(def) { "${def.packageNamePrefix}${def.functionName}" }
 }
