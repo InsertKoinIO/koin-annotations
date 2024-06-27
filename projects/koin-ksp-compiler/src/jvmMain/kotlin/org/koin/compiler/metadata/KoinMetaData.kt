@@ -71,6 +71,30 @@ sealed class KoinMetaData {
         }
     }
 
+    sealed class Named {
+        data class ClassNamed(val type: KSDeclaration) : Named()
+        data class StringNamed(val name: String) : Named()
+
+        fun getValue(): String {
+            return when (this) {
+                is StringNamed -> name
+                is ClassNamed -> type.getQualifiedName()
+            }
+        }
+    }
+
+    sealed class Qualifier {
+        data class ClassQualifier(val type: KSDeclaration) : Qualifier()
+        data class StringQualifier(val name: String) : Qualifier()
+
+        fun getValue(): String {
+            return when (this) {
+                is StringQualifier -> name
+                is ClassQualifier -> type.getQualifiedName()
+            }
+        }
+    }
+
     sealed class Definition(
         val label: String,
         val parameters: List<DefinitionParameter>,
@@ -174,5 +198,20 @@ sealed class KoinMetaData {
 
     enum class DependencyKind {
         Single, List, Lazy
+    }
+}
+
+
+private fun KSDeclaration.getQualifiedName(): String {
+    val packageName = packageName.asString()
+    val qualifiedName =  qualifiedName?.asString()
+
+    return qualifiedName?.let {
+        val kClassName = qualifiedName
+            .removePrefix("${packageName}.")
+            .replace(".", "\\$")
+        "$packageName.$kClassName"
+    } ?: run {
+        "${this.packageName.asString()}.${simpleName.asString()}"
     }
 }

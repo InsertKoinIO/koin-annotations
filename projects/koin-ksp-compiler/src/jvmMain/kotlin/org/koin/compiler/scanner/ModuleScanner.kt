@@ -77,7 +77,7 @@ class ModuleScanner(
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
-        val qualifier = ksFunctionDeclaration.getStringQualifier()
+        val qualifier = ksFunctionDeclaration.getQualifier()
 
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
