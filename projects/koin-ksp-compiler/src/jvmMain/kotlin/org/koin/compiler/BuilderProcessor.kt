@@ -51,7 +51,7 @@ class BuilderProcessor(
         )
 
         logger.logging("Scan metadata ...")
-        val moduleList = koinMetaDataScanner.extractKoinMetaData(defaultModule)
+        val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
 
         if (isDefaultModuleDisabled()){
             if (defaultModule.definitions.isNotEmpty()){

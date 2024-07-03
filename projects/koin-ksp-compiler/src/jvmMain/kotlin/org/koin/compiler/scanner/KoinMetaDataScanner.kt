@@ -58,7 +58,7 @@ class KoinMetaDataScanner(
         return emptyList()
     }
 
-    fun extractKoinMetaData(defaultModule: KoinMetaData.Module): List<KoinMetaData.Module> {
+    fun scanKoinModules(defaultModule: KoinMetaData.Module): List<KoinMetaData.Module> {
         val moduleList = scanClassModules()
         val index = moduleList.generateScanComponentIndex()
         scanClassComponents(defaultModule, index)
