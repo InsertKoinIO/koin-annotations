@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":coffee-maker-module"))
 
     testImplementation(libs.koin.test)
+    testImplementation(libs.junit)
 }
 
 ksp {

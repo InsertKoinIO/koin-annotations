@@ -16,13 +16,15 @@
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.KoinMetaData.Module.Companion.DEFINE_PREFIX
 import org.koin.compiler.metadata.SINGLE
 import org.koin.compiler.scanner.filterForbiddenKeywords
 import java.io.OutputStream
 
 const val NEW_LINE = "\n\t"
 
-fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label: () -> String) {
+
+fun OutputStream.generateDefinition(def: KoinMetaData.Definition, isExternalDefinition: Boolean = false, label: () -> String) {
     LOGGER.logging("generate ${def.label} - $def")
     val param = def.parameters.generateParamFunction()
     val ctor = generateConstructor(def.parameters)
@@ -32,7 +34,39 @@ fun OutputStream.generateDefinition(def: KoinMetaData.Definition, label: () -> S
         if (qualifier == "") CREATED_AT_START else ",$CREATED_AT_START"
     } else ""
     val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
+
+    if (isExternalDefinition) {
+        writeExternalDefinitionFunction(def, qualifier, createAtStart, param, label, ctor, binds)
+    }
+    else {
+        writeDefinition(space, def, qualifier, createAtStart, param, label, ctor, binds)
+    }
+}
+
+private fun OutputStream.writeDefinition(
+    space: String,
+    def: KoinMetaData.Definition,
+    qualifier: String,
+    createAtStart: String,
+    param: String,
+    label: () -> String,
+    ctor: String,
+    binds: String
+) {
     appendText("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
+}
+
+private fun OutputStream.writeExternalDefinitionFunction(
+    def: KoinMetaData.Definition,
+    qualifier: String,
+    createAtStart: String,
+    param: String,
+    label: () -> String,
+    ctor: String,
+    binds: String
+) {
+    appendText("@Definition(\"${def.packageName}\")\n")
+    appendText("fun Module.$DEFINE_PREFIX${def.label}() = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
 
 fun OutputStream.generateModuleFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
@@ -43,15 +77,26 @@ fun OutputStream.generateObjectModuleFunctionDeclarationDefinition(
     def: KoinMetaData.Definition.FunctionDefinition,
     modulePath: String
 ) {
-    generateDefinition(def) { "$modulePath.${def.functionName}" }
+    generateDefinition(def ) { "$modulePath.${def.functionName}" }
 }
 
-fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {
-    generateDefinition(def) { "${def.packageNamePrefix}${def.functionName}" }
+fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition,isExternalDefinition: Boolean = false) {
+    generateDefinition(def,isExternalDefinition) { "${def.packageNamePrefix}${def.functionName}" }
 }
 
-fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDefinition) {
-    generateDefinition(def) { "${def.packageNamePrefix}${def.className}" }
+fun OutputStream.generateClassDeclarationDefinition(
+    def: KoinMetaData.Definition.ClassDefinition,
+    isExternalDefinition: Boolean = false
+) {
+    generateDefinition(def,isExternalDefinition) { "${def.packageNamePrefix}${def.className}" }
+}
+
+internal fun OutputStream.generateExternalDefinitionCalls(module: KoinMetaData.Module) {
+    generateExternalDefinitionCalls(module.externalDefinitions)
+}
+
+internal fun OutputStream.generateExternalDefinitionCalls(externalDefinitions : List<KoinMetaData.ExternalDefinition>) {
+    this.appendText("${NEW_LINE}${externalDefinitions.joinToString(separator = "\n${NEW_LINE}") { "${it.name}()" }}")
 }
 
 const val CREATED_AT_START = "createdAtStart=true"

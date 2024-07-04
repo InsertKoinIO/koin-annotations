@@ -20,7 +20,9 @@ import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import generateClassModule
 import generateDefaultModuleFooter
+import generateDefaultModuleFunction
 import generateDefaultModuleHeader
+import generateExternalDefinitionCalls
 import generateFieldDefaultModule
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
@@ -36,33 +38,49 @@ class KoinGenerator(
 
     fun generateModules(
         moduleList: List<KoinMetaData.Module>,
-        defaultModule: KoinMetaData.Module
+        defaultModule: KoinMetaData.Module,
+        generateDefaultModule : Boolean
     ) {
         logger.logging("generate ${moduleList.size} modules ...")
         moduleList.forEach { generateModule(it) }
 
         if (defaultModule.definitions.isNotEmpty()) {
-            logger.logging("generate default module ...")
-            val defaultModuleFile = codeGenerator.getFile(fileName = "Default")
-            defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
-            generateModule(defaultModule, defaultModuleFile)
-            defaultModuleFile.generateDefaultModuleFooter()
-            defaultModuleFile.close()
+            generateDefaultFile(defaultModule, generateDefaultModule)
         }
     }
 
-    private fun generateModule(module: KoinMetaData.Module, defaultFile: OutputStream? = null) {
-        logger.logging("generate $module - ${module.type}")
+    private fun generateDefaultFile(
+        defaultModule: KoinMetaData.Module,
+        generateDefaultModule: Boolean
+    ) {
+        logger.logging("generate default file ...")
+        val defaultModuleFile = codeGenerator.getFile(fileName = "Default")
+        defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
+        generateAllExternalDefinitions(defaultModule, defaultModuleFile)
 
-        val isFieldModule = module.type == KoinMetaData.ModuleType.FIELD && module.definitions.isNotEmpty()
-        if (isFieldModule){
-            // generate field module
-            defaultFile!!.generateFieldDefaultModule(module.definitions)
-        } else {
-            // generate class module
-            val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
-            generateClassModule(moduleFile, module)
+        if (generateDefaultModule) {
+            generateDefaultModule(defaultModule, defaultModuleFile)
         }
+        defaultModuleFile.close()
+    }
+
+    private fun generateAllExternalDefinitions(defaultModule: KoinMetaData.Module, defaultModuleFile: OutputStream) {
+        defaultModuleFile.generateFieldDefaultModule(defaultModule.definitions, generateExternalDefinitions = true)
+    }
+
+    private fun generateDefaultModule(defaultModule: KoinMetaData.Module, defaultModuleFile: OutputStream) {
+        with(defaultModuleFile){
+            generateDefaultModuleFunction()
+            generateExternalDefinitionCalls(defaultModule.getDefinitionsAsExternals())
+            generateDefaultModuleFooter()
+        }
+    }
+
+    private fun generateModule(module: KoinMetaData.Module) {
+        logger.logging("generate $module - ${module.type}")
+        // generate class module
+        val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
+        generateClassModule(moduleFile, module)
     }
 
     private fun KoinMetaData.Module.generateModuleFileName(): String {

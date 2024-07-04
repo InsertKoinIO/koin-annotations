@@ -15,14 +15,17 @@
  */
 package org.koin.compiler.scanner
 
+import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.core.annotation.Definition
 import org.koin.core.annotation.Module
 
 class KoinMetaDataScanner(
@@ -35,7 +38,11 @@ class KoinMetaDataScanner(
 
     private var validModuleSymbols = mutableListOf<KSAnnotated>()
     private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
+    private var externalDefinitions = listOf<KSDeclaration>()
 
+    private val definitionAnnotationName = Definition::class.simpleName
+
+    @OptIn(KspExperimental::class)
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
         val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
@@ -55,6 +62,17 @@ class KoinMetaDataScanner(
         }
 
         logger.logging("All symbols are valid")
+
+        externalDefinitions = resolver.getDeclarationsFromPackage("org.koin.ksp.generated")
+            .filter { it.annotations.any { it.shortName.asString() == definitionAnnotationName } }
+            .toList()
+
+        if (externalDefinitions.isNotEmpty()) {
+            logger.logging("external definitions: ${externalDefinitions.size}")
+        } else {
+            logger.logging("no external definition")
+        }
+
         return emptyList()
     }
 
@@ -63,7 +81,24 @@ class KoinMetaDataScanner(
         val index = moduleList.generateScanComponentIndex()
         scanClassComponents(defaultModule, index)
         scanFunctionComponents(defaultModule, index)
+        scanExternalDefinitions(index)
         return moduleList
+    }
+
+    private fun scanExternalDefinitions(index: List<KoinMetaData.Module>) {
+        externalDefinitions
+            .mapNotNull { def ->
+                def.annotations
+                    .first { it.shortName.asString() == definitionAnnotationName }.arguments.first().value?.toString()
+                    ?.let {
+                        KoinMetaData.ExternalDefinition(targetPackage = it, name = def.simpleName.asString())
+                    }
+            }
+            .forEach { extDef ->
+                // add to first module that accept
+                val module = index.firstOrNull { it.acceptDefinition(extDef.targetPackage) }
+                module?.externalDefinitions?.add(extDef)
+            }
     }
 
     private fun scanClassModules(): List<KoinMetaData.Module> {

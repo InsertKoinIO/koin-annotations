@@ -195,3 +195,11 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(val value: String = "")
+
+/**
+ *
+ *
+ * @param value: package of declared definition
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD, AnnotationTarget.FUNCTION)
+annotation class Definition(val value: String = "")

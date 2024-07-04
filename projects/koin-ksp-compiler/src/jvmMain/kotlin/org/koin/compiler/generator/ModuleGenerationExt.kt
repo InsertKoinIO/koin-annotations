@@ -18,27 +18,31 @@ import org.koin.compiler.generator.*
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
-fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Definition>) {
+fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Definition>, generateExternalDefinitions : Boolean) {
     val standardDefinitions = definitions.filter { it.isNotScoped() }.toSet()
     val scopeDefinitions = definitions.filter { it.isScoped() }.toSet()
 
-    standardDefinitions.forEach { generateDefaultModuleDefinition(it) }
+    standardDefinitions.forEach { generateDefaultModuleDefinition(it,generateExternalDefinitions) }
+    //TODO Scope in function?
     scopeDefinitions
         .groupBy { it.scope }
         .forEach { (scope, definitions) ->
             appendText(generateScope(scope!!))
             definitions.forEach { definition ->
-                generateDefaultModuleDefinition(definition)
+                generateDefaultModuleDefinition(definition, generateExternalDefinitions)
             }
             appendText(generateScopeClosing())
         }
 }
 
-fun OutputStream.generateDefaultModuleDefinition(definition: KoinMetaData.Definition) {
+fun OutputStream.generateDefaultModuleDefinition(
+    definition: KoinMetaData.Definition,
+    generateExternalDefinitions: Boolean
+) {
     if (definition is KoinMetaData.Definition.ClassDefinition){
-        generateClassDeclarationDefinition(definition)
+        generateClassDeclarationDefinition(definition, isExternalDefinition = generateExternalDefinitions)
     } else if (definition is KoinMetaData.Definition.FunctionDefinition && !definition.isClassFunction) {
-        generateFunctionDeclarationDefinition(definition)
+        generateFunctionDeclarationDefinition(definition, isExternalDefinition = generateExternalDefinitions)
     }
 }
 
@@ -65,6 +69,10 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
         }
 
         generateDefinitions(module, classFile)
+    }
+
+    if (module.externalDefinitions.isNotEmpty()){
+        classFile.generateExternalDefinitionCalls(module)
     }
 
     classFile.appendText("\n}")
@@ -140,6 +148,10 @@ private fun KoinMetaData.Module.generateModuleField(
 fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Definition>) {
     appendText(DEFAULT_MODULE_HEADER)
     appendText(definitions.generateImports())
+}
+
+fun OutputStream.generateDefaultModuleFunction() {
+    appendText("\n")
     appendText(DEFAULT_MODULE_FUNCTION)
 }
 
