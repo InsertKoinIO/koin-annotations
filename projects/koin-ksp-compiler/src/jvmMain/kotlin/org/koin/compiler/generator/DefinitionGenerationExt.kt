@@ -65,7 +65,7 @@ private fun OutputStream.writeExternalDefinitionFunction(
     ctor: String,
     binds: String
 ) {
-    appendText("@Definition(\"${def.packageName}\")\n")
+    appendText("\n@Definition(\"${def.packageName}\")\n")
     appendText("fun Module.$DEFINE_PREFIX${def.label}() = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
 

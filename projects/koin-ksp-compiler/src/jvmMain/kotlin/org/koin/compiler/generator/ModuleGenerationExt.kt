@@ -151,7 +151,7 @@ fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Defi
 }
 
 fun OutputStream.generateDefaultModuleFunction() {
-    appendText("\n")
+    appendText("\n\n")
     appendText(DEFAULT_MODULE_FUNCTION)
 }
 
