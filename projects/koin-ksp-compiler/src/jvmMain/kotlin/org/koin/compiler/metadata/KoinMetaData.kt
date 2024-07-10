@@ -26,6 +26,7 @@ sealed class KoinMetaData {
         val packageName: String,
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
+        val externalDefinitions: MutableList<ExternalDefinition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
         val componentScan: ComponentScan? = null,
         val includes: List<KSDeclaration>? = null,
@@ -52,6 +53,14 @@ sealed class KoinMetaData {
                 componentScan.packageName.isEmpty() -> defPackageName.contains(packageName, ignoreCase = true)
                 else -> false
             }
+        }
+
+        fun getDefinitionsAsExternals(): List<ExternalDefinition> {
+            return definitions.map { ExternalDefinition(it.packageName, "$DEFINE_PREFIX${it.label}") }
+        }
+
+        companion object {
+            const val DEFINE_PREFIX = "define"
         }
     }
 
@@ -97,6 +106,8 @@ sealed class KoinMetaData {
             }
         }
     }
+
+    data class ExternalDefinition(val targetPackage: String,val name: String)
 
     sealed class Definition(
         val label: String,

@@ -17,7 +17,7 @@ package org.koin.compiler
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
-import org.koin.compiler.KspOptions.KOIN_CONFIG_CHECK
+import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
@@ -36,7 +36,6 @@ class BuilderProcessor(
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.logging("Scanning symbols ...")
 
-        //TODO Handle allowDefaultModule option
 
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
@@ -53,17 +52,8 @@ class BuilderProcessor(
         logger.logging("Scan metadata ...")
         val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
 
-        if (isDefaultModuleDisabled()){
-            if (defaultModule.definitions.isNotEmpty()){
-                logger.error("Default module is disabled!")
-                defaultModule.definitions.forEach { def ->
-                    logger.error("definition '${def.packageName}.${def.label}' needs to be defined in a module")
-                }
-            }
-        }
-
         logger.logging("Generate code ...")
-        koinCodeGenerator.generateModules(moduleList, defaultModule)
+        koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
         if (isConfigCheckActive()) {
             logger.warn("[Experimental] Koin Configuration Check")
@@ -74,11 +64,12 @@ class BuilderProcessor(
     }
 
     private fun isConfigCheckActive(): Boolean {
-        return options[KOIN_CONFIG_CHECK.name] == true.toString()
+        return options.getOrDefault(KOIN_CONFIG_CHECK.name, "true") == true.toString()
     }
 
-    private fun isDefaultModuleDisabled(): Boolean {
-        return options[KspOptions.KOIN_DEFAULT_MODULE.name] == false.toString()
+    //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
+    private fun isDefaultModuleActive(): Boolean {
+        return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
     }
 }
 

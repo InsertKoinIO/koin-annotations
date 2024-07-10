@@ -35,4 +35,5 @@ dependencies {
 
 ksp {
     arg("KOIN_CONFIG_CHECK","true")
+//    arg("KOIN_DEFAULT_MODULE","false")
 }
