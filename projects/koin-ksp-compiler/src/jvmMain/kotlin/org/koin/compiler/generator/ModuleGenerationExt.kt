@@ -160,7 +160,7 @@ fun OutputStream.generateDefaultModuleFooter() {
 }
 
 private fun List<KoinMetaData.Definition>.generateImports(): String {
-    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }
+    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }.toSet()
         .joinToString(separator = "\n", postfix = "\n")
 }
 
