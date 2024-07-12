@@ -15,14 +15,19 @@
  */
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.*
+import org.koin.compiler.metadata.KOIN_VIEWMODEL
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_COMPOSE
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
-fun OutputStream.generateFieldDefaultModule(definitions: List<KoinMetaData.Definition>, generateExternalDefinitions : Boolean) {
+fun OutputStream.generateFieldDefaultModule(
+    definitions: List<KoinMetaData.Definition>,
+    generateExternalDefinitions: Boolean
+) {
     val standardDefinitions = definitions.filter { it.isNotScoped() }.toSet()
     val scopeDefinitions = definitions.filter { it.isScoped() }.toSet()
 
-    standardDefinitions.forEach { generateDefaultModuleDefinition(it,generateExternalDefinitions) }
+    standardDefinitions.forEach { generateDefaultModuleDefinition(it, generateExternalDefinitions) }
     //TODO Scope in function?
     scopeDefinitions
         .groupBy { it.scope }
@@ -39,23 +44,26 @@ fun OutputStream.generateDefaultModuleDefinition(
     definition: KoinMetaData.Definition,
     generateExternalDefinitions: Boolean
 ) {
-    if (definition is KoinMetaData.Definition.ClassDefinition){
+    if (definition is KoinMetaData.Definition.ClassDefinition) {
         generateClassDeclarationDefinition(definition, isExternalDefinition = generateExternalDefinitions)
     } else if (definition is KoinMetaData.Definition.FunctionDefinition && !definition.isClassFunction) {
         generateFunctionDeclarationDefinition(definition, isExternalDefinition = generateExternalDefinitions)
     }
 }
 
-fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
+//TODO Remove isComposeViewModelActive once use Koin 4 ViewModel dsl
+fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module, isComposeViewModelActive: Boolean) {
     classFile.appendText(moduleHeader())
-    classFile.appendText(module.definitions.generateImports())
+    classFile.appendText(module.definitions.generateImports(isComposeViewModelActive))
 
     val generatedField = module.generateModuleField(classFile)
 
     val modulePath = "${module.packageName}.${module.name}"
 
     module.includes?.let { includes ->
-        if (includes.isNotEmpty()) { generateIncludes(includes, classFile) }
+        if (includes.isNotEmpty()) {
+            generateIncludes(includes, classFile)
+        }
     }
 
     if (module.definitions.isNotEmpty()) {
@@ -63,7 +71,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
                 // if any definition is a class function, we need to instantiate the module instance
                 // to able to call the function on this instance.
                 it is KoinMetaData.Definition.FunctionDefinition &&
-                    it.isClassFunction
+                        it.isClassFunction
             } && !module.type.isObject) {
             classFile.appendText("${NEW_LINE}val moduleInstance = $modulePath()")
         }
@@ -71,7 +79,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
         generateDefinitions(module, classFile)
     }
 
-    if (module.externalDefinitions.isNotEmpty()){
+    if (module.externalDefinitions.isNotEmpty()) {
         classFile.generateExternalDefinitionCalls(module)
     }
 
@@ -115,13 +123,14 @@ private fun KoinMetaData.Definition.generateTargetDefinition(
                 if (module.type.isObject) {
                     val modulePath = "${module.packageName}.${module.name}"
                     classFile.generateObjectModuleFunctionDeclarationDefinition(this, modulePath)
-                } else{
+                } else {
                     classFile.generateModuleFunctionDeclarationDefinition(this)
                 }
             } else {
                 classFile.generateFunctionDeclarationDefinition(this)
             }
         }
+
         is KoinMetaData.Definition.ClassDefinition -> classFile.generateClassDeclarationDefinition(this)
     }
 }
@@ -159,8 +168,17 @@ fun OutputStream.generateDefaultModuleFooter() {
     appendText(DEFAULT_MODULE_FOOTER)
 }
 
-private fun List<KoinMetaData.Definition>.generateImports(): String {
-    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }.toSet()
+//TODO Remove isComposeViewModelActive with Koin 4
+private fun List<KoinMetaData.Definition>.generateImports(isComposeViewModelActive: Boolean = false): String {
+    return map { definition -> definition.keyword }
+        .toSet()
+        .mapNotNull { keyword ->
+            if (isComposeViewModelActive && keyword == KOIN_VIEWMODEL){
+                KOIN_VIEWMODEL_COMPOSE.import.let { "import $it" }
+            } else {
+                keyword.import?.let { "import $it" }
+            }
+        }
         .joinToString(separator = "\n", postfix = "\n")
 }
 

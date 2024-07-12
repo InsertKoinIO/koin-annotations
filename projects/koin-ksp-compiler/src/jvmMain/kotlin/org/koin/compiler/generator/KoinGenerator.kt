@@ -29,7 +29,8 @@ import java.io.OutputStream
 
 class KoinGenerator(
     val codeGenerator: CodeGenerator,
-    val logger: KSPLogger
+    val logger: KSPLogger,
+    val isComposeViewModelActive: Boolean
 ) {
 
     init {
@@ -80,7 +81,8 @@ class KoinGenerator(
         logger.logging("generate $module - ${module.type}")
         // generate class module
         val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
-        generateClassModule(moduleFile, module)
+        //TODO Remove isComposeViewModelActive with Koin 4
+        generateClassModule(moduleFile, module, isComposeViewModelActive)
     }
 
     private fun KoinMetaData.Module.generateModuleFileName(): String {
