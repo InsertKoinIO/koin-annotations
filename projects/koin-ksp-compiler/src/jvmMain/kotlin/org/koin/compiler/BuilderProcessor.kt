@@ -64,13 +64,13 @@ class BuilderProcessor(
     }
 
     private fun isConfigCheckActive(): Boolean {
-        return options.getOrDefault(KOIN_CONFIG_CHECK.name, "true") == true.toString()
+        return options.getOrDefault(KOIN_CONFIG_CHECK.name, "false") == true.toString()
     }
 
     //TODO Use Koin 4.0 ViewModel DSL
     private fun isComposeViewModelActive(): Boolean {
         logger.warn("Use Compose ViewModel for @KoinViewModel generation")
-        return options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "true") == true.toString()
+        return options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
     }
 
     //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
