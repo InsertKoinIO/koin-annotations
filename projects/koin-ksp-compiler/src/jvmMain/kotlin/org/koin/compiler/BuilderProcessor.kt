@@ -29,7 +29,7 @@ class BuilderProcessor(
     private val options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
+    private val koinCodeGenerator = KoinGenerator(codeGenerator, logger, isComposeViewModelActive())
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
     private val koinConfigVerification = KoinConfigVerification(codeGenerator, logger)
 
@@ -65,6 +65,12 @@ class BuilderProcessor(
 
     private fun isConfigCheckActive(): Boolean {
         return options.getOrDefault(KOIN_CONFIG_CHECK.name, "true") == true.toString()
+    }
+
+    //TODO Use Koin 4.0 ViewModel DSL
+    private fun isComposeViewModelActive(): Boolean {
+        logger.warn("Use Compose ViewModel for @KoinViewModel generation")
+        return options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "true") == true.toString()
     }
 
     //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
