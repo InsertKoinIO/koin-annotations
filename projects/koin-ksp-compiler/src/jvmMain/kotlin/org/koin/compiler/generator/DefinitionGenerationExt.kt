@@ -66,7 +66,7 @@ private fun OutputStream.writeExternalDefinitionFunction(
     binds: String
 ) {
     appendText("\n@Definition(\"${def.packageName}\")\n")
-    appendText("fun Module.$DEFINE_PREFIX${def.label}() = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
+    appendText("public fun Module.$DEFINE_PREFIX${def.label}() : KoinDefinition<*> = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${label()}$ctor } $binds")
 }
 
 fun OutputStream.generateModuleFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDefinition) {

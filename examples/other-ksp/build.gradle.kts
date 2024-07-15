@@ -27,6 +27,7 @@ dependencies {
     ksp(libs.koin.ksp)
 
     testImplementation(libs.koin.test)
+    testImplementation(libs.junit)
 }
 
 ksp {

@@ -21,6 +21,7 @@ val DEFAULT_MODULE_HEADER = """
         import org.koin.core.KoinApplication
         import org.koin.core.module.Module
         import org.koin.core.annotation.Definition
+        import org.koin.core.definition.KoinDefinition
         import org.koin.dsl.*
         
     """.trimIndent()

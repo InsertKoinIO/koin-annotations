@@ -58,6 +58,10 @@ class TestModule {
         assertTrue {
             koin.get<MyScopeFactory>().msi == scope.get<MyScopedInstance>()
         }
+
+        assertTrue {
+            koin.get<MyScopeFactory>().msi == koin.get<MyScopeFactory>().msi
+        }
     }
 
     private fun randomGetAnimal(koin: Koin): Animal {
