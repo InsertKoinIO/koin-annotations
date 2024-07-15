@@ -27,6 +27,8 @@ import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.core.annotation.Definition
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Property
+import org.koin.core.annotation.PropertyValue
 
 class KoinMetaDataScanner(
     private val logger: KSPLogger
@@ -36,8 +38,9 @@ class KoinMetaDataScanner(
     private val componentMetadataScanner = ClassComponentScanner(logger)
     private val functionMetadataScanner = FunctionComponentScanner(logger)
 
-    private var validModuleSymbols = mutableListOf<KSAnnotated>()
-    private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
+    private var validModuleSymbols = listOf<KSAnnotated>()
+    private var validDefinitionSymbols = listOf<KSAnnotated>()
+    private var defaultProperties = listOf<KSAnnotated>()
     private var externalDefinitions = listOf<KSDeclaration>()
 
     private val definitionAnnotationName = Definition::class.simpleName
@@ -45,12 +48,10 @@ class KoinMetaDataScanner(
     @OptIn(KspExperimental::class)
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
         val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
-        val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
-            resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!)
-        }
+        val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation -> resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!) }
 
-        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
-        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
+        validModuleSymbols = moduleSymbols.filter { it.validate() }
+        validDefinitionSymbols = definitionSymbols.filter { it.validate() }
 
         val invalidModuleSymbols = moduleSymbols.filter { !it.validate() }
         val invalidDefinitionSymbols = definitionSymbols.filter { !it.validate() }
@@ -60,6 +61,8 @@ class KoinMetaDataScanner(
             logInvalidEntities(invalidSymbols)
             return invalidSymbols
         }
+
+        defaultProperties = resolver.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!).toList().filter { it.validate() }
 
         logger.logging("All symbols are valid")
 
@@ -81,8 +84,36 @@ class KoinMetaDataScanner(
         val index = moduleList.generateScanComponentIndex()
         scanClassComponents(defaultModule, index)
         scanFunctionComponents(defaultModule, index)
+        scanDefaultProperties(index+defaultModule)
         scanExternalDefinitions(index)
         return moduleList
+    }
+
+    private fun scanDefaultProperties(index: List<KoinMetaData.Module>) {
+        val propertyValues: List<KoinMetaData.PropertyValue> = defaultProperties.mapNotNull { def ->
+            def.annotations
+                .first { it.shortName.asString() == PropertyValue::class.simpleName }
+                .let { a ->
+                    val id = a.arguments.first().value?.toString()
+                    val field = (a.parent as? KSDeclaration)
+                    id?.let {
+                        field?.qualifiedName?.asString()?.let {
+                            KoinMetaData.PropertyValue(id = id ,  it)
+                        }
+                    }
+                }
+        }
+
+        val allProperties = index
+            .flatMap { it.definitions }
+            .flatMap { it.parameters }
+            .filterIsInstance<KoinMetaData.DefinitionParameter.Property>()
+
+        //attribute default values
+        propertyValues.forEach { pv -> allProperties
+            .filter { it.value == pv.id }
+                .forEach { it.defaultField = pv.field }
+        }
     }
 
     private fun scanExternalDefinitions(index: List<KoinMetaData.Module>) {

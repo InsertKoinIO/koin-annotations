@@ -162,6 +162,20 @@ annotation class InjectedParam
 annotation class Property(val value: String)
 
 /**
+ * Annotate a field value that will be Property default value
+ *
+ * @PropertyValue("name")
+ * val defaultName = "MyName"
+ *
+ * @Factory
+ * class MyClass(@Property("name") val name : String)
+ *
+ * will result in `factory { MyClass(getProperty("name", defaultName)) }`
+ */
+@Target(AnnotationTarget.FIELD)
+annotation class PropertyValue(val value: String)
+
+/**
  * Class annotation, to help gather definitions inside a Koin module.
  * Each function can be annotated with a Koin definition annotation, to declare it
  *

@@ -106,7 +106,7 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
 
     return when (annotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.DefinitionParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault)
-        "${Property::class.simpleName}" -> KoinMetaData.DefinitionParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault)
+        "${Property::class.simpleName}" -> KoinMetaData.DefinitionParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault = hasDefault)
         "${Named::class.simpleName}" -> {
             val qualifier = firstAnnotation.arguments.getNamed().getValue()
             KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType)
