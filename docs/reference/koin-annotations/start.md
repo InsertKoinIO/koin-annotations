@@ -63,9 +63,18 @@ ksp {
 
 The compiler will check that all dependencies used in your configuration is declared, and all used modules are accessible.
 
-:::note
-  this feature is still experimental
-:::
+### Bypass Compile Safety with @Provided (since 1.4.0)
+
+Among the ignored type from Compiler (Android common types), the compiler plugin can verify your Koin configuration at compile time. If you want to exclude a parameter from being checked, you can use `@Provided` on a parameter to indicates that this type is provided externally to current Koin Annotations config.
+
+The following indicates that `MyProvidedComponent` is already declared in Koin:
+
+```kotlin
+class MyProvidedComponent
+
+@Factory
+class MyPresenter(@Provided val provided : MyProvidedComponent)
+```
 
 ### Disabling Default Module (since 1.3.0) 
 
