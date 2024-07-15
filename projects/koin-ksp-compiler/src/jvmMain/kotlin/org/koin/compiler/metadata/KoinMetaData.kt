@@ -107,6 +107,8 @@ sealed class KoinMetaData {
         }
     }
 
+    data class PropertyValue(val id : String, val field : String)
+
     data class ExternalDefinition(val targetPackage: String,val name: String)
 
     sealed class Definition(
@@ -207,6 +209,7 @@ sealed class KoinMetaData {
             override val name: String?,
             val value: String? = null,
             val isNullable: Boolean = false,
+            var defaultField: String? = null,
             override val hasDefault: Boolean
         ) : DefinitionParameter(isNullable)
     }
