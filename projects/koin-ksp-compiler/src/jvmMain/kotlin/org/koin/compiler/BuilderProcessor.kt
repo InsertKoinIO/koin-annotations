@@ -56,7 +56,7 @@ class BuilderProcessor(
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
         if (isConfigCheckActive()) {
-            logger.warn("[Experimental] Koin Configuration Check")
+            logger.warn("Koin Configuration Check")
             koinConfigVerification.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
             koinConfigVerification.verifyModuleIncludes(moduleList + defaultModule, resolver)
         }

@@ -24,7 +24,6 @@ import org.koin.compiler.generator.getFile
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
-private val ignored = listOf("kotlin.Any",)
 private val classPrefix = "KoinDef"
 private val generationPackage = "org.koin.ksp.generated"
 
@@ -47,10 +46,9 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
                     def.parameters
                         .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
                         .forEach { param ->
-                            if (!param.hasDefault){
+                            if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
                                 checkDependencyIsDefined(param, resolver, def)
                             }
-
                             //TODO Check Cycle
                         }
                 } else {
@@ -116,8 +114,9 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
         val scope = (definition.scope as? KoinMetaData.Scope.ClassScope)?.type?.qualifiedName?.asString()
         var targetTypeToCheck: KSDeclaration = dependencyToCheck.type.declaration
 
-        if (targetTypeToCheck.simpleName.asString() == "List" || targetTypeToCheck.simpleName.asString() == "Lazy"){
-            targetTypeToCheck = dependencyToCheck.type.arguments.firstOrNull()?.type?.resolve()?.declaration ?: targetTypeToCheck
+        if (targetTypeToCheck.simpleName.asString() == "List" || targetTypeToCheck.simpleName.asString() == "Lazy") {
+            targetTypeToCheck =
+                dependencyToCheck.type.arguments.firstOrNull()?.type?.resolve()?.declaration ?: targetTypeToCheck
         }
 
         val parameterFullName = targetTypeToCheck.qualifiedName?.asString()

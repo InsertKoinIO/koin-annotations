@@ -193,6 +193,7 @@ sealed class KoinMetaData {
             val isNullable: Boolean = false,
             val scopeId: String? = null,
             override val hasDefault: Boolean,
+            val alreadyProvided : Boolean = false,
             val type: KSType, val kind: DependencyKind = DependencyKind.Single
         ) : DefinitionParameter(isNullable)
 

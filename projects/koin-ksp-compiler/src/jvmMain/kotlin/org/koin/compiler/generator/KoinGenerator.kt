@@ -55,7 +55,7 @@ class KoinGenerator(
         generateDefaultModule: Boolean
     ) {
         logger.logging("generate default file ...")
-        val defaultModuleFile = codeGenerator.getFile(fileName = "Default")
+        val defaultModuleFile = codeGenerator.getFile(fileName = "Default${defaultModule.hashCode()}")
         defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
         generateAllExternalDefinitions(defaultModule, defaultModuleFile)
 
