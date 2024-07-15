@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        getKoin().declare(ProvidedComponent())
+        getKoin().declare(MyProvidedComponent())
 
         setContentView(R.layout.main_activity)
         title = "Android Coffee Maker"
