@@ -11,6 +11,7 @@ import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.sample.android.library.MyScope
 import org.koin.sample.androidx.app.*
+import org.koin.sample.androidx.data.ProvidedComponent
 import org.koin.sample.androidx.data.TaskDatasource
 
 class MainActivity : AppCompatActivity() {
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+//        getKoin().declare(ProvidedComponent())
 
         setContentView(R.layout.main_activity)
         title = "Android Coffee Maker"

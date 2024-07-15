@@ -197,7 +197,13 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
 annotation class ComponentScan(val value: String = "")
 
 /**
- *
+ * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+annotation class Provided
+
+/**
+ * Internal usage for components discovery in generated package
  *
  * @param value: package of declared definition
  */
