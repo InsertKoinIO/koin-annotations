@@ -69,7 +69,7 @@ The compiler will check that all dependencies used in your configuration is decl
 
 ### Disabling Default Module (since 1.3.0) 
 
-By default, the Koibn compiler detect any definition not bound to a module and put it in a "default mmodule", a Koin module generated at the root of your project. You can disable the use and generation of default module with the following option:
+By default, the Koin compiler detect any definition not bound to a module and put it in a "default module", a Koin module generated at the root of your project. You can disable the use and generation of default module with the following option:
 
 ```groovy
 // in build.gradle or build.gradle.kts
