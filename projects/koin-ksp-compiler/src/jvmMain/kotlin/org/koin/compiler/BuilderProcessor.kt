@@ -24,7 +24,7 @@ import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.verify.KoinConfigVerification
 
 class BuilderProcessor(
-    codeGenerator: CodeGenerator,
+    private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
@@ -34,8 +34,7 @@ class BuilderProcessor(
     private val koinConfigVerification = KoinConfigVerification(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        logger.logging("Scanning symbols ...")
-
+        logger.logging("Scan symbols ...")
 
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {

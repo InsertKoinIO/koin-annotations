@@ -36,13 +36,13 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
         moduleList: List<KoinMetaData.Module>,
         resolver: Resolver
     ) {
-        val noGenFile = codeGenerator.generatedFile.isEmpty()
-        val alreadyDeclared = arrayListOf<String>()
+        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+        val alreadyDeclaredTags = arrayListOf<String>()
 
         moduleList
             .flatMap { it.definitions }
             .forEach { def ->
-                if (noGenFile) {
+                if (isAlreadyGenerated) {
                     def.parameters
                         .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
                         .forEach { param ->
@@ -52,7 +52,7 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
                             //TODO Check Cycle
                         }
                 } else {
-                    writeDefinitionTag(def, alreadyDeclared)
+                    writeDefinitionTag(def, alreadyDeclaredTags)
                 }
             }
     }

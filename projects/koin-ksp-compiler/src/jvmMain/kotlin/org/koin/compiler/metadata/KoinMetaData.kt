@@ -209,7 +209,7 @@ sealed class KoinMetaData {
             override val name: String?,
             val value: String? = null,
             val isNullable: Boolean = false,
-            var defaultField: String? = null,
+            var defaultValue: PropertyValue? = null,
             override val hasDefault: Boolean
         ) : DefinitionParameter(isNullable)
     }
