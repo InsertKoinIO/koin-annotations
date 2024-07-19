@@ -4,7 +4,6 @@ import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.PropertyValue
 import org.koin.core.annotation.Single
-import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
 
 public interface ComponentInterface {
 

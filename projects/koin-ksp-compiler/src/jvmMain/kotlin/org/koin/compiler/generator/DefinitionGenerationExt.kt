@@ -198,7 +198,7 @@ private fun generateConstructor(constructorParameters: List<KoinMetaData.Definit
 
             is KoinMetaData.DefinitionParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
             is KoinMetaData.DefinitionParameter.Property -> {
-                val defaultValue = if (ctorParam.defaultField != null) ",${ctorParam.defaultField}" else ""
+                val defaultValue = ctorParam.defaultValue?.let { ",${it.field}" } ?: ""
                 if (!isNullable) "getProperty(\"${ctorParam.value}\"$defaultValue)" else "getPropertyOrNull(\"${ctorParam.value}\",$defaultValue)"
             }
         }

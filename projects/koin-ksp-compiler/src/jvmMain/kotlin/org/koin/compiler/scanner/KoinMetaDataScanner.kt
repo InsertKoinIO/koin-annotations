@@ -38,9 +38,9 @@ class KoinMetaDataScanner(
     private val componentMetadataScanner = ClassComponentScanner(logger)
     private val functionMetadataScanner = FunctionComponentScanner(logger)
 
-    private var validModuleSymbols = listOf<KSAnnotated>()
-    private var validDefinitionSymbols = listOf<KSAnnotated>()
-    private var defaultProperties = listOf<KSAnnotated>()
+    private var validModuleSymbols = mutableListOf<KSAnnotated>()
+    private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
+    private var defaultProperties = mutableListOf<KSAnnotated>()
     private var externalDefinitions = listOf<KSDeclaration>()
 
     private val definitionAnnotationName = Definition::class.simpleName
@@ -48,10 +48,12 @@ class KoinMetaDataScanner(
     @OptIn(KspExperimental::class)
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
         val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
-        val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation -> resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!) }
+        val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
+            resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!)
+        }
 
-        validModuleSymbols = moduleSymbols.filter { it.validate() }
-        validDefinitionSymbols = definitionSymbols.filter { it.validate() }
+        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
+        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
 
         val invalidModuleSymbols = moduleSymbols.filter { !it.validate() }
         val invalidDefinitionSymbols = definitionSymbols.filter { !it.validate() }
@@ -62,9 +64,8 @@ class KoinMetaDataScanner(
             return invalidSymbols
         }
 
-        defaultProperties = resolver.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!).toList().filter { it.validate() }
-
-        logger.logging("All symbols are valid")
+        val propertyValueSymbols = resolver.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!).toList()
+        defaultProperties.addAll(propertyValueSymbols.filter { it.validate() })
 
         externalDefinitions = resolver.getDeclarationsFromPackage("org.koin.ksp.generated")
             .filter { it.annotations.any { it.shortName.asString() == definitionAnnotationName } }
@@ -96,11 +97,7 @@ class KoinMetaDataScanner(
                 .let { a ->
                     val id = a.arguments.first().value?.toString()
                     val field = (a.parent as? KSDeclaration)
-                    id?.let {
-                        field?.qualifiedName?.asString()?.let {
-                            KoinMetaData.PropertyValue(id = id ,  it)
-                        }
-                    }
+                    id?.let { field?.qualifiedName?.asString()?.let { KoinMetaData.PropertyValue(id = id ,  it) } }
                 }
         }
 
@@ -109,11 +106,13 @@ class KoinMetaDataScanner(
             .flatMap { it.parameters }
             .filterIsInstance<KoinMetaData.DefinitionParameter.Property>()
 
-        //attribute default values
-        propertyValues.forEach { pv -> allProperties
-            .filter { it.value == pv.id }
-                .forEach { it.defaultField = pv.field }
-        }
+        //associate default values
+        propertyValues
+            .forEach { propertyValue ->
+                allProperties.filter { it.value == propertyValue.id }.forEach {
+                    it.defaultValue = propertyValue
+                }
+            }
     }
 
     private fun scanExternalDefinitions(index: List<KoinMetaData.Module>) {
@@ -198,7 +197,7 @@ class KoinMetaDataScanner(
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
-                logger.warn("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
+                logger.info("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
             }
             foundModule.definitions.add(definition)
         } else {

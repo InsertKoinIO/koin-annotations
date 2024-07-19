@@ -55,7 +55,7 @@ class KoinGenerator(
         generateDefaultModule: Boolean
     ) {
         logger.logging("generate default file ...")
-        val defaultModuleFile = codeGenerator.getFile(fileName = "Default${defaultModule.hashCode()}")
+        val defaultModuleFile = codeGenerator.getNewFile(fileName = "Default${defaultModule.hashCode()}")
         defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
         generateAllExternalDefinitions(defaultModule, defaultModuleFile)
 
@@ -80,7 +80,7 @@ class KoinGenerator(
     private fun generateModule(module: KoinMetaData.Module) {
         logger.logging("generate $module - ${module.type}")
         // generate class module
-        val moduleFile = codeGenerator.getFile(fileName = module.generateModuleFileName())
+        val moduleFile = codeGenerator.getNewFile(fileName = module.generateModuleFileName())
         //TODO Remove isComposeViewModelActive with Koin 4
         generateClassModule(moduleFile, module, isComposeViewModelActive)
     }
@@ -96,7 +96,7 @@ class KoinGenerator(
     }
 }
 
-fun CodeGenerator.getFile(packageName: String = "org.koin.ksp.generated", fileName: String): OutputStream {
+fun CodeGenerator.getNewFile(packageName: String = "org.koin.ksp.generated", fileName: String): OutputStream {
     return try {
         createNewFile(
             Dependencies.ALL_FILES,

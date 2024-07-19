@@ -44,7 +44,6 @@ class TestModule {
         koin.get<ComponentWithDefaultValues>()
         koin.get<MyOtherComponent3F>()
 
-        //TODO Handle default prop
         koin.get<ComponentWithProps>().let {
             assertTrue { it.id == DEFAULT_ID }
         }
