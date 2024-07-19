@@ -20,7 +20,7 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
-import org.koin.compiler.generator.getFile
+import org.koin.compiler.generator.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
@@ -39,38 +39,42 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         val alreadyDeclaredTags = arrayListOf<String>()
 
-        moduleList
-            .flatMap { it.definitions }
-            .forEach { def ->
-                if (isAlreadyGenerated) {
-                    def.parameters
-                        .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
-                        .forEach { param ->
-                            if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
-                                checkDependencyIsDefined(param, resolver, def)
-                            }
-                            //TODO Check Cycle
-                        }
-                } else {
-                    writeDefinitionTag(def, alreadyDeclaredTags)
-                }
+        val allDefinitions = moduleList.flatMap { it.definitions }
+
+        if (!isAlreadyGenerated) {
+            val tagFileName = "DefinitionTags-${hashCode()}"
+            val tagFileStream = writeDefinitionTagFile(tagFileName)
+            allDefinitions.forEach { def ->
+                writeDefinitionTag(tagFileStream, def, alreadyDeclaredTags)
             }
+        } else {
+            allDefinitions.forEach { def ->
+                def.parameters
+                    .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
+                    .forEach { param ->
+                        if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
+                            checkDependencyIsDefined(param, resolver, def)
+                        }
+                        //TODO Check Cycle
+                    }
+            }
+        }
+    }
+
+    private fun writeDefinitionTagFile(tagFileName: String): OutputStream {
+        val fileStream = codeGenerator.getNewFile(fileName = tagFileName)
+        fileStream.appendText("package $generationPackage")
+        return fileStream
     }
 
     private fun writeDefinitionTag(
+        fileStream: OutputStream,
         def: KoinMetaData.Definition,
         alreadyDeclared: ArrayList<String>
     ) {
-        val label = def.label
-        val className = label.capitalize()
-        val fileName = def.packageCamelCase() + className
+        fileStream.appendText("\n")
 
-        val fileStream = codeGenerator.getFile(fileName = fileName)
-        fileStream.appendText("package $generationPackage")
-
-        // tag for Class & Functions
         writeClassTag(def, alreadyDeclared, fileStream)
-
         def.bindings.forEach { writeDefinitionBindingTag(it, alreadyDeclared, fileStream) }
     }
 
