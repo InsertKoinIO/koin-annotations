@@ -45,7 +45,7 @@ class BuilderProcessor(
         val defaultModule = KoinMetaData.Module(
             packageName = "",
             name = "defaultModule",
-            isDefault = true
+            isDefault = true,
         )
 
         logger.logging("Scan metadata ...")

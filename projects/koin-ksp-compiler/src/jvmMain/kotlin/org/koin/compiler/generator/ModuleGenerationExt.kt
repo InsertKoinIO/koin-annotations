@@ -66,7 +66,7 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module, is
         }
     }
 
-    if (module.definitions.isNotEmpty()) {
+    if (module.definitions.isNotEmpty() && module.isExpect.not()) {
         if (module.definitions.any {
                 // if any definition is a class function, we need to instantiate the module instance
                 // to able to call the function on this instance.
@@ -79,8 +79,12 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module, is
         generateDefinitions(module, classFile)
     }
 
-    if (module.externalDefinitions.isNotEmpty()) {
+    if (module.externalDefinitions.isNotEmpty() && module.isExpect.not()) {
         classFile.generateExternalDefinitionCalls(module)
+    }
+
+    if (module.isExpect){
+        classFile.appendText("\n// empty module due to isExpect")
     }
 
     classFile.appendText("\n}")

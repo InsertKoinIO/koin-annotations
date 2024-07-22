@@ -23,15 +23,10 @@ Here are the current available Koin projects versions:
 
 ## KSP Plugin
 
-We need KSP Plugin to work (https://github.com/google/ksp). Just add the Gradle plugin:
+We need KSP Plugin to work (https://github.com/google/ksp). Follow the official (KSP Setup documentation)[https://kotlinlang.org/docs/ksp-quickstart.html]
 
+Just add the Gradle plugin:
 ```groovy
-ksp_version = "1.8.21-1.0.11"
-```
-
-```groovy
-//at your project root
-
 plugins {
     id "com.google.devtools.ksp" version "$ksp_version"
 }
@@ -42,20 +37,24 @@ plugins {
 Here below how you can configure a Kotlin (even a Ktor) app:
 
 ```groovy
-// Use KSP Plugin
-apply plugin: 'com.google.devtools.ksp'
+dependencies {
+    // Koin
+    compile "io.insert-koin:koin-core:$koin_version"
+    // Koin Annotations
+    compile "io.insert-koin:koin-annotations:$koin_ksp_version"
+    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
+}
+```
 
+Check to add sourceSets config:
+
+```groovy
 // Use KSP Generated sources
 sourceSets.main {
     java.srcDirs("build/generated/ksp/main/kotlin")
 }
 
-dependencies {
-    // Koin
-    compile "io.insert-koin:koin-core:$koin_version"
-    compile "io.insert-koin:koin-annotations:$koin_ksp_version"
-    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
-}
+
 ```
 
 ## Android App Setup

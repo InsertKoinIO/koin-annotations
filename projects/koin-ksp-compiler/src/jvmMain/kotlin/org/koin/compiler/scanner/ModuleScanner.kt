@@ -31,6 +31,7 @@ class ModuleScanner(
         val includes = getIncludedModules(annotations)
         val isCreatedAtStart = getIsCreatedAtStart(annotations)
         val componentScan = getComponentScan(annotations)
+        val isExpect = declaration.isExpect
 
         val name = "$element"
         val type = if (declaration.classKind == ClassKind.OBJECT) {
@@ -46,7 +47,8 @@ class ModuleScanner(
             componentScan = componentScan,
             includes = includes,
             isCreatedAtStart = isCreatedAtStart,
-            visibility = declaration.getVisibility()
+            visibility = declaration.getVisibility(),
+            isExpect = isExpect
         )
 
         val annotatedFunctions = declaration.getAllFunctions()

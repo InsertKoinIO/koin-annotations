@@ -32,7 +32,8 @@ sealed class KoinMetaData {
         val includes: List<KSDeclaration>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
-        val isDefault: Boolean = false
+        val isDefault: Boolean = false,
+        val isExpect : Boolean = false
     ) : KoinMetaData() {
 
         fun packageName(separator: String): String {
@@ -120,6 +121,7 @@ sealed class KoinMetaData {
         val keyword: DefinitionAnnotation,
         val bindings: List<KSDeclaration>,
         val scope: Scope? = null,
+        val isExpect : Boolean
     ) : KoinMetaData() {
 
         fun isScoped(): Boolean = scope != null
@@ -156,8 +158,9 @@ sealed class KoinMetaData {
             val functionName: String,
             parameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
-            scope: Scope? = null
-        ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope) {
+            scope: Scope? = null,
+            isExpect : Boolean
+        ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope, isExpect) {
             var isClassFunction: Boolean = true
         }
 
@@ -169,7 +172,8 @@ sealed class KoinMetaData {
             val className: String,
             val constructorParameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
-            scope: Scope? = null
+            scope: Scope? = null,
+            isExpect : Boolean
         ) : Definition(
             className,
             constructorParameters,
@@ -178,7 +182,8 @@ sealed class KoinMetaData {
             isCreatedAtStart,
             keyword,
             bindings,
-            scope
+            scope,
+            isExpect
         )
 
 
