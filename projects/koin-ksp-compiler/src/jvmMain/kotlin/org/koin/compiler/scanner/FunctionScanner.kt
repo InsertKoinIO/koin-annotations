@@ -42,27 +42,28 @@ abstract class FunctionScanner(
         val returnedType: KSDeclaration? = ksFunctionDeclaration.returnType?.resolve()?.declaration
         val allBindings: List<KSDeclaration> =  returnedType?.let { foundBindings + it } ?: foundBindings
         val functionParameters = ksFunctionDeclaration.parameters.getParameters()
+        val isExpect = ksFunctionDeclaration.isExpect
 
         return when (annotationName) {
             SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings)
+                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings, isExpect)
             }
             SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings)
+                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings, isExpect)
             }
             FACTORY.annotationName -> {
-                createDefinition(FACTORY,packageName,qualifier,functionName,functionParameters,allBindings)
+                createDefinition(FACTORY,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect)
             }
             KOIN_VIEWMODEL.annotationName -> {
-                createDefinition(KOIN_VIEWMODEL,packageName,qualifier,functionName,functionParameters,allBindings)
+                createDefinition(KOIN_VIEWMODEL,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect)
             }
             KOIN_WORKER.annotationName -> {
-                createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings)
+                createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect)
             }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
                 val extraAnnotation = getExtraScopeAnnotation(annotations)
-                createDefinition(extraAnnotation ?: SCOPE,packageName,qualifier,functionName,functionParameters,allBindings,scope = scopeData)
+                createDefinition(extraAnnotation ?: SCOPE,packageName,qualifier,functionName,functionParameters,allBindings,scope = scopeData, isExpect = isExpect)
             }
             else -> null
         }
@@ -74,7 +75,8 @@ abstract class FunctionScanner(
         qualifier: String?,
         functionName: String,
         functionParameters: List<KoinMetaData.DefinitionParameter>,
-        allBindings: List<KSDeclaration>
+        allBindings: List<KSDeclaration>,
+        isExpect : Boolean
     ): KoinMetaData.Definition.FunctionDefinition {
         val createdAtStart: Boolean =
             annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
@@ -86,7 +88,8 @@ abstract class FunctionScanner(
             functionName,
             functionParameters,
             allBindings,
-            isCreatedAtStart = createdAtStart
+            isCreatedAtStart = createdAtStart,
+            isExpect = isExpect
         )
     }
 
@@ -99,6 +102,7 @@ abstract class FunctionScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
+        isExpect : Boolean
     ): KoinMetaData.Definition.FunctionDefinition {
         return KoinMetaData.Definition.FunctionDefinition(
             packageName = packageName,
@@ -108,7 +112,8 @@ abstract class FunctionScanner(
             parameters = parameters ?: emptyList(),
             bindings = allBindings,
             keyword = keyword,
-            scope = scope
+            scope = scope,
+            isExpect = isExpect
         ).apply { isClassFunction = isModuleFunction }
     }
 

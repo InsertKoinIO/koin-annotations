@@ -25,21 +25,26 @@ const val NEW_LINE = "\n\t"
 
 
 fun OutputStream.generateDefinition(def: KoinMetaData.Definition, isExternalDefinition: Boolean = false, label: () -> String) {
-    LOGGER.logging("generate ${def.label} - $def")
-    val param = def.parameters.generateParamFunction()
-    val ctor = generateConstructor(def.parameters)
-    val binds = generateBindings(def.bindings)
-    val qualifier = def.qualifier.generateQualifier()
-    val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) {
-        if (qualifier == "") CREATED_AT_START else ",$CREATED_AT_START"
-    } else ""
-    val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
+    if (def.isExpect.not()){
+        LOGGER.logging("generate ${def.label} - $def")
+        val param = def.parameters.generateParamFunction()
+        val ctor = generateConstructor(def.parameters)
+        val binds = generateBindings(def.bindings)
+        val qualifier = def.qualifier.generateQualifier()
+        val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) {
+            if (qualifier == "") CREATED_AT_START else ",$CREATED_AT_START"
+        } else ""
+        val space = if (def.isScoped()) NEW_LINE + "\t" else NEW_LINE
 
-    if (isExternalDefinition) {
-        writeExternalDefinitionFunction(def, qualifier, createAtStart, param, label, ctor, binds)
-    }
-    else {
-        writeDefinition(space, def, qualifier, createAtStart, param, label, ctor, binds)
+        if (isExternalDefinition) {
+            writeExternalDefinitionFunction(def, qualifier, createAtStart, param, label, ctor, binds)
+        }
+        else {
+            writeDefinition(space, def, qualifier, createAtStart, param, label, ctor, binds)
+        }
+    } else {
+        LOGGER.warn("skip generate ${def.label} - isExpect")
+        appendText("// no definition for ${def.label} - isExpect")
     }
 }
 
