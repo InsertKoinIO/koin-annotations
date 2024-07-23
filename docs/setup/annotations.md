@@ -32,14 +32,18 @@ plugins {
 }
 ```
 
-## Kotlin App Setup
+Latest KSP compatible version: `1.9.24-1.0.20`
 
-Here below how you can configure a Kotlin (even a Ktor) app:
+## Kotlin & Multiplatform
+
+### Grrovy
+
+Here below how you can configure a Kotlin app:
 
 ```groovy
 dependencies {
     // Koin
-    compile "io.insert-koin:koin-core:$koin_version"
+    implementation "io.insert-koin:koin-core:$koin_version"
     // Koin Annotations
     compile "io.insert-koin:koin-annotations:$koin_ksp_version"
     ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
@@ -57,7 +61,62 @@ sourceSets.main {
 
 ```
 
+### Kotlin KTS
+
+In a standard Kotlin/Kotlin Multiplatform project, you need to setup KSP as follow:
+
+- use KSP Gradle plugin
+- add dependency in commonMain for koin annotations
+- set sourceSet for commonMain
+- add KSP dependencies tasks with koin compiler
+- setup compilation task dependency to `kspCommonMainKotlinMetadata`
+
+```groovy
+plugins {
+   id("com.google.devtools.ksp")
+}
+
+
+kotlin {
+
+    sourceSets {
+        
+        // Add Koin Annotations
+        commonMain.dependencies {
+            // Koin
+            implementation("io.insert-koin:koin-core:$koin_version")
+            // Koin Annotations
+            api("io.insert-koin:koin-annotations:$koin_annotations_version")
+        }
+
+        // KSP Common sourceSet
+        sourceSets.named("commonMain").configure {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+        }
+    }    
+}
+
+// KSP Tasks
+dependencies {
+    add("kspCommonMainMetadata", libs.koin.ksp.compiler)
+    add("kspAndroid", libs.koin.ksp.compiler)
+    add("kspIosX64", libs.koin.ksp.compiler)
+    add("kspIosArm64", libs.koin.ksp.compiler)
+    add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
+}
+
+// KSP Metadata Trigger
+project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
+    if(name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
+}
+
+```
+
 ## Android App Setup
+
+### Groovy
 
 Here below how you can configure an Android app:
 
@@ -90,9 +149,38 @@ libraryVariants.all { variant ->
 }
 ```
 
-## Kotlin KMP Setup
+### Kotlin KTS
 
-Please follow KSP setup as described in official documentation: [KSP with Kotlin Multiplatform](https://kotlinlang.org/docs/ksp-multiplatform.html)
+- use KSP Gradle plugin
+- add dependency for koin annotations and koin ksp compiler
+- set sourceSet
 
-You can also check the [Hello Koin KMP](https://github.com/InsertKoinIO/hello-kmp/tree/annotations) project with basic setup for Koin Annotations.
+```groovy
+plugins {
+   id("com.google.devtools.ksp")
+}
 
+
+android {
+
+    dependencies {
+        // Koin
+        implementation("io.insert-koin:koin-android:$koin_version")
+        // Koin Annotations
+        implementation("io.insert-koin:koin-annotations:$koin_annotations_version")
+        // Koin Annotations KSP Compiler
+        ksp("io.insert-koin:koin-ksp-compiler:$koin_annotations_version")
+    }
+
+    // Set KSP sourceSet
+    applicationVariants.all {
+        val variantName = name
+        sourceSets {
+            getByName("main") {
+                java.srcDir(File("build/generated/ksp/$variantName/kotlin"))
+            }
+        }
+    }
+}
+
+```
