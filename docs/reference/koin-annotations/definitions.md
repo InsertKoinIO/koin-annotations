@@ -22,13 +22,17 @@ For Scopes, check the [Declaring Scopes](/docs/reference/koin-core/scopes.md) se
 
 ### Generate Compose ViewModel for Kotlin Multipaltform (since 1.4.0)
 
-The `@KoinViewModel` annotation can be used to generate either Android or Compsoe KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `USE_COMPOSE_VIEWMODEL` option:  
+The `@KoinViewModel` annotation can be used to generate either Android or Compsoe KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `KOIN_USE_COMPOSE_VIEWMODEL` option:  
 
 ```groovy
 ksp {
-    arg("USE_COMPOSE_VIEWMODEL","true")
+    arg("KOIN_USE_COMPOSE_VIEWMODEL","true")
 }
 ```
+
+:::note
+    `USE_COMPOSE_VIEWMODEL` key is deprecated in favor of `KOIN_USE_COMPOSE_VIEWMODEL`
+:::
 
 :::note
     Koin 4.0 should bring merge of those 2 ViewModel DSL into only one, as the ViewModel type argiument comes from teh same library
