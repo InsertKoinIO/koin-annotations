@@ -20,5 +20,6 @@ enum class KspOptions {
     KOIN_DEFAULT_MODULE,
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    USE_COMPOSE_VIEWMODEL
+    USE_COMPOSE_VIEWMODEL,
+    KOIN_USE_COMPOSE_VIEWMODEL
 }
