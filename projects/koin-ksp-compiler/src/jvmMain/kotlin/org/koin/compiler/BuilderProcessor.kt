@@ -52,7 +52,10 @@ class BuilderProcessor(
         val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
 
         logger.logging("Generate code ...")
-        koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
+        koinCodeGenerator.generateModules(
+            moduleList, defaultModule, isDefaultModuleActive(),
+            isComposeViewModelActive() || isKoinComposeViewModelActive()
+        )
 
         if (isConfigCheckActive()) {
             logger.warn("Koin Configuration Check")

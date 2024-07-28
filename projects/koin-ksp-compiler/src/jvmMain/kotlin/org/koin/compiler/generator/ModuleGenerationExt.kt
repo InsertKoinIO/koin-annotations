@@ -158,9 +158,12 @@ private fun KoinMetaData.Module.generateModuleField(
     return generatedField
 }
 
-fun OutputStream.generateDefaultModuleHeader(definitions: List<KoinMetaData.Definition>) {
+fun OutputStream.generateDefaultModuleHeader(
+    definitions: List<KoinMetaData.Definition>,
+    isComposeViewModelActive: Boolean
+) {
     appendText(DEFAULT_MODULE_HEADER)
-    appendText(definitions.generateImports())
+    appendText(definitions.generateImports(isComposeViewModelActive))
 }
 
 fun OutputStream.generateDefaultModuleFunction() {

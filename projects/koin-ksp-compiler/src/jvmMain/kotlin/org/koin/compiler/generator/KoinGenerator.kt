@@ -40,23 +40,25 @@ class KoinGenerator(
     fun generateModules(
         moduleList: List<KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module,
-        generateDefaultModule : Boolean
+        generateDefaultModule: Boolean,
+        isComposeViewModelActive: Boolean
     ) {
         logger.logging("generate ${moduleList.size} modules ...")
         moduleList.forEach { generateModule(it) }
 
         if (defaultModule.definitions.isNotEmpty()) {
-            generateDefaultFile(defaultModule, generateDefaultModule)
+            generateDefaultFile(defaultModule, generateDefaultModule, isComposeViewModelActive)
         }
     }
 
     private fun generateDefaultFile(
         defaultModule: KoinMetaData.Module,
-        generateDefaultModule: Boolean
+        generateDefaultModule: Boolean,
+        isComposeViewModelActive: Boolean
     ) {
         logger.logging("generate default file ...")
         val defaultModuleFile = codeGenerator.getNewFile(fileName = "Default${defaultModule.hashCode()}")
-        defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions)
+        defaultModuleFile.generateDefaultModuleHeader(defaultModule.definitions, isComposeViewModelActive)
         generateAllExternalDefinitions(defaultModule, defaultModuleFile)
 
         if (generateDefaultModule) {
