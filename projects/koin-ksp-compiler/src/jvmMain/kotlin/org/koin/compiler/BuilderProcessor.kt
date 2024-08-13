@@ -21,7 +21,8 @@ import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
-import org.koin.compiler.verify.KoinConfigVerification
+import org.koin.compiler.verify.KoinConfigChecker
+import org.koin.compiler.verify.KoinTagWriter
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -31,7 +32,8 @@ class BuilderProcessor(
 
     private val koinCodeGenerator = KoinGenerator(codeGenerator, logger, isComposeViewModelActive() || isKoinComposeViewModelActive())
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinConfigVerification = KoinConfigVerification(codeGenerator, logger)
+    private val koinTagWriter = KoinTagWriter(codeGenerator,logger)
+    private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger, koinTagWriter)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.logging("Scan symbols ...")
@@ -56,8 +58,8 @@ class BuilderProcessor(
 
         if (isConfigCheckActive()) {
             logger.warn("Koin Configuration Check")
-            koinConfigVerification.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
-            koinConfigVerification.verifyModuleIncludes(moduleList + defaultModule, resolver)
+            koinConfigChecker.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
+            koinConfigChecker.verifyModuleIncludes(moduleList + defaultModule, resolver)
         }
         return emptyList()
     }

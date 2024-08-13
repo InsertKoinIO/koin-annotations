@@ -15,99 +15,49 @@
  */
 package org.koin.compiler.verify
 
-import appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
-import org.koin.compiler.generator.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
-import java.io.OutputStream
 
-private val classPrefix = "KoinDef"
-private val generationPackage = "org.koin.ksp.generated"
+const val codeGenerationPackage = "org.koin.ksp.generated"
 
 /**
  * Koin Configuration Checker
  */
-class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
+class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger, val koinTagWriter: KoinTagWriter) {
 
     fun verifyDefinitionDeclarations(
         moduleList: List<KoinMetaData.Module>,
         resolver: Resolver
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
-        val alreadyDeclaredTags = arrayListOf<String>()
-
         val allDefinitions = moduleList.flatMap { it.definitions }
 
         if (!isAlreadyGenerated) {
-            val tagFileName = "DefinitionTags-${hashCode()}"
-            val tagFileStream = writeDefinitionTagFile(tagFileName)
-            allDefinitions.forEach { def ->
-                writeDefinitionTag(tagFileStream, def, alreadyDeclaredTags)
-            }
+            koinTagWriter.writeTags(allDefinitions)
         } else {
-            allDefinitions.forEach { def ->
-                def.parameters
-                    .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
-                    .forEach { param ->
-                        if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
-                            checkDependencyIsDefined(param, resolver, def)
-                        }
-                        //TODO Check Cycle
+            verifyTags(allDefinitions, resolver)
+        }
+    }
+
+    private fun verifyTags(
+        allDefinitions: List<KoinMetaData.Definition>,
+        resolver: Resolver
+    ) {
+        allDefinitions.forEach { def ->
+            def.parameters
+                .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
+                .forEach { param ->
+                    if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
+                        checkDependencyIsDefined(param, resolver, def)
                     }
-            }
+                    //TODO Check Cycle
+                }
         }
     }
 
-    private fun writeDefinitionTagFile(tagFileName: String): OutputStream {
-        val fileStream = codeGenerator.getNewFile(fileName = tagFileName)
-        fileStream.appendText("package $generationPackage")
-        return fileStream
-    }
-
-    private fun writeDefinitionTag(
-        fileStream: OutputStream,
-        def: KoinMetaData.Definition,
-        alreadyDeclared: ArrayList<String>
-    ) {
-        fileStream.appendText("\n")
-
-        writeClassTag(def, alreadyDeclared, fileStream)
-        def.bindings.forEach { writeDefinitionBindingTag(it, alreadyDeclared, fileStream) }
-    }
-
-    private fun writeClassTag(
-        def: KoinMetaData.Definition,
-        alreadyDeclared: java.util.ArrayList<String>,
-        fileStream: OutputStream
-    ) {
-        val cn = def.packageCamelCase() + def.label.capitalize()
-
-        if (cn !in alreadyDeclared) {
-            val write = "public class $classPrefix$cn"
-
-            fileStream.appendText("\n$write")
-            alreadyDeclared.add(cn)
-        }
-    }
-
-    private fun writeDefinitionBindingTag(
-        binding: KSDeclaration,
-        alreadyDeclared: ArrayList<String>,
-        fileStream: OutputStream
-    ) {
-        if (binding.qualifiedName?.asString() !in ignored) {
-            val cn = binding.qualifiedNameCamelCase()
-
-            if (cn !in alreadyDeclared && cn != null) {
-                val write = "public class $classPrefix$cn"
-                fileStream.appendText("\n$write")
-                alreadyDeclared.add(cn)
-            }
-        }
-    }
 
     private fun checkDependencyIsDefined(
         dependencyToCheck: KoinMetaData.DefinitionParameter.Dependency,
@@ -124,9 +74,9 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
         }
 
         val parameterFullName = targetTypeToCheck.qualifiedName?.asString()
-        if (parameterFullName !in ignored && parameterFullName != null) {
+        if (parameterFullName !in typeWhiteList && parameterFullName != null) {
             val cn = targetTypeToCheck.qualifiedNameCamelCase()
-            val className = "$generationPackage.$classPrefix$cn"
+            val className = "$codeGenerationPackage.$tagPrefix$cn"
             val resolution = resolver.getClassDeclarationByName(resolver.getKSNameFromString(className))
             val isNotScopeType = scope != parameterFullName
             if (resolution == null && isNotScopeType) {
@@ -142,7 +92,7 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
                 val mn = m.packageName + "." + m.name
                 m.includes?.forEach { inc ->
                     val cn = inc.qualifiedName?.asString()?.replace(".", "_")
-                    val ksn = resolver.getKSNameFromString("$generationPackage.$cn")
+                    val ksn = resolver.getKSNameFromString("$codeGenerationPackage.$cn")
                     val prop = resolver.getPropertyDeclarationByName(ksn, includeTopLevel = true)
                     if (prop == null) {
                         logger.error("--> Module Undefined :'${inc.qualifiedName?.asString()}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.simpleName.asString()}' class.")
@@ -153,6 +103,5 @@ class KoinConfigVerification(val codeGenerator: CodeGenerator, val logger: KSPLo
     }
 }
 
-private fun KoinMetaData.Definition.packageCamelCase() = packageName.split(".").joinToString("") { it.capitalize() }
-private fun KSDeclaration.qualifiedNameCamelCase() =
-    qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.capitalize() }
+internal fun KoinMetaData.Definition.packageCamelCase() = packageName.split(".").joinToString("") { it.capitalize() }
+internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.capitalize() }
