@@ -20,6 +20,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.verify.ext.getResolutionForTag
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
@@ -36,11 +37,11 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
         val allDefinitions = moduleList.flatMap { it.definitions }
 
         if (isAlreadyGenerated) {
-            verifyTags(allDefinitions, resolver)
+            verifyDependencies(allDefinitions, resolver)
         }
     }
 
-    private fun verifyTags(
+    private fun verifyDependencies(
         allDefinitions: List<KoinMetaData.Definition>,
         resolver: Resolver
     ) {
@@ -48,11 +49,19 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
             def.parameters
                 .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
                 .forEach { param ->
-                    if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
-                        checkDependencyIsDefined(param, resolver, def)
-                    }
+                    checkDependency(param, resolver, def)
                     //TODO Check Cycle
                 }
+        }
+    }
+
+    private fun checkDependency(
+        param: KoinMetaData.DefinitionParameter.Dependency,
+        resolver: Resolver,
+        def: KoinMetaData.Definition
+    ) {
+        if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
+            checkDependencyIsDefined(param, resolver, def)
         }
     }
 
@@ -74,8 +83,7 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
         val parameterFullName = targetTypeToCheck.qualifiedName?.asString()
         if (parameterFullName !in typeWhiteList && parameterFullName != null) {
             val cn = targetTypeToCheck.qualifiedNameCamelCase()
-            val className = "$codeGenerationPackage.$tagPrefix$cn"
-            val resolution = resolver.getClassDeclarationByName(resolver.getKSNameFromString(className))
+            val resolution = resolver.getResolutionForTag(cn)
             val isNotScopeType = scope != parameterFullName
             if (resolution == null && isNotScopeType) {
                 logger.error("--> Missing Definition type '$parameterFullName' for '${definition.packageName}.$label'. Fix your configuration to define type '${targetTypeToCheck.simpleName.asString()}'.")
@@ -89,11 +97,9 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
             modules.forEach { m ->
                 val mn = m.packageName + "." + m.name
                 m.includes?.forEach { inc ->
-                    val cn = inc.qualifiedName?.asString()?.replace(".", "_")
-                    val ksn = resolver.getKSNameFromString("$codeGenerationPackage.$cn")
-                    val prop = resolver.getPropertyDeclarationByName(ksn, includeTopLevel = true)
+                    val prop = resolver.getResolutionForTag(inc.getTagName())
                     if (prop == null) {
-                        logger.error("--> Module Undefined :'${inc.qualifiedName?.asString()}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.simpleName.asString()}' class.")
+                        logger.error("--> Module Undefined :'${inc.className}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.className}' class.")
                     }
                 }
             }
@@ -101,5 +107,4 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
     }
 }
 
-internal fun KoinMetaData.Definition.packageCamelCase() = packageName.split(".").joinToString("") { it.capitalize() }
 internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.capitalize() }

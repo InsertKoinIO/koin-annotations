@@ -18,24 +18,27 @@ package org.koin.compiler
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
-import org.koin.compiler.generator.KoinGenerator
+import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
 import org.koin.compiler.verify.KoinTagWriter
 
 class BuilderProcessor(
-    private val codeGenerator: CodeGenerator,
+    codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val koinCodeGenerator = KoinGenerator(codeGenerator, logger, isComposeViewModelActive() || isKoinComposeViewModelActive())
+    private val isComposeViewModelActive = isComposeViewModelActive() || isKoinComposeViewModelActive()
+    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isComposeViewModelActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
     private val koinTagWriter = KoinTagWriter(codeGenerator,logger)
     private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        initComponents(resolver)
+
         logger.logging("Scan symbols ...")
 
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
@@ -50,21 +53,26 @@ class BuilderProcessor(
             isDefault = true,
         )
 
-        logger.logging("Scan metadata ...")
+        logger.logging("Build metadata ...")
         val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
         val allModules = moduleList + defaultModule
-        koinTagWriter.writeAllTags(allModules)
+        koinTagWriter.writeAllTags(moduleList, defaultModule)
 
         if (isConfigCheckActive()) {
-            logger.warn("Koin Configuration Check")
+            logger.warn("Check Configuration ...")
             koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
             koinConfigChecker.verifyModuleIncludes(allModules, resolver)
         }
         return emptyList()
+    }
+
+    private fun initComponents(resolver: Resolver) {
+        koinCodeGenerator.resolver = resolver
+        koinTagWriter.resolver = resolver
     }
 
     private fun isConfigCheckActive(): Boolean {
@@ -74,12 +82,12 @@ class BuilderProcessor(
     //TODO Use Koin 4.0 ViewModel DSL
     @Deprecated("use isKoinComposeViewModelActive")
     private fun isComposeViewModelActive(): Boolean {
-        logger.warn("[Deprecated] Please use KOIN_USE_COMPOSE_VIEWMODEL arg")
+        logger.warn("[Deprecated] 'USE_COMPOSE_VIEWMODEL' arg is deprecated. Please use 'KOIN_USE_COMPOSE_VIEWMODEL'")
         return options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
     }
 
     private fun isKoinComposeViewModelActive(): Boolean {
-        logger.warn("Use Compose ViewModel for @KoinViewModel generation")
+        logger.warn("Activate Compose ViewModel for @KoinViewModel generation")
         return options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
     }
 

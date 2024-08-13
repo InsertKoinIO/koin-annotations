@@ -20,25 +20,36 @@ import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
 import java.util.*
 
+typealias PackageName = String
+fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
+
 sealed class KoinMetaData {
 
+
     data class Module(
-        val packageName: String,
+        val packageName: PackageName,
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
         val externalDefinitions: MutableList<ExternalDefinition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
         val componentScan: ComponentScan? = null,
-        val includes: List<KSDeclaration>? = null,
+        val includes: List<ModuleInclude>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,
         val isExpect : Boolean = false
     ) : KoinMetaData() {
 
+        var alreadyGenerated : Boolean? = null
+
+        fun getTagName() = packageName.camelCase() + name.capitalize() + if (isExpect) "Exp" else ""
+
         fun packageName(separator: String): String {
-            val default = Locale.getDefault()
-            return packageName.split(".").joinToString(separator) { it.lowercase(default) }
+            return if (isDefault) ""
+            else {
+                val default = Locale.getDefault()
+                packageName.split(".").joinToString(separator) { it.lowercase(default) }
+            }
         }
 
         data class ComponentScan(val packageName: String = "")
@@ -56,13 +67,25 @@ sealed class KoinMetaData {
             }
         }
 
-        fun getDefinitionsAsExternals(): List<ExternalDefinition> {
-            return definitions.map { ExternalDefinition(it.packageName, "$DEFINE_PREFIX${it.label}") }
+        fun setCurrentDefinitionsToExternals() {
+            val externals = definitions
+                .filter { !it.isExpect }
+                .map { ExternalDefinition(it.packageName, "$DEFINE_PREFIX${it.label}") }
+
+            externalDefinitions.addAll(externals)
         }
 
         companion object {
             const val DEFINE_PREFIX = "define"
         }
+    }
+
+    data class ModuleInclude(
+        val packageName: PackageName,
+        val className : String,
+        val isExpect : Boolean
+    ){
+        fun getTagName() = packageName.camelCase() + className.capitalize() + if (isExpect) "Exp" else ""
     }
 
     enum class ModuleType {
@@ -115,7 +138,7 @@ sealed class KoinMetaData {
     sealed class Definition(
         val label: String,
         val parameters: List<DefinitionParameter>,
-        val packageName: String,
+        val packageName: PackageName,
         val qualifier: String? = null,
         val isCreatedAtStart: Boolean? = null,
         val keyword: DefinitionAnnotation,
@@ -124,11 +147,15 @@ sealed class KoinMetaData {
         val isExpect : Boolean
     ) : KoinMetaData() {
 
+        var alreadyGenerated : Boolean? = null
+
         fun isScoped(): Boolean = scope != null
         fun isNotScoped(): Boolean = !isScoped()
         fun isType(keyword: DefinitionAnnotation): Boolean = this.keyword == keyword
 
         val packageNamePrefix : String = if (packageName.isEmpty()) "" else "${packageName}."
+
+        fun getTagName() = packageName.camelCase() + label.capitalize() + if (isExpect) "Exp" else ""
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -139,6 +166,7 @@ sealed class KoinMetaData {
             if (label != other.label) return false
             if (packageName != other.packageName) return false
             if (scope != other.scope) return false
+            if (isExpect != other.isExpect) return false
 
             return true
         }

@@ -11,3 +11,6 @@ class MyProvidedComponent
 
 @Factory
 class MyPresenter(@InjectedParam val mainActivity: MainActivity, val context: Context, @Provided val provided : MyProvidedComponent)
+
+@Factory
+class MyPresenterHolder(val mp : MyPresenter)

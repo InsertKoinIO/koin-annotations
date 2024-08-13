@@ -20,7 +20,6 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
-import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass

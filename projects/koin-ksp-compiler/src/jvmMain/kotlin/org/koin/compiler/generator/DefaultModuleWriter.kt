@@ -15,17 +15,22 @@
  */
 package org.koin.compiler.generator
 
-val MODULE_FOOTER = "}"
+import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.Resolver
+import org.koin.compiler.metadata.KoinMetaData
 
-val DEFAULT_MODULE_FOOTER = """
+class DefaultModuleWriter(
+    codeGenerator: CodeGenerator,
+    resolver: Resolver,
+    defaultModule: KoinMetaData.Module,
+    generateDefaultModule: Boolean
+) : ModuleWriter(codeGenerator, resolver, defaultModule) {
+
+    override val fileName : String = "KoinDefault-${defaultModule.hashCode()}"
+    override val hasExternalDefinitions: Boolean = true
+    override val generateModuleBody: Boolean = generateDefaultModule
+
+    override fun writeModuleFooter() {
+        writeln(DEFAULT_MODULE_FOOTER)
     }
-    public val defaultModule : org.koin.core.module.Module get() = _defaultModule
-    public fun org.koin.core.KoinApplication.defaultModule(): org.koin.core.KoinApplication = modules(defaultModule)
-""".trimIndent()
-
-val MODULE_HEADER = """
-    package org.koin.ksp.generated
-    
-    import org.koin.core.module.Module
-    import org.koin.dsl.*
-""".trimIndent()
+}
