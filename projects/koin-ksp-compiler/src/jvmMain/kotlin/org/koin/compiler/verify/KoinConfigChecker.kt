@@ -26,7 +26,7 @@ const val codeGenerationPackage = "org.koin.ksp.generated"
 /**
  * Koin Configuration Checker
  */
-class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger, val koinTagWriter: KoinTagWriter) {
+class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
 
     fun verifyDefinitionDeclarations(
         moduleList: List<KoinMetaData.Module>,
@@ -35,9 +35,7 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger,
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         val allDefinitions = moduleList.flatMap { it.definitions }
 
-        if (!isAlreadyGenerated) {
-            koinTagWriter.writeTags(allDefinitions)
-        } else {
+        if (isAlreadyGenerated) {
             verifyTags(allDefinitions, resolver)
         }
     }

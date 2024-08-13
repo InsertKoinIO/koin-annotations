@@ -12,7 +12,20 @@ const val tagPrefix = "KoinDef"
 
 class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
 
-    fun writeTags(allDefinitions: List<KoinMetaData.Definition>) {
+    fun writeAllTags(
+        moduleList: List<KoinMetaData.Module>
+    ) {
+
+        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+        val allDefinitions = moduleList.flatMap { it.definitions }
+
+        if (!isAlreadyGenerated) {
+            logger.warn("Koin Tags Generation ...")
+            writeTags(allDefinitions)
+        }
+    }
+
+    private fun writeTags(allDefinitions: List<KoinMetaData.Definition>) {
         val alreadyDeclaredTags = arrayListOf<String>()
         val tagFileName = "KoinMeta-${hashCode()}"
         val tagFileStream = writeTagFile(tagFileName)
