@@ -19,6 +19,8 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ext.getParameters
+import org.koin.compiler.scanner.ext.getScope
 
 /**
  * Scan for Koin function component metadata

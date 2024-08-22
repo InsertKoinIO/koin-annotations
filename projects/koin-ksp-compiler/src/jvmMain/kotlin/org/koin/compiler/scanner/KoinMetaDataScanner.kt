@@ -27,7 +27,6 @@ import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.core.annotation.Definition
 import org.koin.core.annotation.Module
-import org.koin.core.annotation.Property
 import org.koin.core.annotation.PropertyValue
 
 class KoinMetaDataScanner(
@@ -43,7 +42,6 @@ class KoinMetaDataScanner(
     private var defaultProperties = mutableListOf<KSAnnotated>()
     private var externalDefinitions = listOf<KSDeclaration>()
 
-    private val definitionAnnotationName = Definition::class.simpleName
 
     @OptIn(KspExperimental::class)
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
@@ -68,14 +66,8 @@ class KoinMetaDataScanner(
         defaultProperties.addAll(propertyValueSymbols.filter { it.validate() })
 
         externalDefinitions = resolver.getDeclarationsFromPackage("org.koin.ksp.generated")
-            .filter { it.annotations.any { it.shortName.asString() == definitionAnnotationName } }
+            .filter { a -> a.annotations.any { it.shortName.asString() == DEFINITION_ANNOTATION } }
             .toList()
-
-        if (externalDefinitions.isNotEmpty()) {
-            logger.logging("external definitions: ${externalDefinitions.size}")
-        } else {
-            logger.logging("no external definition")
-        }
 
         return emptyList()
     }
@@ -117,15 +109,15 @@ class KoinMetaDataScanner(
 
     private fun scanExternalDefinitions(index: List<KoinMetaData.Module>) {
         externalDefinitions
-            .mapNotNull { def ->
-                def.annotations
-                    .first { it.shortName.asString() == definitionAnnotationName }.arguments.first().value?.toString()
-                    ?.let {
-                        KoinMetaData.ExternalDefinition(targetPackage = it, name = def.simpleName.asString())
+            .filter { !it.isExpect }
+            .mapNotNull { definitionDeclaration ->
+                definitionDeclaration.annotations
+                    .first { it.shortName.asString() == DEFINITION_ANNOTATION }.arguments.first().value?.toString()
+                    ?.let { packageValue ->
+                        KoinMetaData.ExternalDefinition(targetPackage = packageValue, name = definitionDeclaration.simpleName.asString())
                     }
             }
             .forEach { extDef ->
-                // add to first module that accept
                 val module = index.firstOrNull { it.acceptDefinition(extDef.targetPackage) }
                 module?.externalDefinitions?.add(extDef)
             }
@@ -207,5 +199,8 @@ class KoinMetaDataScanner(
 
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
         classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
+    }
+    companion object {
+        private val DEFINITION_ANNOTATION = Definition::class.simpleName
     }
 }

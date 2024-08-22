@@ -18,6 +18,7 @@ package org.koin.compiler.scanner
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ext.*
 
 class ClassComponentScanner(
     val logger: KSPLogger,
@@ -53,7 +54,10 @@ class ClassComponentScanner(
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
         val allBindings: List<KSDeclaration> = if (declaredBindings?.hasDefaultUnitValue() == false) declaredBindings else defaultBindings
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
+
         val isExpect = ksClassDeclaration.isExpect
+//        val isActual = ksClassDeclaration.isActual
+//        LOGGER.info("definition - $packageName $className - isExpect:$isExpect isActual:$isActual")
 
         return when (annotationName) {
             SINGLE.annotationName -> {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.koin.compiler.scanner
+package org.koin.compiler.scanner.ext
 
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.KoinMetaData

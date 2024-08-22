@@ -19,6 +19,7 @@ import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ext.*
 
 class ModuleScanner(
     val logger: KSPLogger
@@ -45,7 +46,7 @@ class ModuleScanner(
             name = name,
             type = type,
             componentScan = componentScan,
-            includes = includes,
+            includes = includes.toModuleIncludes(),
             isCreatedAtStart = isCreatedAtStart,
             visibility = declaration.getVisibility(),
             isExpect = isExpect
@@ -101,4 +102,17 @@ class ModuleScanner(
             }
         }
     }
+
+    private fun List<KSDeclaration>?.toModuleIncludes(): List<KoinMetaData.ModuleInclude>? {
+        return this?.map {
+            it.mapModuleInclude()
+        }
+    }
+
+    private fun KSDeclaration.mapModuleInclude(): KoinMetaData.ModuleInclude {
+        val packageName: String = packageName.asString()
+        val className = simpleName.asString()
+        return KoinMetaData.ModuleInclude(packageName, className, isExpect)
+    }
 }
+
