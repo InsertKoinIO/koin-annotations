@@ -57,7 +57,7 @@ class KoinCodeGenerator(
 
         if (defaultModule.alreadyGenerated == false && hasDefaultDefinitions){
             defaultModule.setCurrentDefinitionsToExternals()
-            DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule()
+            DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule(isComposeViewModelActive)
         }
     }
 

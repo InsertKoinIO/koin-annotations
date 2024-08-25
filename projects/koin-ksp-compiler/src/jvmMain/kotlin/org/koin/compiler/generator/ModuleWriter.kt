@@ -49,7 +49,7 @@ abstract class ModuleWriter(
     private val generatedField = "${module.packageName("_")}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    fun writeModule(isComposeViewModelActive: Boolean = false) {
+    fun writeModule(isComposeViewModelActive: Boolean) {
         fileStream = createFileStream()
         definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
 
