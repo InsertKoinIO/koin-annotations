@@ -36,33 +36,6 @@ Latest KSP compatible version: `1.9.24-1.0.20`
 
 ## Kotlin & Multiplatform
 
-### Grrovy
-
-Here below how you can configure a Kotlin app:
-
-```groovy
-dependencies {
-    // Koin
-    implementation "io.insert-koin:koin-core:$koin_version"
-    // Koin Annotations
-    compile "io.insert-koin:koin-annotations:$koin_ksp_version"
-    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
-}
-```
-
-Check to add sourceSets config:
-
-```groovy
-// Use KSP Generated sources
-sourceSets.main {
-    java.srcDirs("build/generated/ksp/main/kotlin")
-}
-
-
-```
-
-### Kotlin KTS
-
 In a standard Kotlin/Kotlin Multiplatform project, you need to setup KSP as follow:
 
 - use KSP Gradle plugin
@@ -88,12 +61,12 @@ kotlin {
             // Koin Annotations
             api("io.insert-koin:koin-annotations:$koin_annotations_version")
         }
-
-        // KSP Common sourceSet
-        sourceSets.named("commonMain").configure {
-            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
-        }
-    }    
+    }
+    
+    // KSP Common sourceSet
+    sourceSets.named("commonMain").configure {
+        kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+    }       
 }
 
 // KSP Tasks
@@ -105,7 +78,7 @@ dependencies {
     add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
 }
 
-// KSP Metadata Trigger
+// Trigger Common Metadata Generation from Native tasks
 project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
     if(name != "kspCommonMainKotlinMetadata") {
         dependsOn("kspCommonMainKotlinMetadata")
@@ -115,41 +88,6 @@ project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
 ```
 
 ## Android App Setup
-
-### Groovy
-
-Here below how you can configure an Android app:
-
-```groovy
-// Use KSP Plugin
-apply plugin: 'com.google.devtools.ksp'
-
-// Use KSP Generated sources
-android {
-    applicationVariants.all { variant ->
-        variant.sourceSets.java.each {
-            it.srcDirs += "build/generated/ksp/${variant.name}/kotlin"
-        }
-    }
-}
-
-dependencies {
-    // Koin for Android
-    implementation "io.insert-koin:koin-android:$koin_version"
-    implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
-    ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
-}
-```
-
-If you use several KSP libraries (like Room), you can use this way of declaring generated sources:
-
-```groovy
-libraryVariants.all { variant ->
-  variant.addJavaSourceFoldersToModel(file("build/generated/ksp/${variant.name}/kotlin"))
-}
-```
-
-### Kotlin KTS
 
 - use KSP Gradle plugin
 - add dependency for koin annotations and koin ksp compiler
