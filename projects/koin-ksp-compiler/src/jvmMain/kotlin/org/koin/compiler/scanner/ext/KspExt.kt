@@ -138,7 +138,7 @@ internal fun List<KSValueArgument>.getValueArgument(): String? {
 
 fun KSClassDeclaration.getPackageName() : String = packageName.asString()
 
-val forbiddenKeywords = listOf("interface","it")
+val forbiddenKeywords = listOf("interface")
 fun String.filterForbiddenKeywords() : String{
     return split(".").joinToString(".") {
         if (it in forbiddenKeywords) "`$it`" else it
