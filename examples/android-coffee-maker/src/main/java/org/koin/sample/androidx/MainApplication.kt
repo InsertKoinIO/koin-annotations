@@ -1,5 +1,6 @@
 package org.koin.sample.androidx
 
+import RootModule
 import android.app.Application
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -19,6 +20,7 @@ class MainApplication : Application() {
             modules(
 //                defaultModule,
                 AppModule().module,
+                RootModule().module
             )
         }
     }
