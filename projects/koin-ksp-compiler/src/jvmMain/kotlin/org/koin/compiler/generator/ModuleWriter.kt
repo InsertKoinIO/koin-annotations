@@ -46,7 +46,7 @@ abstract class ModuleWriter(
     private lateinit var definitionFactory : DefinitionWriterFactory
 
     private val modulePath =
-        if (module.packageName.isEmpty()) module.name else "${module.packageName}.${module.name}"
+        if (hasEmptyPackage()) module.name else "${module.packageName}.${module.name}"
     private val generatedField = "${module.packageName("_")}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
@@ -56,7 +56,7 @@ abstract class ModuleWriter(
 
         writeHeader()
         writeHeaderImports(isComposeViewModelActive)
-        if (module.packageName.isEmpty()) {
+        if (hasEmptyPackage()) {
             writeln("import ${module.name}")
         }
 
@@ -228,5 +228,9 @@ abstract class ModuleWriter(
 
     companion object {
         val MODULE_INSTANCE = "moduleInstance"
+    }
+
+    private fun hasEmptyPackage(): Boolean {
+        return module.packageName.isEmpty() && !module.isDefault
     }
 }
