@@ -49,7 +49,7 @@ abstract class ModuleWriter(
     private val generatedField = "${module.packageName("_")}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    fun writeModule(isComposeViewModelActive: Boolean = false) {
+    fun writeModule(isComposeViewModelActive: Boolean) {
         fileStream = createFileStream()
         definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
 
@@ -85,11 +85,11 @@ abstract class ModuleWriter(
     }
 
     open fun writeHeader() {
-        write(MODULE_HEADER)
+        writeln(MODULE_HEADER)
     }
 
     open fun writeHeaderImports(isComposeViewModelActive: Boolean) {
-        write(generateImports(module.definitions, isComposeViewModelActive))
+        writeln(generateImports(module.definitions, isComposeViewModelActive))
     }
 
     private fun generateImports(
@@ -105,7 +105,7 @@ abstract class ModuleWriter(
                     keyword.import?.let { "import $it" }
                 }
             }
-            .joinToString(separator = "\n", postfix = "\n")
+            .joinToString(separator = "\n")
     }
 
     open fun writeExternalDefinitions() {
