@@ -90,6 +90,28 @@ When resolving a dependency, just use the qualifier with `named` function:
 val logger: LoggerDataSource by inject(named("InMemoryLogger"))
 ```
 
+It is also possible to create custom qualifier annotations. Using the previous example:
+
+```kotlin
+@Named
+annotation class InMemoryLogger
+
+@Named
+annotation class DatabaseLogger
+
+@Single
+@InMemoryLogger
+class LoggerInMemoryDataSource : LoggerDataSource
+
+@Single
+@DatabaseLogger
+class LoggerLocalDataSource(private val logDao: LogDao) : LoggerDataSource
+```
+
+```kotlin
+val logger: LoggerDataSource by inject(named<InMemoryLogger>())
+```
+
 ## Injected Parameters with @InjectedParam
 
 You can tag a constructor member as "injected parameter", which means that the dependency will be passed in the graph when calling for resolution.
