@@ -10,6 +10,7 @@ val androidMinSDK : String by project
 android {
     compileSdk = androidCompileSDK.toInt()
     defaultConfig {
+        namespace = "org.koin.sample.androidx"
         minSdk = androidMinSDK.toInt()
         applicationId = "org.gradle.kotlin.dsl.samples.androidstudio"
         versionCode = 1
@@ -31,6 +32,14 @@ android {
                 java.srcDir(File("build/generated/ksp/$variantName/kotlin"))
             }
         }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 

@@ -10,6 +10,7 @@ val androidMinSDK : String by project
 android {
     compileSdk = androidCompileSDK.toInt()
     defaultConfig {
+        namespace = "org.koin.sample.android.library"
         minSdk = androidMinSDK.toInt()
     }
     // to use KSP generated Code
@@ -20,6 +21,14 @@ android {
                 java.srcDir(File("build/generated/ksp/$variantName/kotlin"))
             }
         }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 
