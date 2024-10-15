@@ -82,13 +82,16 @@ class BuilderProcessor(
     //TODO Use Koin 4.0 ViewModel DSL
     @Deprecated("use isKoinComposeViewModelActive")
     private fun isComposeViewModelActive(): Boolean {
-        logger.warn("[Deprecated] 'USE_COMPOSE_VIEWMODEL' arg is deprecated. Please use 'KOIN_USE_COMPOSE_VIEWMODEL'")
-        return options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
+        val option = options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
+        if (option) logger.warn("[Deprecated] 'USE_COMPOSE_VIEWMODEL' arg is deprecated. Please use 'KOIN_USE_COMPOSE_VIEWMODEL'")
+        return option
     }
 
     private fun isKoinComposeViewModelActive(): Boolean {
-        logger.warn("Activate Compose ViewModel for @KoinViewModel generation")
-        return options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
+        val option =
+            options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
+        if (option) logger.warn("Activate Compose ViewModel for @KoinViewModel generation")
+        return option
     }
 
     //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
