@@ -95,7 +95,7 @@ class DefinitionWriter(
     }
 
     private fun List<KoinMetaData.DefinitionParameter>.generateParamFunction(): String {
-        return if (any { it is KoinMetaData.DefinitionParameter.ParameterInject }) "params -> " else ""
+        return if (any { it is KoinMetaData.DefinitionParameter.ParameterInject }) "params -> " else "_ -> "
     }
 
     private fun String?.generateQualifier(): String = when {
