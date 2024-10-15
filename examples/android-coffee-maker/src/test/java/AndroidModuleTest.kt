@@ -1,6 +1,7 @@
 package org.koin.sample.androidx
 
 import RootModule
+import it.example.component.ExampleSingleton
 import org.junit.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -37,6 +38,9 @@ class AndroidModuleTest {
 
         assert(koin.getOrNull<DataConsumer>() != null)
         assert(koin.getOrNull<MyDataConsumer>() != null)
+
+        assert(koin.getOrNull<ExampleSingleton>() != null)
+
 
         stopKoin()
     }
