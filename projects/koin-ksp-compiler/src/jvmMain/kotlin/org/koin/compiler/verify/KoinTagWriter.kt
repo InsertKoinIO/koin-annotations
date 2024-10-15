@@ -119,7 +119,7 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
         fileStream: OutputStream,
         alreadyDeclared: java.util.ArrayList<String>
     ) {
-        LOGGER.logging("tag: $tagName")
+//        LOGGER.logging("tag: $tagName")
         val tag = "public class $tagPrefix$tagName"
         fileStream.appendText("\n$tag")
         alreadyDeclared.add(tagName)
