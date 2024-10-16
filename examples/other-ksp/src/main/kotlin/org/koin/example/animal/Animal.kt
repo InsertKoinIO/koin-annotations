@@ -1,9 +1,6 @@
 package org.koin.example.animal
 
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Factory
-import org.koin.core.annotation.Module
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.*
 import kotlin.random.Random
 
 public interface Animal
@@ -14,12 +11,28 @@ public class Dog : Animal
 @Single(binds = [])
 public class Cat : Animal
 
+public class Bunny(public val color: String) : Animal
+
+@Named
+public annotation class WhiteBunny
+
+@Qualifier
+public annotation class BlackBunny
+
 @Module
 @ComponentScan
 public class AnimalModule {
 
     @Factory
     public fun animal(cat: Cat, dog: Dog): Animal = if (randomBoolean()) cat else dog
+
+    @Single
+    @WhiteBunny
+    public fun whiteBunny(): Bunny = Bunny("White")
+
+    @Single
+    @BlackBunny
+    public fun blackBunny(): Bunny = Bunny("Black")
 
     private fun randomBoolean(): Boolean = Random.nextBoolean()
 }
