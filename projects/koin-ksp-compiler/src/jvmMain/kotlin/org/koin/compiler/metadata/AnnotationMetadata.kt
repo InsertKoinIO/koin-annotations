@@ -82,6 +82,20 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
     return declaredBindingsTypes?.map { it.declaration }
 }
 
+fun componentsScanValue(annotation: KSAnnotation): List<KoinMetaData.Module.ComponentScan>? {
+    val declaredBindingsTypes = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "values" }?.value as? List<String>?
+
+    val values = if (declaredBindingsTypes?.isEmpty() == true) listOf("") else declaredBindingsTypes
+
+    return values?.map(KoinMetaData.Module::ComponentScan)
+}
+
+fun componentScanValue(annotation: KSAnnotation): List<KoinMetaData.Module.ComponentScan> {
+    val value = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? String? ?: ""
+
+    return listOf(KoinMetaData.Module.ComponentScan(value))
+}
+
 fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {
     return annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as? Boolean
 }
