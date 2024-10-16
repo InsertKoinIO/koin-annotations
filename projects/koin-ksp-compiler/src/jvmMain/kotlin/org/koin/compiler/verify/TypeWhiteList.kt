@@ -8,5 +8,6 @@ internal val typeWhiteList = listOf(
     "androidx.appcompat.app.AppCompatActivity",
     "androidx.appcompat.app.AppCompatActivity",
     "androidx.fragment.app.Fragment",
-    "androidx.lifecycle.SavedStateHandle"
+    "androidx.lifecycle.SavedStateHandle",
+    "androidx.lifecycle.ViewModel"
 )
