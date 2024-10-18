@@ -74,14 +74,14 @@ class ModuleScanner(
         return module?.let { isCreatedAtStart(it) }
     }
 
-    private fun getComponentsScan(annotations: Sequence<KSAnnotation>): List<KoinMetaData.Module.ComponentScan> {
+    private fun getComponentsScan(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Module.ComponentScan> {
         val componentScan = annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
         val componentsScan = annotations.firstOrNull { it.shortName.asString() == "ComponentsScan" }
 
-        val componentScanValue = componentScan?.let(::componentScanValue) ?: emptyList()
-        val componentsScanValues = componentsScan?.let(::componentsScanValue) ?: emptyList()
-
-        return componentScanValue.plus(componentsScanValues).toSet().toList()
+        return buildSet {
+            componentScan?.let(::componentScanValue)?.let(::add)
+            componentsScan?.let(::componentsScanValue)?.let(::addAll)
+        }
     }
 
     private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {

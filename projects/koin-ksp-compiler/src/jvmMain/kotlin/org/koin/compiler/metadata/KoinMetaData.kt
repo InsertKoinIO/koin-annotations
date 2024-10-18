@@ -32,7 +32,7 @@ sealed class KoinMetaData {
         val definitions: MutableList<Definition> = mutableListOf(),
         val externalDefinitions: MutableList<ExternalDefinition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
-        val componentsScan: List<ComponentScan> = emptyList(),
+        val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,

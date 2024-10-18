@@ -90,10 +90,10 @@ fun componentsScanValue(annotation: KSAnnotation): List<KoinMetaData.Module.Comp
     return values?.map(KoinMetaData.Module::ComponentScan)
 }
 
-fun componentScanValue(annotation: KSAnnotation): List<KoinMetaData.Module.ComponentScan> {
+fun componentScanValue(annotation: KSAnnotation): KoinMetaData.Module.ComponentScan {
     val value = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? String? ?: ""
 
-    return listOf(KoinMetaData.Module.ComponentScan(value))
+    return KoinMetaData.Module.ComponentScan(value)
 }
 
 fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {
