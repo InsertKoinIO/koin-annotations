@@ -31,7 +31,7 @@ class ModuleScanner(
         val annotations = declaration.annotations
         val includes = getIncludedModules(annotations)
         val isCreatedAtStart = getIsCreatedAtStart(annotations)
-        val componentScan = getComponentScan(annotations)
+        val componentsScan = getComponentsScan(annotations)
         val isExpect = declaration.isExpect
 
         val name = "$element"
@@ -45,7 +45,7 @@ class ModuleScanner(
             packageName = modulePackage,
             name = name,
             type = type,
-            componentScan = componentScan,
+            componentsScan = componentsScan,
             includes = includes.toModuleIncludes(),
             isCreatedAtStart = isCreatedAtStart,
             visibility = declaration.getVisibility(),
@@ -74,11 +74,13 @@ class ModuleScanner(
         return module?.let { isCreatedAtStart(it) }
     }
 
-    private fun getComponentScan(annotations: Sequence<KSAnnotation>): KoinMetaData.Module.ComponentScan? {
+    private fun getComponentsScan(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Module.ComponentScan> {
         val componentScan = annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
-        return componentScan?.let { a ->
-            val value : String = a.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? String? ?: ""
-            KoinMetaData.Module.ComponentScan(value)
+        val componentsScan = annotations.firstOrNull { it.shortName.asString() == "ComponentsScan" }
+
+        return buildSet {
+            componentScan?.let(::componentScanValue)?.let(::add)
+            componentsScan?.let(::componentsScanValue)?.let(::addAll)
         }
     }
 
