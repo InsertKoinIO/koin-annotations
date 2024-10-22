@@ -1,0 +1,30 @@
+[versions]
+
+# /!\ Koin in gradle.properties /!\
+
+# Core
+kotlin = "1.9.24"
+koin = "3.5.6"
+koinAnnotations = "1.4.0"
+ksp = "1.9.24-1.0.20"
+junit = "4.13.2"
+# Android
+agp = "7.4.2"
+androidCompat = "1.6.1"
+
+[libraries]
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotations" }
+koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
+ksp-api = {module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp"}
+android-appcompat = {module = "androidx.appcompat:appcompat", version.ref = "androidCompat"}
+junit = {module = "junit:junit",version.ref ="junit"}
+
+[plugins]
+#kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+androidApplication = {id = "com.android.application", version.ref = "agp"}
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

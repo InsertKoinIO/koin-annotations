@@ -11,6 +11,7 @@ import org.koin.example.animal.Cat
 import org.koin.example.animal.Dog
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.*
+import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
 import org.koin.example.newmodule.mymodule.MyModule3
 import org.koin.example.newmodule.mymodule.MyOtherComponent3
 import org.koin.example.scope.MyScopeFactory
@@ -43,7 +44,9 @@ class TestModule {
         koin.get<ComponentWithDefaultValues>()
         koin.get<MyOtherComponent3F>()
 
-        //TODO Handle default prop
+        koin.get<ComponentWithProps>().let {
+            assertTrue { it.id == DEFAULT_ID }
+        }
         koin.setProperty("id", "new_id")
         koin.get<ComponentWithProps>().let {
             assertTrue { it.id == "new_id" }
@@ -57,6 +60,10 @@ class TestModule {
 
         assertTrue {
             koin.get<MyScopeFactory>().msi == scope.get<MyScopedInstance>()
+        }
+
+        assertTrue {
+            koin.get<MyScopeFactory>().msi == koin.get<MyScopeFactory>().msi
         }
     }
 

@@ -19,6 +19,7 @@ import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ext.*
 
 class ModuleScanner(
     val logger: KSPLogger
@@ -31,16 +32,24 @@ class ModuleScanner(
         val includes = getIncludedModules(annotations)
         val isCreatedAtStart = getIsCreatedAtStart(annotations)
         val componentScan = getComponentScan(annotations)
+        val isExpect = declaration.isExpect
 
         val name = "$element"
+        val type = if (declaration.classKind == ClassKind.OBJECT) {
+            KoinMetaData.ModuleType.OBJECT
+        } else  {
+            KoinMetaData.ModuleType.CLASS
+        }
+
         val moduleMetadata = KoinMetaData.Module(
             packageName = modulePackage,
             name = name,
-            type = KoinMetaData.ModuleType.CLASS,
+            type = type,
             componentScan = componentScan,
-            includes = includes,
+            includes = includes.toModuleIncludes(),
             isCreatedAtStart = isCreatedAtStart,
-            visibility = declaration.getVisibility()
+            visibility = declaration.getVisibility(),
+            isExpect = isExpect
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
@@ -77,7 +86,7 @@ class ModuleScanner(
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
-        val qualifier = ksFunctionDeclaration.getStringQualifier()
+        val qualifier = ksFunctionDeclaration.getQualifier()
 
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
@@ -93,4 +102,17 @@ class ModuleScanner(
             }
         }
     }
+
+    private fun List<KSDeclaration>?.toModuleIncludes(): List<KoinMetaData.ModuleInclude>? {
+        return this?.map {
+            it.mapModuleInclude()
+        }
+    }
+
+    private fun KSDeclaration.mapModuleInclude(): KoinMetaData.ModuleInclude {
+        val packageName: String = packageName.asString()
+        val className = simpleName.asString()
+        return KoinMetaData.ModuleInclude(packageName, className, isExpect)
+    }
 }
+

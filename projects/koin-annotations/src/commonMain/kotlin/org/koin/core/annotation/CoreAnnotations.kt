@@ -118,9 +118,20 @@ annotation class ScopeId(val value: KClass<*> = Unit::class, val name: String = 
  * Will generate `StringQualifier("...")`
  *
  * @param value: string qualifier
+ * @param type: class qualifier
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
-annotation class Named(val value: String)
+annotation class Named(val value: String = "", val type: KClass<*> = Unit::class)
+
+/**
+ * Define a qualifier for a given definition (associated with Koin definition annotation)
+ * Will generate `StringQualifier("...")`
+ *
+ * @param value: class qualifier
+ * @param name: string qualifier
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+annotation class Qualifier(val value: KClass<*> = Unit::class, val name: String = "")
 
 /**
  * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
@@ -149,6 +160,20 @@ annotation class InjectedParam
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Property(val value: String)
+
+/**
+ * Annotate a field value that will be Property default value
+ *
+ * @PropertyValue("name")
+ * val defaultName = "MyName"
+ *
+ * @Factory
+ * class MyClass(@Property("name") val name : String)
+ *
+ * will result in `factory { MyClass(getProperty("name", defaultName)) }`
+ */
+@Target(AnnotationTarget.FIELD)
+annotation class PropertyValue(val value: String)
 
 /**
  * Class annotation, to help gather definitions inside a Koin module.
@@ -203,3 +228,17 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(val value: String = "")
+
+/**
+ * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+annotation class Provided
+
+/**
+ * Internal usage for components discovery in generated package
+ *
+ * @param value: package of declared definition
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD, AnnotationTarget.FUNCTION)
+annotation class Definition(val value: String = "")

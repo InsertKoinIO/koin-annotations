@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.google.devtools.ksp.symbol.Visibility
-import java.io.OutputStream
+package org.koin.compiler.generator
 
-fun String.dotPackage() = if (isNotBlank()) "$this." else ""
+import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.Resolver
+import org.koin.compiler.metadata.KoinMetaData
 
-fun OutputStream.appendText(str: String) {
-    this.write(str.toByteArray())
-}
+class ClassModuleWriter(
+    codeGenerator: CodeGenerator,
+    resolver: Resolver,
+    module: KoinMetaData.Module
+) : ModuleWriter(codeGenerator, resolver, module) {
 
-fun Visibility.toSourceString() = when(this) {
-    Visibility.PUBLIC -> "public "
-    Visibility.INTERNAL -> "internal "
-    Visibility.PRIVATE -> "private "
-    Visibility.PROTECTED -> "protected "
-    else -> ""
+    override val fileName : String = generateModuleFileName(module)
+    private fun generateModuleFileName(m: KoinMetaData.Module): String {
+        val extensionName = m.packageName("$")
+        return "${m.name}Gen${extensionName}"
+    }
 }

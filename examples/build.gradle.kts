@@ -5,18 +5,25 @@ buildscript {
         mavenLocal()
         jcenter()
     }
-    dependencies {
-        classpath("com.android.tools.build:gradle:4.2.2")
-    }
 }
 
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.androidLibrary).apply(false)
+    alias(libs.plugins.androidApplication).apply(false)
+    alias(libs.plugins.kotlinAndroid).apply(false)
 }
 
 repositories {
     google()
     mavenCentral()
     mavenLocal()
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+    }
 }
 

@@ -17,11 +17,12 @@ package org.koin.compiler
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
-import org.koin.compiler.KspOptions.KOIN_CONFIG_CHECK
-import org.koin.compiler.generator.KoinGenerator
+import org.koin.compiler.KspOptions.*
+import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
-import org.koin.compiler.verify.KoinConfigVerification
+import org.koin.compiler.verify.KoinConfigChecker
+import org.koin.compiler.verify.KoinTagWriter
 
 class BuilderProcessor(
     codeGenerator: CodeGenerator,
@@ -29,14 +30,16 @@ class BuilderProcessor(
     private val options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val koinCodeGenerator = KoinGenerator(codeGenerator, logger)
+    private val isComposeViewModelActive = isComposeViewModelActive() || isKoinComposeViewModelActive()
+    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isComposeViewModelActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinConfigVerification = KoinConfigVerification(codeGenerator, logger)
+    private val koinTagWriter = KoinTagWriter(codeGenerator,logger)
+    private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        logger.logging("Scanning symbols ...")
+        initComponents(resolver)
 
-        //TODO Handle allowDefaultModule option
+        logger.logging("Scan symbols ...")
 
         val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
@@ -47,38 +50,53 @@ class BuilderProcessor(
         val defaultModule = KoinMetaData.Module(
             packageName = "",
             name = "defaultModule",
-            isDefault = true
+            isDefault = true,
         )
 
-        logger.logging("Scan metadata ...")
-        val moduleList = koinMetaDataScanner.extractKoinMetaData(defaultModule)
-
-        if (isDefaultModuleDisabled()){
-            if (defaultModule.definitions.isNotEmpty()){
-                logger.error("Default module is disabled!")
-                defaultModule.definitions.forEach { def ->
-                    logger.error("definition '${def.packageName}.${def.label}' needs to be defined in a module")
-                }
-            }
-        }
+        logger.logging("Build metadata ...")
+        val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
 
         logger.logging("Generate code ...")
-        koinCodeGenerator.generateModules(moduleList, defaultModule)
+        koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
+
+        val allModules = moduleList + defaultModule
+        koinTagWriter.writeAllTags(moduleList, defaultModule)
 
         if (isConfigCheckActive()) {
-            logger.warn("[Experimental] Koin Configuration Check")
-            koinConfigVerification.verifyDefinitionDeclarations(moduleList + defaultModule, resolver)
-            koinConfigVerification.verifyModuleIncludes(moduleList + defaultModule, resolver)
+            logger.warn("Check Configuration ...")
+            koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
+            koinConfigChecker.verifyModuleIncludes(allModules, resolver)
         }
         return emptyList()
     }
 
-    private fun isConfigCheckActive(): Boolean {
-        return options[KOIN_CONFIG_CHECK.name] == true.toString()
+    private fun initComponents(resolver: Resolver) {
+        koinCodeGenerator.resolver = resolver
+        koinTagWriter.resolver = resolver
     }
 
-    private fun isDefaultModuleDisabled(): Boolean {
-        return options[KspOptions.KOIN_DEFAULT_MODULE.name] == false.toString()
+    private fun isConfigCheckActive(): Boolean {
+        return options.getOrDefault(KOIN_CONFIG_CHECK.name, "false") == true.toString()
+    }
+
+    //TODO Use Koin 4.0 ViewModel DSL
+    @Deprecated("use isKoinComposeViewModelActive")
+    private fun isComposeViewModelActive(): Boolean {
+        val option = options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
+        if (option) logger.warn("[Deprecated] 'USE_COMPOSE_VIEWMODEL' arg is deprecated. Please use 'KOIN_USE_COMPOSE_VIEWMODEL'")
+        return option
+    }
+
+    private fun isKoinComposeViewModelActive(): Boolean {
+        val option =
+            options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
+        if (option) logger.warn("Activate Compose ViewModel for @KoinViewModel generation")
+        return option
+    }
+
+    //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
+    private fun isDefaultModuleActive(): Boolean {
+        return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
     }
 }
 

@@ -18,6 +18,7 @@ package org.koin.compiler.scanner
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ext.*
 
 class ClassComponentScanner(
     val logger: KSPLogger,
@@ -27,7 +28,7 @@ class ClassComponentScanner(
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
         val className = ksClassDeclaration.simpleName.asString()
-        val qualifier = ksClassDeclaration.getStringQualifier()
+        val qualifier = ksClassDeclaration.getQualifier()
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
         return if (scopeAnnotation != null){
@@ -54,21 +55,25 @@ class ClassComponentScanner(
         val allBindings: List<KSDeclaration> = if (declaredBindings?.hasDefaultUnitValue() == false) declaredBindings else defaultBindings
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
 
+        val isExpect = ksClassDeclaration.isExpect
+//        val isActual = ksClassDeclaration.isActual
+//        LOGGER.info("definition - $packageName $className - isExpect:$isExpect isActual:$isActual")
+
         return when (annotationName) {
             SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings)
+                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect)
             }
             SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings)
+                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect)
             }
             FACTORY.annotationName -> {
-                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings)
+                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
             }
             KOIN_VIEWMODEL.annotationName -> {
-                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings)
+                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
             }
             KOIN_WORKER.annotationName -> {
-                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings)
+                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
             }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
@@ -76,7 +81,7 @@ class ClassComponentScanner(
                 val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
                 val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
                 val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
-                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData)
+                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect)
             }
             else -> error("Unknown annotation type: $annotationName")
         }
@@ -88,11 +93,12 @@ class ClassComponentScanner(
         qualifier: String?,
         className: String,
         ctorParams: List<KoinMetaData.DefinitionParameter>?,
-        allBindings: List<KSDeclaration>
+        allBindings: List<KSDeclaration>,
+        isExpect : Boolean,
     ): KoinMetaData.Definition.ClassDefinition {
         val createdAtStart: Boolean =
             annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
-        return createClassDefinition(SINGLE, packageName, qualifier, className, ctorParams, allBindings, isCreatedAtStart = createdAtStart)
+        return createClassDefinition(SINGLE, packageName, qualifier, className, ctorParams, allBindings, isCreatedAtStart = createdAtStart, isExpect= isExpect)
     }
 
     private fun createClassDefinition(
@@ -104,6 +110,7 @@ class ClassComponentScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
+        isExpect : Boolean,
     ): KoinMetaData.Definition.ClassDefinition {
         return KoinMetaData.Definition.ClassDefinition(
             packageName = packageName,
@@ -113,7 +120,8 @@ class ClassComponentScanner(
             constructorParameters = ctorParams ?: emptyList(),
             bindings = allBindings,
             keyword = keyword,
-            scope = scope
+            scope = scope,
+            isExpect = isExpect
         )
     }
 }

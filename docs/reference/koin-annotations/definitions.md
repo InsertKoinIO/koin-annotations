@@ -20,6 +20,24 @@ Koin Annotations keep the same semantic as the Koin DSL. You can declare your co
 
 For Scopes, check the [Declaring Scopes](/docs/reference/koin-core/scopes.md) section.
 
+### Generate Compose ViewModel for Kotlin Multipaltform (since 1.4.0)
+
+The `@KoinViewModel` annotation can be used to generate either Android or Compsoe KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `KOIN_USE_COMPOSE_VIEWMODEL` option:  
+
+```groovy
+ksp {
+    arg("KOIN_USE_COMPOSE_VIEWMODEL","true")
+}
+```
+
+:::note
+    `USE_COMPOSE_VIEWMODEL` key is deprecated in favor of `KOIN_USE_COMPOSE_VIEWMODEL`
+:::
+
+:::note
+    Koin 4.0 should bring merge of those 2 ViewModel DSL into only one, as the ViewModel type argiument comes from teh same library
+:::
+
 ## Automatic or Specific Binding
 
 When declaring a component, all detected "bindings" (associated supertypes) will be already prepared for you. For example, the following definition:
@@ -140,10 +158,29 @@ single { LoggerAggregator(getAll()) }
 To resolve a Koin property in your definition, just tag a constructor member with `@Property`. Ths is will resolve the Koin property thanks to the value passed to the annotation:
 
 ```kotlin
-@Single
-class MyComponent(@Property("my_key") val myProperty : String)
+@Factory
+public class ComponentWithProps(
+    @Property("id") public val id : String
+)
 ```
 
-The generated DSL equivalent will be `single { MyComponent(getProperty("my_key")) }`
+The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id")) }`
 
+### @PropertyValue - Property with default value (since 1.4)
 
+Koin Annotations offers you the possibility to define a default value for a property, directly from your code with `@PropertyValue` annotation.
+Let's follow our sample:
+
+```kotlin
+@Factory
+public class ComponentWithProps(
+    @Property("id") public val id : String
+){
+    public companion object {
+        @PropertyValue("id")
+        public const val DEFAULT_ID : String = "_empty_id"
+    }
+}
+```
+
+The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id", ComponentWithProps.DEFAAULT_ID)) }`

@@ -1,4 +1,4 @@
-/*
+package org.koin.compiler.generator.ext/*
  * Copyright 2017-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.koin.compiler.generator
+import com.google.devtools.ksp.symbol.Visibility
+import java.io.OutputStream
 
-val MODULE_FOOTER = "}"
+fun String.dotPackage() = if (isNotBlank()) "$this." else ""
 
-val DEFAULT_MODULE_FOOTER = """
-    }
-    public val defaultModule : org.koin.core.module.Module get() = _defaultModule
-    public fun org.koin.core.KoinApplication.defaultModule(): org.koin.core.KoinApplication = modules(defaultModule)
-""".trimIndent()
+fun OutputStream.appendText(str: String) {
+    this.write(str.toByteArray())
+}
 
-val MODULE_HEADER = """
-    package org.koin.ksp.generated
-    
-    import org.koin.core.module.Module
-    import org.koin.dsl.*
-""".trimIndent()
+fun Visibility.toSourceString() = when(this) {
+    Visibility.PUBLIC -> "public "
+    Visibility.INTERNAL -> "internal "
+    Visibility.PRIVATE -> "private "
+    Visibility.PROTECTED -> "protected "
+    else -> ""
+}

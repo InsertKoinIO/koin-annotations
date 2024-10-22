@@ -18,6 +18,10 @@ package org.koin.compiler.scanner
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ext.filterForbiddenKeywords
+import org.koin.compiler.scanner.ext.getKoinAnnotations
+import org.koin.compiler.scanner.ext.getQualifier
+import org.koin.compiler.scanner.ext.getScopeAnnotation
 
 class FunctionComponentScanner(
     val logger: KSPLogger
@@ -31,7 +35,7 @@ class FunctionComponentScanner(
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
-        val qualifier = ksFunctionDeclaration.getStringQualifier()
+        val qualifier = ksFunctionDeclaration.getQualifier()
 
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()

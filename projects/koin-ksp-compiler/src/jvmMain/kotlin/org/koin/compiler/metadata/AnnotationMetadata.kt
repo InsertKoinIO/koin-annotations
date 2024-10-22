@@ -20,7 +20,6 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
-import org.koin.compiler.generator.KoinGenerator.Companion.LOGGER
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass
@@ -39,6 +38,10 @@ val FACTORY = DefinitionAnnotation("factory", annotationType = Factory::class)
 val SCOPE = DefinitionAnnotation("scoped", annotationType = Scope::class)
 val SCOPED = DefinitionAnnotation("scoped", annotationType = Scoped::class)
 val KOIN_VIEWMODEL = DefinitionAnnotation("viewModel", "org.koin.androidx.viewmodel.dsl.viewModel", KoinViewModel::class)
+
+//TODO Remove isComposeViewModelActive with Koin 4
+val KOIN_VIEWMODEL_COMPOSE = DefinitionAnnotation("viewModel", "org.koin.compose.viewmodel.dsl.viewModel", KoinViewModel::class)
+
 val KOIN_WORKER = DefinitionAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
 
 val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, SCOPE, SCOPED,KOIN_VIEWMODEL, KOIN_WORKER)
