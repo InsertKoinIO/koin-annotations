@@ -30,7 +30,7 @@ class DefaultModuleWriter(
     override val hasExternalDefinitions: Boolean = true
     override val generateModuleBody: Boolean = generateDefaultModule
 
-    override fun writeModuleFooter() {
+    override fun writeModuleFooter(closeBrackets : Boolean) {
         writeln(DEFAULT_MODULE_FOOTER)
     }
 }
