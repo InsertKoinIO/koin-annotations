@@ -66,7 +66,7 @@ class KoinCodeGenerator(
 
         checkAlreadyGenerated(module)
 
-        if (module.alreadyGenerated == false && !module.isExpect){
+        if (module.alreadyGenerated == false){
             ClassModuleWriter(codeGenerator, resolver, module).writeModule(isComposeViewModelActive)
         }
     }

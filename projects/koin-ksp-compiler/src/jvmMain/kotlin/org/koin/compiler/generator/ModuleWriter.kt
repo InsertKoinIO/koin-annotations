@@ -63,7 +63,10 @@ abstract class ModuleWriter(
 
         writeEmptyLine()
 
-        if (generateModuleBody){
+        if (module.isExpect){
+            writeModuleFooter(closeBrackets = false)
+
+        } else if (generateModuleBody){
             writeModuleFunction()
             writeModuleInstance()
             writeModuleIncludes()
@@ -197,10 +200,19 @@ abstract class ModuleWriter(
     private fun generateExternalDefinitionCalls(): String =
         module.externalDefinitions.joinToString(separator = "\n${TAB}") { "${it.name}()" }
 
-    open fun writeModuleFooter() {
-        writeln(MODULE_FOOTER)
+    open fun writeModuleFooter(closeBrackets : Boolean = true) {
+        if (closeBrackets) {
+            writeln(MODULE_FOOTER)
+        }
+
         val visibilityString = module.visibility.toSourceString()
-        writeln("${visibilityString}val $modulePath.module : org.koin.core.module.Module get() = $generatedField")
+        val actualKeyword = when {
+            module.isActual -> "actual "
+            module.isExpect -> "expect "
+            else -> ""
+        }
+        val returnedValue = if (!module.isExpect) " get() = $generatedField" else ""
+        writeln("${actualKeyword}${visibilityString}val $modulePath.module : org.koin.core.module.Module${returnedValue}")
     }
 
     open fun onFinishWriteModule() {
