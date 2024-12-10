@@ -29,10 +29,10 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
         if (!isAlreadyGenerated) {
             logger.logging("Koin Tags Generation ...")
             val tagFileName = "KoinMeta-${hashCode()}"
-            val tagFileStream = writeTagFile(tagFileName)
-
-            writeModuleTags(moduleList,tagFileStream)
-            writeDefinitionsTags(allDefinitions,tagFileStream)
+            writeTagFile(tagFileName).use { tagFileStream ->
+                writeModuleTags(moduleList,tagFileStream)
+                writeDefinitionsTags(allDefinitions,tagFileStream)
+            }
         }
     }
 
