@@ -5,12 +5,16 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.verify.ext.getResolution
 import org.koin.compiler.verify.ext.getResolutionForTag
 import java.io.OutputStream
+import java.nio.file.Files
+import java.security.DigestOutputStream
+import java.security.MessageDigest
+import kotlin.io.path.createTempFile
+import kotlin.io.path.outputStream
 
 const val tagPrefix = "KoinDef"
 
@@ -22,17 +26,33 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
         moduleList: List<KoinMetaData.Module>,
         default : KoinMetaData.Module
     ) {
-
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
-        val allDefinitions = (moduleList + default).flatMap { it.definitions }
-
         if (!isAlreadyGenerated) {
             logger.logging("Koin Tags Generation ...")
-            val tagFileName = "KoinMeta-${hashCode()}"
-            writeTagFile(tagFileName).use { tagFileStream ->
-                writeModuleTags(moduleList,tagFileStream)
-                writeDefinitionsTags(allDefinitions,tagFileStream)
-            }
+            createTagFile(moduleList, default)
+        }
+    }
+
+    /**
+     * To realize reproducible-builds, write everything to a temporal file then copy it to the tag file.
+     * This method lets us compute the digest of tag file and use it to name it.
+     */
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun createTagFile(
+        moduleList: List<KoinMetaData.Module>,
+        default : KoinMetaData.Module,
+    ) {
+        val allDefinitions = (moduleList + default).flatMap { it.definitions }
+        val tempFile = createTempFile("KoinMeta", ".kt")
+        val sha256 = MessageDigest.getInstance("SHA-256");
+        DigestOutputStream(tempFile.outputStream(), sha256).buffered().use {
+            writeModuleTags(moduleList, it)
+            writeDefinitionsTags(allDefinitions, it)
+        }
+
+        val tagFileName = "KoinMeta-${sha256.digest().toHexString(HexFormat.Default)}"
+        writeTagFile(tagFileName).buffered().use {
+            Files.copy(tempFile, it)
         }
     }
 
