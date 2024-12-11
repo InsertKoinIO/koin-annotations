@@ -34,8 +34,11 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
     }
 
     /**
-     * To realize reproducible-builds, write everything to a temporal file then copy it to the tag file.
-     * This method lets us compute the digest of tag file and use it to name it.
+     * To realize [reproducible-builds](https://reproducible-builds.org/), write everything to a temporal file
+     * then copy it to the tag file.
+     * By this method, we can compute the digest of tag file and use it to name it.
+     *
+     * @author Kengo TODA
      */
     @OptIn(ExperimentalStdlibApi::class)
     private fun createTagFile(
