@@ -3,14 +3,15 @@
 # /!\ Koin in gradle.properties /!\
 
 # Core
-kotlin = "1.9.24"
-koin = "3.5.6"
-ksp = "1.9.24-1.0.20"
+kotlin = "2.1.0"
+koin = "4.0.0"
+ksp = "2.1.0-1.0.29"
 publish = "2.0.0"
 dokka = "1.9.10"
 
 [libraries]
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-coroutines = { module = "io.insert-koin:koin-core-coroutines", version.ref = "koin" }
 ksp-api = {module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp"}
 
 [plugins]

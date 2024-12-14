@@ -19,4 +19,6 @@ include(
     ":koin-annotations",
     ":koin-ksp-compiler",
     ":koin-annotations-bom",
+    ":koin-lazy-annotations",
+    ":koin-lazy-ksp-compiler",
 )
