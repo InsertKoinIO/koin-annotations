@@ -92,7 +92,9 @@ fun List<KSValueParameter>.getParameters(): List<KoinMetaData.DefinitionParamete
 }
 
 private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParameter {
-    val firstAnnotation = param.annotations.firstOrNull()
+    // Get the first annotation that is not a Provided annotation
+    // The [Provided] annotation will be evaluated when making the dependency graph.
+    val firstAnnotation = param.annotations.filter { it.shortName.asString() != Provided::class.simpleName }.firstOrNull()
     val annotationName = firstAnnotation?.shortName?.asString()
     val annotationValue = firstAnnotation?.arguments?.getValueArgument()
     val paramName = param.name?.asString()
@@ -105,15 +107,15 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
     val isLazy = resolvedTypeString.startsWith("Lazy<")
 
     return when (annotationName) {
-        "${InjectedParam::class.simpleName}" -> KoinMetaData.DefinitionParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault)
+        "${InjectedParam::class.simpleName}" -> KoinMetaData.DefinitionParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault,)
         "${Property::class.simpleName}" -> KoinMetaData.DefinitionParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault = hasDefault)
         "${Named::class.simpleName}" -> {
             val qualifier = firstAnnotation.arguments.getNamed().getValue()
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType)
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
         }
         "${Qualifier::class.simpleName}" -> {
             val qualifier = firstAnnotation.arguments.getQualifier().getValue()
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType)
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
         }
         "${ScopeId::class.simpleName}" -> {
             val scopeIdValue: String = firstAnnotation.arguments.getScope().getValue()
@@ -126,8 +128,7 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
                 isLazy -> KoinMetaData.DependencyKind.Lazy
                 else -> KoinMetaData.DependencyKind.Single
             }
-            val provided = (annotationName == "${Provided::class.simpleName}")
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind,  isNullable = isNullable, type = resolvedType, alreadyProvided = provided)
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind,  isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
         }
     }
 }
@@ -143,4 +144,8 @@ fun String.filterForbiddenKeywords() : String{
     return split(".").joinToString(".") {
         if (it in forbiddenKeywords) "`$it`" else it
     }
+}
+
+private fun hasProvidedAnnotation(param: KSValueParameter): Boolean {
+    return param.annotations.any { it.shortName.asString() == Provided::class.simpleName }
 }

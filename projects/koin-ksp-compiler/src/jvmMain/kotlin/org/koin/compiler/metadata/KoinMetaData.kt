@@ -37,7 +37,8 @@ sealed class KoinMetaData {
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,
-        val isExpect : Boolean = false
+        val isExpect : Boolean = false,
+        val isActual : Boolean = false
     ) : KoinMetaData() {
 
         var alreadyGenerated : Boolean? = null
