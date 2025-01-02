@@ -37,24 +37,10 @@ class KoinMetaDataScanner(
     private val componentMetadataScanner = ClassComponentScanner(logger)
     private val functionMetadataScanner = FunctionComponentScanner(logger)
 
-    private var validModuleSymbols = mutableListOf<KSAnnotated>()
-    private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
-    private var defaultProperties = mutableListOf<KSAnnotated>()
-    private var externalDefinitions = listOf<KSDeclaration>()
+    fun findInvalidSymbols(resolver: Resolver): List<KSAnnotated> {
+        val invalidModuleSymbols = resolver.getInvalidModuleSymbols()
+        val invalidDefinitionSymbols = resolver.getInvalidDefinitionSymbols()
 
-
-    @OptIn(KspExperimental::class)
-    fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
-        val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
-        val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
-            resolver.getSymbolsWithAnnotation(annotation.qualifiedName!!)
-        }
-
-        validModuleSymbols.addAll(moduleSymbols.filter { it.validate() })
-        validDefinitionSymbols.addAll(definitionSymbols.filter { it.validate() })
-
-        val invalidModuleSymbols = moduleSymbols.filter { !it.validate() }
-        val invalidDefinitionSymbols = definitionSymbols.filter { !it.validate() }
         val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid definition symbols found.")
@@ -62,28 +48,28 @@ class KoinMetaDataScanner(
             return invalidSymbols
         }
 
-        val propertyValueSymbols = resolver.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!).toList()
-        defaultProperties.addAll(propertyValueSymbols.filter { it.validate() })
-
-        externalDefinitions = resolver.getDeclarationsFromPackage("org.koin.ksp.generated")
-            .filter { a -> a.annotations.any { it.shortName.asString() == DEFINITION_ANNOTATION } }
-            .toList()
-
         return emptyList()
     }
 
-    fun scanKoinModules(defaultModule: KoinMetaData.Module): List<KoinMetaData.Module> {
-        val moduleList = scanClassModules()
+    fun scanKoinModules(
+        defaultModule: KoinMetaData.Module,
+        resolver: Resolver
+    ): List<KoinMetaData.Module> {
+        val moduleList = scanClassModules(resolver)
         val index = moduleList.generateScanComponentIndex()
-        scanClassComponents(defaultModule, index)
-        scanFunctionComponents(defaultModule, index)
-        scanDefaultProperties(index+defaultModule)
-        scanExternalDefinitions(index)
+        scanClassComponents(defaultModule, index, resolver)
+        scanFunctionComponents(defaultModule, index, resolver)
+        scanDefaultProperties(index+defaultModule, resolver)
+        scanExternalDefinitions(index, resolver)
         return moduleList
     }
 
-    private fun scanDefaultProperties(index: List<KoinMetaData.Module>) {
-        val propertyValues: List<KoinMetaData.PropertyValue> = defaultProperties.mapNotNull { def ->
+    private fun scanDefaultProperties(
+        index: List<KoinMetaData.Module>,
+        resolver: Resolver
+    ) {
+        val propertyValues: List<KoinMetaData.PropertyValue> = resolver.getValidPropertySymbols()
+            .mapNotNull { def ->
             def.annotations
                 .first { it.shortName.asString() == PropertyValue::class.simpleName }
                 .let { a ->
@@ -107,8 +93,11 @@ class KoinMetaDataScanner(
             }
     }
 
-    private fun scanExternalDefinitions(index: List<KoinMetaData.Module>) {
-        externalDefinitions
+    private fun scanExternalDefinitions(
+        index: List<KoinMetaData.Module>,
+        resolver: Resolver
+    ) {
+        resolver.getExternalDefinitionSymbols()
             .filter { !it.isExpect }
             .mapNotNull { definitionDeclaration ->
                 definitionDeclaration.annotations
@@ -123,9 +112,9 @@ class KoinMetaDataScanner(
             }
     }
 
-    private fun scanClassModules(): List<KoinMetaData.Module> {
+    private fun scanClassModules(resolver: Resolver): List<KoinMetaData.Module> {
         logger.logging("scan modules ...")
-        return validModuleSymbols
+        return resolver.getValidModuleSymbols()
             .filterIsInstance<KSClassDeclaration>()
             .map { moduleMetadataScanner.createClassModule(it) }
             .toList()
@@ -152,11 +141,12 @@ class KoinMetaDataScanner(
 
     private fun scanFunctionComponents(
         defaultModule: KoinMetaData.Module,
-        scanComponentIndex: List<KoinMetaData.Module>
+        scanComponentIndex: List<KoinMetaData.Module>,
+        resolver: Resolver
     ): List<KoinMetaData.Definition> {
         logger.logging("scan functions ...")
 
-        val definitions = validDefinitionSymbols
+        val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSFunctionDeclaration>()
             .mapNotNull { functionMetadataScanner.createFunctionDefinition(it) }
             .toList()
@@ -167,11 +157,12 @@ class KoinMetaDataScanner(
 
     private fun scanClassComponents(
         defaultModule: KoinMetaData.Module,
-        scanComponentIndex: List<KoinMetaData.Module>
+        scanComponentIndex: List<KoinMetaData.Module>,
+        resolver: Resolver
     ): List<KoinMetaData.Definition> {
         logger.logging("scan definitions ...")
 
-        val definitions = validDefinitionSymbols
+        val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSClassDeclaration>()
             .map { componentMetadataScanner.createClassDefinition(it) }
             .toList()
@@ -200,6 +191,46 @@ class KoinMetaDataScanner(
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
         classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
     }
+
+    private fun Resolver.getInvalidModuleSymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
+            .filter { !it.validate() }
+            .toList()
+    }
+
+    private fun Resolver.getInvalidDefinitionSymbols(): List<KSAnnotated> {
+        return DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
+            this.getSymbolsWithAnnotation(annotation.qualifiedName!!)
+                .filter { !it.validate() }
+        }
+    }
+
+    private fun Resolver.getValidModuleSymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
+            .filter { it.validate() }
+            .toList()
+    }
+
+    private fun Resolver.getValidDefinitionSymbols(): List<KSAnnotated> {
+        return DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
+            this.getSymbolsWithAnnotation(annotation.qualifiedName!!)
+                .filter { it.validate() }
+        }
+    }
+
+    private fun Resolver.getValidPropertySymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!)
+            .filter { it.validate() }
+            .toList()
+    }
+
+    @OptIn(KspExperimental::class)
+    private fun Resolver.getExternalDefinitionSymbols(): List<KSDeclaration> {
+        return this.getDeclarationsFromPackage("org.koin.ksp.generated")
+            .filter { a -> a.annotations.any { it.shortName.asString() == DEFINITION_ANNOTATION } }
+            .toList()
+    }
+
     companion object {
         private val DEFINITION_ANNOTATION = Definition::class.simpleName
     }
