@@ -41,7 +41,7 @@ class BuilderProcessor(
 
         logger.logging("Scan symbols ...")
 
-        val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
+        val invalidSymbols = koinMetaDataScanner.findInvalidSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting for next round")
             return invalidSymbols
@@ -54,7 +54,10 @@ class BuilderProcessor(
         )
 
         logger.logging("Build metadata ...")
-        val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
+        val moduleList = koinMetaDataScanner.scanKoinModules(
+            defaultModule,
+            resolver
+        )
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
