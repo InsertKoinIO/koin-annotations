@@ -15,16 +15,20 @@
  */
 package org.koin.compiler.scanner
 
+import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.util.anyMatch
+import org.koin.core.annotation.Definition
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.PropertyValue
 
 class KoinMetaDataScanner(
     private val logger: KSPLogger
@@ -36,7 +40,11 @@ class KoinMetaDataScanner(
 
     private var validModuleSymbols = mutableListOf<KSAnnotated>()
     private var validDefinitionSymbols = mutableListOf<KSAnnotated>()
+    private var defaultProperties = mutableListOf<KSAnnotated>()
+    private var externalDefinitions = listOf<KSDeclaration>()
 
+
+    @OptIn(KspExperimental::class)
     fun scanSymbols(resolver: Resolver): List<KSAnnotated> {
         val moduleSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
         val definitionSymbols = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
@@ -182,7 +190,7 @@ class KoinMetaDataScanner(
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
-                logger.warn("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
+                logger.info("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
             }
             foundModule.definitions.add(definition)
         } else {
@@ -192,5 +200,8 @@ class KoinMetaDataScanner(
 
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
         classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
+    }
+    companion object {
+        private val DEFINITION_ANNOTATION = Definition::class.simpleName
     }
 }
