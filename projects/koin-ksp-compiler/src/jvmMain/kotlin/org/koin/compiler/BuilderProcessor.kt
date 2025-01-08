@@ -33,7 +33,7 @@ class BuilderProcessor(
     private val isComposeViewModelActive = isComposeViewModelActive() || isKoinComposeViewModelActive()
     private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isComposeViewModelActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinTagWriter = KoinTagWriter(codeGenerator,logger)
+    private val koinTagWriter = KoinTagWriter(codeGenerator, logger)
     private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -59,11 +59,13 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
-        val allModules = moduleList + defaultModule
-        koinTagWriter.writeAllTags(moduleList, defaultModule)
 
         if (isConfigCheckActive()) {
             logger.warn("Check Configuration ...")
+
+            val allModules = moduleList + defaultModule
+            koinTagWriter.writeAllTags(moduleList, defaultModule)
+
             koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
             koinConfigChecker.verifyModuleIncludes(allModules, resolver)
         }
