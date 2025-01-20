@@ -72,6 +72,10 @@ class TestModule {
         }
 
         assertEquals("White", koin.get<Bunny>(qualifier<WhiteBunny>()).color)
+
+        val farm = koin.get<Farm>()
+        assertEquals("White", farm.whiteBunny.color)
+        assertEquals("Black", farm.blackBunny.color)
     }
 
     private fun randomGetAnimal(koin: Koin): Animal {
