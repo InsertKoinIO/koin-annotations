@@ -73,14 +73,11 @@ fun List<KSValueArgument>.getQualifier(): KoinMetaData.Qualifier {
             ?: error("Qualifier annotation needs parameters: either type value or name")
 }
 
-private val qualifierAnnotations = listOf("Named", "Qualifier")
+private val qualifierAnnotations = listOf(Named::class.simpleName, Qualifier::class.simpleName)
 fun KSAnnotated.getQualifier(): String? {
     val qualifierAnnotation = annotations.firstOrNull { a ->
         val annotationName = a.shortName.asString()
-        if (annotationName in qualifierAnnotations) true
-        else (a.annotationType.resolve().declaration as KSClassDeclaration).annotations.any { a2 ->
-            a2.shortName.asString() in qualifierAnnotations
-        }
+        annotationName in qualifierAnnotations || a.annotationType.resolve().isCustomQualifierAnnotation()
     }
     return qualifierAnnotation?.let {
         when(it.shortName.asString()){
@@ -127,14 +124,23 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
         }
         //TODO type value for ScopeId
         else -> {
-            val kind = when {
-                isList -> KoinMetaData.DependencyKind.List
-                isLazy -> KoinMetaData.DependencyKind.Lazy
-                else -> KoinMetaData.DependencyKind.Single
+            val annotationType = firstAnnotation?.annotationType?.resolve()
+            if (annotationType != null && annotationType.isCustomQualifierAnnotation()) {
+                KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = annotationType.declaration.qualifiedName?.asString(), isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
+            } else {
+                val kind = when {
+                    isList -> KoinMetaData.DependencyKind.List
+                    isLazy -> KoinMetaData.DependencyKind.Lazy
+                    else -> KoinMetaData.DependencyKind.Single
+                }
+                KoinMetaData.DefinitionParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
             }
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind,  isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
         }
     }
+}
+
+private fun KSType.isCustomQualifierAnnotation(): Boolean {
+    return (declaration as KSClassDeclaration).annotations.any { it.shortName.asString() in qualifierAnnotations }
 }
 
 internal fun List<KSValueArgument>.getValueArgument(): String? {

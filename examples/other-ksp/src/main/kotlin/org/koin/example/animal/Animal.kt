@@ -13,6 +13,9 @@ public class Cat : Animal
 
 public class Bunny(public val color: String) : Animal
 
+@Single
+public class Farm(@WhiteBunny public val whiteBunny: Bunny, @BlackBunny public val blackBunny: Bunny)
+
 @Named
 public annotation class WhiteBunny
 
@@ -22,7 +25,6 @@ public annotation class BlackBunny
 @Module
 @ComponentScan
 public class AnimalModule {
-
     @Factory
     public fun animal(cat: Cat, dog: Dog): Animal = if (randomBoolean()) cat else dog
 
