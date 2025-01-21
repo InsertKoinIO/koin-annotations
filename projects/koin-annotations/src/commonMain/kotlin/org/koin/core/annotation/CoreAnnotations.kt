@@ -209,7 +209,7 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  * @param values: packages to scan
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
-annotation class ComponentScan(val values: Array<String> = [""])
+annotation class ComponentScan(val values: Array<String> = [])
 
 /**
  * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
