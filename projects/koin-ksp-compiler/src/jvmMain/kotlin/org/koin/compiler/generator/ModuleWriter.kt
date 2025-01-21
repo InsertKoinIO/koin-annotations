@@ -21,8 +21,8 @@ import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.ext.getNewFile
-import org.koin.compiler.metadata.KOIN_VIEWMODEL
-import org.koin.compiler.metadata.KOIN_VIEWMODEL_COMPOSE
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_MP
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
@@ -49,12 +49,12 @@ abstract class ModuleWriter(
     private val generatedField = "${module.packageName("_")}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    fun writeModule(isComposeViewModelActive: Boolean) {
+    fun writeModule(isViewModelMPActive: Boolean) {
         fileStream = createFileStream()
         definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
 
         writeHeader()
-        writeHeaderImports(isComposeViewModelActive)
+        writeHeaderImports(isViewModelMPActive)
 
         if (hasExternalDefinitions) {
             writeExternalDefinitionImports()
@@ -91,19 +91,19 @@ abstract class ModuleWriter(
         writeln(MODULE_HEADER)
     }
 
-    open fun writeHeaderImports(isComposeViewModelActive: Boolean) {
-        writeln(generateImports(module.definitions, isComposeViewModelActive))
+    open fun writeHeaderImports(isViewModelMPActive: Boolean) {
+        writeln(generateImports(module.definitions, isViewModelMPActive))
     }
 
     private fun generateImports(
         definitions: List<KoinMetaData.Definition>,
-        isComposeViewModelActive: Boolean
+        isViewModelMPActive: Boolean
     ): String {
         return definitions.map { definition -> definition.keyword }
             .toSet()
             .mapNotNull { keyword ->
-                if (isComposeViewModelActive && keyword == KOIN_VIEWMODEL) {
-                    KOIN_VIEWMODEL_COMPOSE.import.let { "import $it" }
+                if (isViewModelMPActive && keyword == KOIN_VIEWMODEL_ANDROID) {
+                    KOIN_VIEWMODEL_MP.import.let { "import $it" }
                 } else {
                     keyword.import?.let { "import $it" }
                 }
