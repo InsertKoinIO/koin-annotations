@@ -69,8 +69,8 @@ class ClassComponentScanner(
             FACTORY.annotationName -> {
                 createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
             }
-            KOIN_VIEWMODEL.annotationName -> {
-                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
+            KOIN_VIEWMODEL_ANDROID.annotationName -> {
+                createClassDefinition(KOIN_VIEWMODEL_ANDROID,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
             }
             KOIN_WORKER.annotationName -> {
                 createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)

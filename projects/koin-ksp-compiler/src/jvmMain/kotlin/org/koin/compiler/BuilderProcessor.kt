@@ -30,8 +30,8 @@ class BuilderProcessor(
     private val options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val isComposeViewModelActive = isComposeViewModelActive() || isKoinComposeViewModelActive()
-    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isComposeViewModelActive)
+    private val isViewModelMPActive = isKoinViewModelMPActive()
+    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
     private val koinTagWriter = KoinTagWriter(codeGenerator, logger)
     private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
@@ -84,18 +84,9 @@ class BuilderProcessor(
         return options.getOrDefault(KOIN_CONFIG_CHECK.name, "false") == true.toString()
     }
 
-    //TODO Use Koin 4.0 ViewModel DSL
-    @Deprecated("use isKoinComposeViewModelActive")
-    private fun isComposeViewModelActive(): Boolean {
-        val option = options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
-        if (option) logger.warn("[Deprecated] 'USE_COMPOSE_VIEWMODEL' arg is deprecated. Please use 'KOIN_USE_COMPOSE_VIEWMODEL'")
-        return option
-    }
-
-    private fun isKoinComposeViewModelActive(): Boolean {
-        val option =
-            options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
-        if (option) logger.warn("Activate Compose ViewModel for @KoinViewModel generation")
+    // Allow to disable usage of ViewModel MP API and
+    private fun isKoinViewModelMPActive(): Boolean {
+        val option = options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "true") == true.toString()
         return option
     }
 
@@ -104,7 +95,6 @@ class BuilderProcessor(
         return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
     }
 }
-
 
 class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(
