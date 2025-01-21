@@ -10,7 +10,7 @@ import org.koin.example.test.CoffeeMakerTesterTest
 import org.koin.example.test.CoffeeMakerTesterTestImpl
 
 @Module
-@ComponentScan("org.koin.example.coffee")
+@ComponentScan(values = ["org.koin.example.coffee"])
 class CoffeeAppModule {
 
     @Single
@@ -18,7 +18,7 @@ class CoffeeAppModule {
 }
 
 @Module
-@ComponentScan("org.koin.example.test")
+@ComponentScan(values = ["org.koin.example.test"])
 class CoffeeTesterModule {
 
     @Single
