@@ -62,12 +62,13 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
+        // Tags are used to verify generated content (KMP)
+        koinTagWriter.writeAllTags(moduleList, defaultModule)
 
         if (isConfigCheckActive()) {
             logger.warn("Check Configuration ...")
 
             val allModules = moduleList + defaultModule
-            koinTagWriter.writeAllTags(moduleList, defaultModule)
 
             koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
             koinConfigChecker.verifyModuleIncludes(allModules, resolver)

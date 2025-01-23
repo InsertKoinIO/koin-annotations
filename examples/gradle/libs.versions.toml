@@ -11,6 +11,7 @@ junit = "4.13.2"
 # Android
 agp = "8.3.2"
 androidCompat = "1.7.0"
+ktor = "2.3.12"
 
 [libraries]
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
@@ -21,6 +22,8 @@ koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnn
 ksp-api = {module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp"}
 android-appcompat = {module = "androidx.appcompat:appcompat", version.ref = "androidCompat"}
 junit = {module = "junit:junit",version.ref ="junit"}
+ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 
 [plugins]
 #kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

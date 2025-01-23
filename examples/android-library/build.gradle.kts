@@ -38,7 +38,8 @@ dependencies {
     implementation(libs.android.appcompat)
     ksp(libs.koin.ksp)
     implementation(project(":coffee-maker-module"))
-
+    api(libs.ktor.core)
+    implementation(libs.ktor.cio)
     testImplementation(libs.koin.test)
 }
 

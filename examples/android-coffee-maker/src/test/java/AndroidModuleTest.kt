@@ -1,10 +1,12 @@
 package org.koin.sample.androidx
 
+import io.ktor.client.HttpClient
 import it.example.component.ExampleSingleton
 import org.junit.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.parameter.parametersOf
+import org.koin.core.qualifier.named
 import org.koin.ksp.generated.module
 import org.koin.sample.android.library.CommonRepository
 import org.koin.sample.android.library.MyScope
@@ -40,6 +42,8 @@ class AndroidModuleTest {
         assert(koin.getOrNull<MyDataConsumer>() != null)
 
         assert(koin.getOrNull<ExampleSingleton>() != null)
+
+        assert(koin.get<HttpClient>(named("clientA")) != koin.get<HttpClient>(named("clientB")))
 
 
         stopKoin()

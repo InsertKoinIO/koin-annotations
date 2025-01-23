@@ -18,6 +18,8 @@ import kotlin.io.path.outputStream
 
 const val tagPrefix = "KoinDef"
 
+private const val TAG_FILE_HASH_LIMIT = 8
+
 class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
 
     lateinit var resolver: Resolver
@@ -53,7 +55,7 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
             writeDefinitionsTags(allDefinitions, it)
         }
 
-        val tagFileName = "KoinMeta-${sha256.digest().toHexString(HexFormat.Default)}"
+        val tagFileName = "KoinMeta-${sha256.digest().toHexString(HexFormat.Default).take(TAG_FILE_HASH_LIMIT)}"
         writeTagFile(tagFileName).buffered().use {
             Files.copy(tempFile, it)
         }

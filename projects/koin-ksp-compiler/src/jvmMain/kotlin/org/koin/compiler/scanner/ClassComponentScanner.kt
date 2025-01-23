@@ -56,24 +56,23 @@ class ClassComponentScanner(
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
 
         val isExpect = ksClassDeclaration.isExpect
-//        val isActual = ksClassDeclaration.isActual
-//        LOGGER.info("definition - $packageName $className - isExpect:$isExpect isActual:$isActual")
+        val isActual = ksClassDeclaration.isActual
 
         return when (annotationName) {
             SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect)
+                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect, isActual = isActual)
             }
             SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect)
+                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect, isActual = isActual)
             }
             FACTORY.annotationName -> {
-                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
+                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_VIEWMODEL_ANDROID.annotationName -> {
-                createClassDefinition(KOIN_VIEWMODEL_ANDROID,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
+                createClassDefinition(KOIN_VIEWMODEL_ANDROID,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_WORKER.annotationName -> {
-                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect)
+                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
@@ -81,7 +80,7 @@ class ClassComponentScanner(
                 val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
                 val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
                 val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
-                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect)
+                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
             }
             else -> error("Unknown annotation type: $annotationName")
         }
@@ -95,10 +94,11 @@ class ClassComponentScanner(
         ctorParams: List<KoinMetaData.DefinitionParameter>?,
         allBindings: List<KSDeclaration>,
         isExpect : Boolean,
+        isActual : Boolean
     ): KoinMetaData.Definition.ClassDefinition {
         val createdAtStart: Boolean =
             annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
-        return createClassDefinition(SINGLE, packageName, qualifier, className, ctorParams, allBindings, isCreatedAtStart = createdAtStart, isExpect= isExpect)
+        return createClassDefinition(SINGLE, packageName, qualifier, className, ctorParams, allBindings, isCreatedAtStart = createdAtStart, isExpect= isExpect, isActual = isActual)
     }
 
     private fun createClassDefinition(
@@ -111,6 +111,7 @@ class ClassComponentScanner(
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
         isExpect : Boolean,
+        isActual : Boolean
     ): KoinMetaData.Definition.ClassDefinition {
         return KoinMetaData.Definition.ClassDefinition(
             packageName = packageName,
@@ -121,7 +122,8 @@ class ClassComponentScanner(
             bindings = allBindings,
             keyword = keyword,
             scope = scope,
-            isExpect = isExpect
+            isExpect = isExpect,
+            isActual = isActual
         )
     }
 }
