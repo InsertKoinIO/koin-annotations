@@ -31,8 +31,17 @@ object TagFactory {
         }
     }
 
-    fun getTag(clazz: KSDeclaration): String {
-        return clazz.qualifiedNameCamelCase() ?: ""
+    fun getTag(definition: KoinMetaData.Definition, clazz: KSDeclaration): String {
+//        return clazz.qualifiedNameCamelCase() ?: ""
+        return with(definition) {
+            listOfNotNull(
+                clazz.qualifiedNameCamelCase() ?: "",
+                qualifier?.let { "Q_$it" },
+                scope?.getTagValue()?.camelCase()?.let { "S_$it" },
+                if (isExpect) "Expect" else null,
+                if (isActual) "Actual" else null
+            ).joinToString(separator = KOIN_TAG_SEPARATOR)
+        }
     }
 
     fun getTag(definition: KoinMetaData.Definition): String {

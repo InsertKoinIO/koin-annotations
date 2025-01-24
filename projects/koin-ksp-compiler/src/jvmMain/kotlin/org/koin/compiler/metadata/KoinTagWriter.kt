@@ -111,7 +111,7 @@ class KoinTagWriter(
         def: KoinMetaData.Definition,
     ) {
         writeDefinitionTag(def)
-        def.bindings.forEach { writeBindingTag(it) }
+        def.bindings.forEach { writeBindingTag(def,it) }
     }
 
     private fun writeDefinitionTag(
@@ -134,11 +134,12 @@ class KoinTagWriter(
     }
 
     private fun writeBindingTag(
+        def: KoinMetaData.Definition,
         binding: KSDeclaration
     ) {
         val name = binding.qualifiedName?.asString()
         if (name !in typeWhiteList) {
-            val tag = TagFactory.getTag(binding)
+            val tag = TagFactory.getTag(def, binding)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 writeTag(tag)

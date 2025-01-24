@@ -69,7 +69,7 @@ class BuilderProcessor(
 
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (isConfigCheckActive && isAlreadyGenerated) {
-            logger.warn("Check Configuration ...")
+            logger.warn("Check Koin Configuration ...")
 
             val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
             val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()

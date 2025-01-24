@@ -109,13 +109,13 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun verifyMetaModule(value: String, includes: ArrayList<String>) {
-        logger.warn("verifyMetaModule: m:$value - i:$includes")
+//        logger.warn("verifyMetaModule: m:$value - i:$includes")
         includes.forEach { i ->
             val exists = resolver.isAlreadyExisting(i)
-            logger.warn("verifyMetaModule: m:$value -> $i = $exists")
-//            if (!exists) {
-//                logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
-//            }
+//            logger.warn("verifyMetaModule: m:$value -> $i = $exists")
+            if (!exists) {
+                logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
+            }
         }
     }
 
@@ -129,19 +129,19 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         metaDefinitions
             .mapNotNull(::extractMetaDefinitionValues)
             .forEach { (value,dependencies) ->
-                logger.warn("verifyMetaDefinitions: def:$value - deps:$dependencies")
+//                logger.warn("verifyMetaDefinitions: def:$value - deps:$dependencies")
                 if (!dependencies.isNullOrEmpty()) verifyMetaDefinition(value,dependencies)
             }
     }
 
     private fun verifyMetaDefinition(value: String, dependencies: ArrayList<String>) {
-        logger.warn("verifyMetaDefinition: def:$value - i:$dependencies")
+//        logger.warn("verifyMetaDefinition: def:$value - i:$dependencies")
         dependencies.forEach { i ->
             val exists = resolver.isAlreadyExisting(i)
-            logger.warn("verifyMetaDefinition: def:$value -> $i = $exists")
-//            if (!exists) {
-//                logger.error("--> Missing Definition :'${i}' used by '$value'. Fix your configuration: add @Module annotation on the class.")
-//            }
+            if (!exists) {
+                logger.warn("verifyMetaDefinition: def:$value -> $i = $exists")
+                logger.warn("--> Missing Definition :'${i}' used by '$value'. Fix your configuration: add @Module annotation on the class.")
+            }
         }
     }
 
