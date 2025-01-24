@@ -112,6 +112,22 @@ class KoinTagWriter(
     ) {
         writeDefinitionTag(def)
         def.bindings.forEach { writeBindingTag(def,it) }
+        if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope){
+            writeScopeTag(def.scope.type)
+        }
+    }
+
+    private fun writeScopeTag(
+        scope: KSDeclaration
+    ) {
+        val name = scope.qualifiedName?.asString()
+        if (name !in typeWhiteList) {
+            val tag = TagFactory.getTag(scope)
+            val alreadyGenerated = resolver.isAlreadyExisting(tag)
+            if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
+                writeTag(tag)
+            }
+        }
     }
 
     private fun writeDefinitionTag(
