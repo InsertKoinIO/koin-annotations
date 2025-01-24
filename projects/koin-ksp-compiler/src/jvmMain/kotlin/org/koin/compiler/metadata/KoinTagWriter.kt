@@ -123,6 +123,10 @@ class KoinTagWriter(
         if (!definition.isExpect && definition.alreadyGenerated == false){
             val tag = TagFactory.getTag(definition)
             if (tag !in alreadyDeclaredTags) {
+                if (isConfigCheckActive){
+                    val metaLine = MetaAnnotationFactory.generate(definition)
+                    writeMeta(metaLine)
+                }
                 writeTag(tag)
             }
         }

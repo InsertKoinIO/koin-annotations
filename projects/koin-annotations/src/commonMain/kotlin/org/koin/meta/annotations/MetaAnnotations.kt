@@ -32,10 +32,10 @@ annotation class ExternalDefinition(val value: String = "")
 /**
  * Meta Definition annotation to help represents
  * @param value: Definition full path
- * @param parameters - Parameters Tags to check
+ * @param dependencies - Parameters Tags to check
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaDefinition(val value: String = "",val parameters : Array<String> = [])
+annotation class MetaDefinition(val value: String = "", val dependencies: Array<String> = [])
 
 /**
  * Meta Definition annotation to help represents
@@ -43,4 +43,4 @@ annotation class MetaDefinition(val value: String = "",val parameters : Array<St
  * @param includes - Includes Module Tags to check
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaModule(val value: String = "",val includes : Array<String> = [])
+annotation class MetaModule(val value: String = "", val includes: Array<String> = [])
