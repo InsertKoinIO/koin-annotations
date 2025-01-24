@@ -91,7 +91,7 @@ class DefinitionWriter(
         ctor: String,
         binds: String
     ) {
-        writeln("@Definition(\"${def.packageName}\")")
+        writeln("@ExternalDefinition(\"${def.packageName}\")")
         writeln("public fun Module.$DEFINE_PREFIX${def.label}() : KoinDefinition<*> = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds")
     }
 

@@ -82,7 +82,7 @@ abstract class ModuleWriter(
 
     private fun writeExternalDefinitionImports() {
         writeln("""
-            import org.koin.core.annotation.Definition
+            import org.koin.meta.annotations.ExternalDefinition
             import org.koin.core.definition.KoinDefinition
         """.trimIndent())
     }

@@ -215,11 +215,3 @@ annotation class ComponentScan(val value: String = "")
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 annotation class Provided
-
-/**
- * Internal usage for components discovery in generated package
- *
- * @param value: package of declared definition
- */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD, AnnotationTarget.FUNCTION)
-annotation class Definition(val value: String = "")

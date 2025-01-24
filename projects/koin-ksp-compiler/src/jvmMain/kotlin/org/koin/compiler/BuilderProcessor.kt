@@ -25,7 +25,7 @@ import org.koin.compiler.verify.KoinConfigChecker
 import org.koin.compiler.metadata.KoinTagWriter
 
 class BuilderProcessor(
-    codeGenerator: CodeGenerator,
+    private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
@@ -33,7 +33,6 @@ class BuilderProcessor(
     private val isViewModelMPActive = isKoinViewModelMPActive()
     private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinTagWriter = KoinTagWriter(codeGenerator, logger)
     private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -65,7 +64,8 @@ class BuilderProcessor(
         val isConfigCheckActive = isConfigCheckActive()
 
         // Tags are used to verify generated content (KMP)
-        koinTagWriter.writeAllTags(moduleList, defaultModule, isConfigCheckActive)
+        KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
+            .writeAllTags(moduleList, defaultModule)
 
         if (isConfigCheckActive) {
             logger.warn("Check Configuration ...")
@@ -83,7 +83,6 @@ class BuilderProcessor(
 
     private fun initComponents(resolver: Resolver) {
         koinCodeGenerator.resolver = resolver
-        koinTagWriter.resolver = resolver
     }
 
     private fun isConfigCheckActive(): Boolean {

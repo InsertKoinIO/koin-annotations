@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.koin.meta
+package org.koin.meta.annotations
 
 /**
  * All following Annotations are intended for Internal use only
@@ -22,17 +22,25 @@ package org.koin.meta
  */
 
 /**
+ * Internal usage for components discovery in generated package
+ *
+ * @param value: package of declared definition
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD, AnnotationTarget.FUNCTION)
+annotation class ExternalDefinition(val value: String = "")
+
+/**
  * Meta Definition annotation to help represents
- * - Definition full path
- * - Parameters Tags to check
+ * @param value: Definition full path
+ * @param parameters - Parameters Tags to check
  */
 @Target(AnnotationTarget.CLASS)
 annotation class MetaDefinition(val value: String = "",val parameters : Array<String> = [])
 
 /**
  * Meta Definition annotation to help represents
- * - Definition full path
- * - Includes Module Tags to check
+ * @param value: Definition full path
+ * @param includes - Includes Module Tags to check
  */
 @Target(AnnotationTarget.CLASS)
 annotation class MetaModule(val value: String = "",val includes : Array<String> = [])
