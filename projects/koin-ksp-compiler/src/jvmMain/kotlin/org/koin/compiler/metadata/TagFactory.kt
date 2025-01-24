@@ -73,4 +73,8 @@ object TagFactory {
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
         }
     }
+
+    fun getTagFromFullPath(path: String) : String {
+        return path.split(".").joinToString(separator = "") { it.capitalize() }
+    }
 }
