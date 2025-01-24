@@ -10,7 +10,7 @@ object MetaAnnotationFactory {
     fun generate(module: KoinMetaData.Module): String {
         val fullpath = module.packageName + "." + module.name
         val includesTags = if (module.includes?.isNotEmpty() == true) {
-            module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TAG_PREFIX+TagFactory.getTag(it) }
+            module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getTag(it) }
         } else null
         val includesString = includesTags?.let { ", includes=[$it]" } ?: ""
         return """
@@ -23,7 +23,7 @@ object MetaAnnotationFactory {
         val deps = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
 
         val depsTags = if (deps.isNotEmpty()) {
-            deps.joinToString("\",\"", prefix = "\"", postfix = "\"") { TAG_PREFIX+TagFactory.getTag(it) }
+            deps.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getTag(it) }
         } else null
         val depsString = depsTags?.let { ", dependencies=[$it]" } ?: ""
         return """

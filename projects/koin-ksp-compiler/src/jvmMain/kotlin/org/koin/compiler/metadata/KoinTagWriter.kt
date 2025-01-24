@@ -6,6 +6,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
+import org.koin.compiler.resolver.isAlreadyExisting
 import org.koin.compiler.verify.*
 import org.koin.compiler.verify.typeWhiteList
 import java.io.OutputStream

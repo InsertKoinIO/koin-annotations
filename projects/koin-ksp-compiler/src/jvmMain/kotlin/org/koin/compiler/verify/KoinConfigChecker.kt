@@ -15,43 +15,38 @@
  */
 package org.koin.compiler.verify
 
-import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.resolver.getResolutionForTag
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
 /**
  * Koin Configuration Checker
  */
-class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
+class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
-    fun verifyDefinitionDeclarations(
-        moduleList: List<KoinMetaData.Module>,
-        resolver: Resolver
-    ) {
-        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+    fun verify(allModules: List<KoinMetaData.Module>) {
+        verifyDefinitionDeclarations(allModules)
+        verifyModuleIncludes(allModules)
+    }
+
+    private fun verifyDefinitionDeclarations(moduleList: List<KoinMetaData.Module>) {
         val allDefinitions = moduleList.flatMap { it.definitions }
-        logger.warn("allDefinitions:${allDefinitions.size}")
-        logger.warn("isAlreadyGenerated:$isAlreadyGenerated")
-        if (isAlreadyGenerated) {
-            verifyDependencies(allDefinitions, resolver)
-        }
+        verifyDependencies(allDefinitions)
     }
 
     private fun verifyDependencies(
-        allDefinitions: List<KoinMetaData.Definition>,
-        resolver: Resolver
+        allDefinitions: List<KoinMetaData.Definition>
     ) {
-        logger.warn("allDefinitions:${allDefinitions.size} symbols found")
         allDefinitions.forEach { def ->
             def.parameters
                 .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
                 .forEach { param ->
-                    checkDependency(param, resolver, def)
+                    checkDependency(param, def)
                     //TODO Check Cycle
                 }
         }
@@ -59,18 +54,16 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
 
     private fun checkDependency(
         param: KoinMetaData.DefinitionParameter.Dependency,
-        resolver: Resolver,
         def: KoinMetaData.Definition
     ) {
         if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
-            checkDependencyIsDefined(param, resolver, def)
+            checkDependencyIsDefined(param, def)
         }
     }
 
 
     private fun checkDependencyIsDefined(
         dependencyToCheck: KoinMetaData.DefinitionParameter.Dependency,
-        resolver: Resolver,
         definition: KoinMetaData.Definition,
     ) {
         val label = definition.label
@@ -93,20 +86,18 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
         }
     }
 
-    fun verifyModuleIncludes(modules: List<KoinMetaData.Module>, resolver: Resolver) {
-        val noGenFile = codeGenerator.generatedFile.isEmpty()
-        if (noGenFile) {
-            modules.forEach { m ->
-                val mn = m.packageName + "." + m.name
-                m.includes?.forEach { inc ->
-                    val prop = resolver.getResolutionForTag(TagFactory.getTag(inc))
-                    if (prop == null) {
-                        logger.error("--> Module Undefined :'${inc.className}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.className}' class.")
-                    }
+    fun verifyModuleIncludes(modules: List<KoinMetaData.Module>) {
+        modules.forEach { m ->
+            val mn = m.packageName + "." + m.name
+            m.includes?.forEach { inc ->
+                val prop = resolver.getResolutionForTag(TagFactory.getTag(inc))
+                if (prop == null) {
+                    logger.error("--> Module Undefined :'${inc.className}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.className}' class.")
                 }
             }
         }
     }
+
 }
 
 internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.capitalize() }

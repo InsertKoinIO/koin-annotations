@@ -1,10 +1,11 @@
-package org.koin.compiler.verify
+package org.koin.compiler.resolver
 
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.TAG_PREFIX
+import org.koin.compiler.verify.codeGenerationPackage
 
 fun Resolver.isAlreadyExisting(mod : KoinMetaData.Module) : Boolean {
     return getResolution(mod) != null
