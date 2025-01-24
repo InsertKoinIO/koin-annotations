@@ -24,6 +24,7 @@ import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
 import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
+import kotlin.time.measureTime
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -69,7 +70,7 @@ class BuilderProcessor(
 
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (isConfigCheckActive && isAlreadyGenerated) {
-            logger.warn("Check Koin Configuration ...")
+            logger.warn("Koin Configuration Check ...")
 
             val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
             val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
@@ -79,8 +80,11 @@ class BuilderProcessor(
             }
 
             val checker = KoinConfigChecker(logger, resolver)
-            checker.verifyMetaModules(metaTagScanner.findMetaModules())
-            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+            val t = measureTime {
+                checker.verifyMetaModules(metaTagScanner.findMetaModules())
+                checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+            }
+            logger.warn("Koin Configuration Check executed in $t")
         }
         return emptyList()
     }
