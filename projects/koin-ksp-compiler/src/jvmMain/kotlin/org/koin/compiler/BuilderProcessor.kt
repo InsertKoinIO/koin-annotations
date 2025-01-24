@@ -23,6 +23,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
 import org.koin.compiler.metadata.KoinTagWriter
+import org.koin.compiler.scanner.KoinTagMetaDataScanner
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -66,15 +67,20 @@ class BuilderProcessor(
         KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
             .writeAllTags(moduleList, defaultModule)
 
-        if (isConfigCheckActive) {
+        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+        if (isConfigCheckActive && isAlreadyGenerated) {
             logger.warn("Check Configuration ...")
 
-            val allModules = moduleList + defaultModule
-
-            val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
-            if (isAlreadyGenerated){
-                KoinConfigChecker(logger, resolver).verify(allModules)
+            val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
+            val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
+            if (invalidsMetaSymbols.isNotEmpty()) {
+                logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
+                return invalidSymbols
             }
+
+            val checker = KoinConfigChecker(logger, resolver)
+            checker.verifyMetaModules(metaTagScanner.findMetaModules())
+            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
         }
         return emptyList()
     }

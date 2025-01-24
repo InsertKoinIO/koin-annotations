@@ -23,7 +23,9 @@ object MetaAnnotationFactory {
         val deps = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
 
         val depsTags = if (deps.isNotEmpty()) {
-            deps.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getTag(it) }
+            deps
+                .filter { !it.alreadyProvided }
+                .joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getTag(it) }
         } else null
         val depsString = depsTags?.let { ", dependencies=[$it]" } ?: ""
         return """
