@@ -6,9 +6,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
-import org.koin.compiler.verify.codeGenerationPackage
-import org.koin.compiler.verify.getResolution
-import org.koin.compiler.verify.getResolutionForTag
+import org.koin.compiler.verify.*
 import org.koin.compiler.verify.typeWhiteList
 import java.io.OutputStream
 import java.nio.file.Files
@@ -17,8 +15,8 @@ import java.security.MessageDigest
 import kotlin.io.path.createTempFile
 import kotlin.io.path.outputStream
 
-const val tagPrefix = "KoinDef"
-
+const val TAG_PREFIX = "KoinMeta_"
+// Avoid looooong name with full SHA as file name. Let's take 8 first digits
 private const val TAG_FILE_HASH_LIMIT = 8
 
 class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
@@ -27,12 +25,13 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
 
     fun writeAllTags(
         moduleList: List<KoinMetaData.Module>,
-        default : KoinMetaData.Module
+        default: KoinMetaData.Module,
+        isConfigCheckActive: Boolean
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (!isAlreadyGenerated) {
             logger.logging("Koin Tags Generation ...")
-            createTagFile(moduleList, default)
+            createTagsForModules(moduleList, default, isConfigCheckActive)
         }
     }
 
@@ -44,33 +43,40 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
      * @author Kengo TODA
      */
     @OptIn(ExperimentalStdlibApi::class)
-    private fun createTagFile(
+    private fun createTagsForModules(
         moduleList: List<KoinMetaData.Module>,
-        default : KoinMetaData.Module,
+        default: KoinMetaData.Module,
+        isConfigCheckActive: Boolean,
     ) {
         val allDefinitions = (moduleList + default).flatMap { it.definitions }
         val tempFile = createTempFile("KoinMeta", ".kt")
         val sha256 = MessageDigest.getInstance("SHA-256");
         DigestOutputStream(tempFile.outputStream(), sha256).buffered().use {
-            writeModuleTags(moduleList, it)
-            writeDefinitionsTags(allDefinitions, it)
+            val alreadyDeclaredTags = arrayListOf<String>()
+            writeModuleTags(moduleList, it, alreadyDeclaredTags, isConfigCheckActive)
+            writeDefinitionsTags(allDefinitions, it, alreadyDeclaredTags, isConfigCheckActive)
         }
 
         val tagFileName = "KoinMeta-${sha256.digest().toHexString(HexFormat.Default).take(TAG_FILE_HASH_LIMIT)}"
-        writeTagFile(tagFileName).buffered().use {
-            Files.copy(tempFile, it)
-        }
+        writeTagFile(tagFileName).buffered().use { Files.copy(tempFile, it) }
     }
 
-    private fun writeModuleTags(allModules: List<KoinMetaData.Module>, tagFileStream : OutputStream) {
-        val alreadyDeclaredTags = arrayListOf<String>()
-        allModules.forEach { m -> writeModuleTag(tagFileStream,m,alreadyDeclaredTags) }
+    private fun writeModuleTags(
+        allModules: List<KoinMetaData.Module>,
+        tagFileStream: OutputStream,
+        alreadyDeclaredTags: ArrayList<String>,
+        isConfigCheckActive: Boolean
+    ) {
+        allModules.forEach { m -> writeModuleTag(tagFileStream,m,alreadyDeclaredTags, isConfigCheckActive) }
     }
 
-    private fun writeDefinitionsTags(allDefinitions: List<KoinMetaData.Definition>, tagFileStream : OutputStream) {
-        val alreadyDeclaredTags = arrayListOf<String>()
-
-        allDefinitions.forEach { def -> writeDefinitionTag(tagFileStream, def, alreadyDeclaredTags) }
+    private fun writeDefinitionsTags(
+        allDefinitions: List<KoinMetaData.Definition>,
+        tagFileStream: OutputStream,
+        alreadyDeclaredTags: ArrayList<String>,
+        isConfigCheckActive: Boolean
+    ) {
+        allDefinitions.forEach { def -> writeDefinitionAndBindingsTags(tagFileStream, def, alreadyDeclaredTags, isConfigCheckActive) }
     }
 
     private fun writeTagFile(tagFileName: String): OutputStream {
@@ -81,44 +87,46 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
 
     private fun writeModuleTag(
         fileStream: OutputStream,
-        mod: KoinMetaData.Module,
-        alreadyDeclared: ArrayList<String>
+        module: KoinMetaData.Module,
+        alreadyDeclaredTags: ArrayList<String>,
+        isConfigCheckActive: Boolean
     ) {
-        logger.logging("writeModuleTag? ${mod.name}")
-        if (mod.alreadyGenerated == null){
-            mod.alreadyGenerated = resolver.getResolution(mod) != null
+        if (module.alreadyGenerated == null){
+            module.alreadyGenerated = resolver.isAlreadyExisting(module)
         }
 
-        if (mod.alreadyGenerated == false){
-            val className = TagFactory.getTagName(mod)
-            if (className !in alreadyDeclared) {
-                writeTagLine(className, fileStream, alreadyDeclared)
+        if (module.alreadyGenerated == false){
+            val tag = TagFactory.getTag(module)
+            if (tag !in alreadyDeclaredTags) {
+                writeTag(tag, fileStream, alreadyDeclaredTags)
             }
         }
     }
 
-    private fun writeDefinitionTag(
+    private fun writeDefinitionAndBindingsTags(
         fileStream: OutputStream,
         def: KoinMetaData.Definition,
-        alreadyDeclared: ArrayList<String>
+        alreadyDeclaredTags: ArrayList<String>,
+        isConfigCheckActive: Boolean
     ) {
-        writeClassTag(def, alreadyDeclared, fileStream)
-        def.bindings.forEach { writeBindingTag(it, alreadyDeclared, fileStream) }
+        writeDefinitionTag(def, alreadyDeclaredTags, fileStream, isConfigCheckActive)
+        def.bindings.forEach { writeBindingTag(it, alreadyDeclaredTags, fileStream) }
     }
 
-    private fun writeClassTag(
-        def: KoinMetaData.Definition,
+    private fun writeDefinitionTag(
+        definition: KoinMetaData.Definition,
         alreadyDeclared: java.util.ArrayList<String>,
-        fileStream: OutputStream
+        fileStream: OutputStream,
+        isConfigCheckActive: Boolean
     ) {
-        if (def.alreadyGenerated == null){
-            def.alreadyGenerated = resolver.getResolution(def) != null
+        if (definition.alreadyGenerated == null){
+            definition.alreadyGenerated = resolver.isAlreadyExisting(definition)
         }
 
-        if (!def.isExpect && def.alreadyGenerated == false){
-            val className = TagFactory.getTagName(def)
-            if (className !in alreadyDeclared) {
-                writeTagLine(className, fileStream, alreadyDeclared)
+        if (!definition.isExpect && definition.alreadyGenerated == false){
+            val tag = TagFactory.getTag(definition)
+            if (tag !in alreadyDeclared) {
+                writeTag(tag, fileStream, alreadyDeclared)
             }
         }
     }
@@ -128,26 +136,27 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
         alreadyDeclared: ArrayList<String>,
         fileStream: OutputStream
     ) {
-        binding.qualifiedName?.asString()?.let { name ->
-            if (name !in typeWhiteList) {
-                TagFactory.getTagName(binding).let { tagName ->
-                    val alreadyGenerated = resolver.getResolutionForTag(tagName) != null
-                    if (tagName !in alreadyDeclared && !alreadyGenerated) {
-                        writeTagLine(tagName, fileStream, alreadyDeclared)
-                    }
-                }
+        val name = binding.qualifiedName?.asString()
+        if (name !in typeWhiteList) {
+            val tag = TagFactory.getTag(binding)
+            val alreadyGenerated = resolver.isAlreadyExisting(tag)
+            if (tag !in alreadyDeclared && !alreadyGenerated) {
+                writeTag(tag, fileStream, alreadyDeclared)
             }
         }
     }
 
-    private fun writeTagLine(
-        tagName: String,
+    private fun writeTag(
+        tag: String,
         fileStream: OutputStream,
         alreadyDeclared: java.util.ArrayList<String>
     ) {
-//        LOGGER.logging("tag: $tagName")
-        val tag = "public class $tagPrefix$tagName"
-        fileStream.appendText("\n$tag")
-        alreadyDeclared.add(tagName)
+        val line = prepareTagLine(tag)
+        fileStream.appendText(line)
+        alreadyDeclared.add(tag)
+    }
+
+    private fun prepareTagLine(tagName : String) : String {
+        return "\npublic class $TAG_PREFIX$tagName"
     }
 }

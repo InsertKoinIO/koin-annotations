@@ -8,7 +8,7 @@ const val KOIN_TAG_SEPARATOR = ""
 
 object TagFactory {
 
-    fun getTagName(module: KoinMetaData.Module): String {
+    fun getTag(module: KoinMetaData.Module): String {
         return with(module) {
             listOfNotNull(
                 packageName.camelCase(),
@@ -19,7 +19,7 @@ object TagFactory {
         }
     }
 
-    fun getTagName(module: KoinMetaData.ModuleInclude): String {
+    fun getTag(module: KoinMetaData.ModuleInclude): String {
         return with(module) {
             listOfNotNull(
                 packageName.camelCase(),
@@ -30,11 +30,11 @@ object TagFactory {
         }
     }
 
-    fun getTagName(clazz: KSDeclaration): String {
+    fun getTag(clazz: KSDeclaration): String {
         return clazz.qualifiedNameCamelCase() ?: ""
     }
 
-    fun getTagName(definition: KoinMetaData.Definition): String {
+    fun getTag(definition: KoinMetaData.Definition): String {
         return with(definition) {
             listOfNotNull(
                 packageName.camelCase(),

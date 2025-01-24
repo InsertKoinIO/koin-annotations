@@ -62,16 +62,18 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
-        // Tags are used to verify generated content (KMP)
-        koinTagWriter.writeAllTags(moduleList, defaultModule)
+        val isConfigCheckActive = isConfigCheckActive()
 
-        if (isConfigCheckActive()) {
+        // Tags are used to verify generated content (KMP)
+        koinTagWriter.writeAllTags(moduleList, defaultModule, isConfigCheckActive)
+
+        if (isConfigCheckActive) {
             logger.warn("Check Configuration ...")
 
-            val moduleList = koinMetaDataScanner.scanKoinModules(
-                defaultModule,
-                resolver
-            )
+//            val moduleList = koinMetaDataScanner.scanKoinModules(
+//                defaultModule,
+//                resolver
+//            )
             val allModules = moduleList + defaultModule
             koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
             koinConfigChecker.verifyModuleIncludes(allModules, resolver)

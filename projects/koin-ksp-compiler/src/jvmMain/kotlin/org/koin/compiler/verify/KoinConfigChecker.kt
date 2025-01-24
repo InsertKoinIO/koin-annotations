@@ -99,7 +99,7 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
             modules.forEach { m ->
                 val mn = m.packageName + "." + m.name
                 m.includes?.forEach { inc ->
-                    val prop = resolver.getResolutionForTag(TagFactory.getTagName(inc))
+                    val prop = resolver.getResolutionForTag(TagFactory.getTag(inc))
                     if (prop == null) {
                         logger.error("--> Module Undefined :'${inc.className}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.className}' class.")
                     }
