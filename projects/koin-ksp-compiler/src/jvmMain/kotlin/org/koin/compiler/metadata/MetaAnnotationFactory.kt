@@ -1,5 +1,6 @@
 package org.koin.compiler.metadata
 
+import org.koin.compiler.metadata.KoinMetaData.DependencyKind
 import org.koin.compiler.verify.typeWhiteList
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
@@ -28,7 +29,13 @@ object MetaAnnotationFactory {
 
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
-            .map { TagFactory.getTag(it) }
+            .mapNotNull {
+                if (it.kind == DependencyKind.Single) TagFactory.getTag(it)
+                else {
+                    val ksDeclaration = extractLazyOrListType(it)
+                    ksDeclaration?.let { TagFactory.getTag(def, ksDeclaration) }
+                }
+            }
             .filter { it !in whiteListTags }
 
         val depsTags = if (cleanedDependencies.isNotEmpty()) cleanedDependencies.joinToString(
@@ -43,4 +50,7 @@ object MetaAnnotationFactory {
             @$metaDefinition("$fullpath"$depsString)
         """.trimIndent()
     }
+
+    private fun extractLazyOrListType(it: KoinMetaData.DefinitionParameter.Dependency) =
+        it.type.arguments.first().type?.resolve()?.declaration
 }

@@ -20,10 +20,10 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.scanner.KoinMetaDataScanner
-import org.koin.compiler.verify.KoinConfigChecker
 import org.koin.compiler.metadata.KoinTagWriter
+import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
+import org.koin.compiler.verify.KoinConfigChecker
 import kotlin.time.measureTime
 
 class BuilderProcessor(
@@ -71,20 +71,20 @@ class BuilderProcessor(
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (isConfigCheckActive && isAlreadyGenerated) {
             logger.warn("Koin Configuration Check ...")
-
-            val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
-            val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
-            if (invalidsMetaSymbols.isNotEmpty()) {
-                logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
-                return invalidSymbols
-            }
-
-            val checker = KoinConfigChecker(logger, resolver)
             val t = measureTime {
+
+                val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
+                val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
+                if (invalidsMetaSymbols.isNotEmpty()) {
+                    logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
+                    return invalidSymbols
+                }
+
+                val checker = KoinConfigChecker(logger, resolver)
                 checker.verifyMetaModules(metaTagScanner.findMetaModules())
                 checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
             }
-            logger.warn("Koin Configuration Check executed in $t")
+            logger.warn("Koin Configuration Check done in $t")
         }
         return emptyList()
     }
