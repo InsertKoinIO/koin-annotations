@@ -22,7 +22,7 @@ import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
-import org.koin.compiler.verify.KoinTagWriter
+import org.koin.compiler.metadata.KoinTagWriter
 
 class BuilderProcessor(
     codeGenerator: CodeGenerator,
@@ -68,8 +68,11 @@ class BuilderProcessor(
         if (isConfigCheckActive()) {
             logger.warn("Check Configuration ...")
 
+            val moduleList = koinMetaDataScanner.scanKoinModules(
+                defaultModule,
+                resolver
+            )
             val allModules = moduleList + defaultModule
-
             koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
             koinConfigChecker.verifyModuleIncludes(allModules, resolver)
         }

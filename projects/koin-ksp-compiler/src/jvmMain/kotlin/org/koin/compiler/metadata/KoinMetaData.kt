@@ -42,16 +42,10 @@ sealed class KoinMetaData {
 
         var alreadyGenerated : Boolean? = null
 
-        fun getTagName() = packageName.camelCase() +
-                            name +
-                            if (isExpect) "Expect" else "" +
-                            if (isActual) "Actual" else ""
-
         fun packageName(separator: String): String {
             return if (isDefault) ""
             else {
-                val default = Locale.getDefault()
-                packageName.split(".").joinToString(separator) { it.lowercase(default) }
+                splitPackage(packageName, separator)
             }
         }
 
@@ -88,12 +82,7 @@ sealed class KoinMetaData {
         val className : String,
         val isExpect : Boolean,
         val isActual : Boolean
-    ){
-        fun getTagName() = packageName.camelCase() +
-                           className.capitalize() +
-                           if (isExpect) "Expect" else "" +
-                           if (isActual) "Actual" else ""
-    }
+    )
 
     enum class ModuleType {
         FIELD, CLASS, OBJECT;
@@ -169,13 +158,6 @@ sealed class KoinMetaData {
         fun isType(keyword: DefinitionAnnotation): Boolean = this.keyword == keyword
 
         val packageNamePrefix : String = if (packageName.isEmpty()) "" else "${packageName}."
-
-        fun getTagName() = packageName.camelCase() +
-                            label.capitalize() +
-                            (qualifier?.let { "Q_$it" } ?: "") +
-                            (scope?.getTagValue()?.camelCase()?.let { "S_" } ?: "") +
-                            if (isExpect) "Expect" else "" +
-                            if (isActual) "Actual" else ""
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -272,6 +254,9 @@ sealed class KoinMetaData {
         Single, List, Lazy
     }
 }
+
+internal fun splitPackage(packageName : String, separator: String, default: Locale = Locale.getDefault()) : String =
+    packageName.split(".").joinToString(separator) { it.lowercase(default) }
 
 
 private fun KSDeclaration.getQualifiedName(): String {

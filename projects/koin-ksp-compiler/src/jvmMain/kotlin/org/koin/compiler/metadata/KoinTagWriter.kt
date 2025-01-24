@@ -1,4 +1,4 @@
-package org.koin.compiler.verify
+package org.koin.compiler.metadata
 
 import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -6,9 +6,10 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
-import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.ext.getResolution
-import org.koin.compiler.verify.ext.getResolutionForTag
+import org.koin.compiler.verify.codeGenerationPackage
+import org.koin.compiler.verify.getResolution
+import org.koin.compiler.verify.getResolutionForTag
+import org.koin.compiler.verify.typeWhiteList
 import java.io.OutputStream
 import java.nio.file.Files
 import java.security.DigestOutputStream
@@ -89,7 +90,7 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
         }
 
         if (mod.alreadyGenerated == false){
-            val className = mod.getTagName()
+            val className = TagFactory.getTagName(mod)
             if (className !in alreadyDeclared) {
                 writeTagLine(className, fileStream, alreadyDeclared)
             }
@@ -115,7 +116,7 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
         }
 
         if (!def.isExpect && def.alreadyGenerated == false){
-            val className = def.getTagName()
+            val className = TagFactory.getTagName(def)
             if (className !in alreadyDeclared) {
                 writeTagLine(className, fileStream, alreadyDeclared)
             }
@@ -129,10 +130,10 @@ class KoinTagWriter(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
     ) {
         binding.qualifiedName?.asString()?.let { name ->
             if (name !in typeWhiteList) {
-                binding.qualifiedNameCamelCase()?.let { className ->
-                    val alreadyGenerated = resolver.getResolutionForTag(className) != null
-                    if (className !in alreadyDeclared && !alreadyGenerated) {
-                        writeTagLine(className, fileStream, alreadyDeclared)
+                TagFactory.getTagName(binding).let { tagName ->
+                    val alreadyGenerated = resolver.getResolutionForTag(tagName) != null
+                    if (tagName !in alreadyDeclared && !alreadyGenerated) {
+                        writeTagLine(tagName, fileStream, alreadyDeclared)
                     }
                 }
             }

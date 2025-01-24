@@ -20,7 +20,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.ext.getResolutionForTag
+import org.koin.compiler.metadata.TagFactory
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
@@ -35,7 +35,8 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         val allDefinitions = moduleList.flatMap { it.definitions }
-
+        logger.warn("allDefinitions:${allDefinitions.size}")
+        logger.warn("isAlreadyGenerated:$isAlreadyGenerated")
         if (isAlreadyGenerated) {
             verifyDependencies(allDefinitions, resolver)
         }
@@ -45,6 +46,7 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
         allDefinitions: List<KoinMetaData.Definition>,
         resolver: Resolver
     ) {
+        logger.warn("allDefinitions:${allDefinitions.size} symbols found")
         allDefinitions.forEach { def ->
             def.parameters
                 .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
@@ -97,7 +99,7 @@ class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger)
             modules.forEach { m ->
                 val mn = m.packageName + "." + m.name
                 m.includes?.forEach { inc ->
-                    val prop = resolver.getResolutionForTag(inc.getTagName())
+                    val prop = resolver.getResolutionForTag(TagFactory.getTagName(inc))
                     if (prop == null) {
                         logger.error("--> Module Undefined :'${inc.className}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.className}' class.")
                     }

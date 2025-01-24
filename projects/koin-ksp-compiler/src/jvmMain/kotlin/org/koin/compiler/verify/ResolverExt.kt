@@ -1,18 +1,18 @@
-package org.koin.compiler.verify.ext
+package org.koin.compiler.verify
 
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.codeGenerationPackage
-import org.koin.compiler.verify.tagPrefix
+import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.tagPrefix
 
 
 fun Resolver.getResolution(mod : KoinMetaData.Module) : KSDeclaration?{
-    return getResolutionForTag(mod.getTagName())
+    return getResolutionForTag(TagFactory.getTagName(mod))
 }
 
 fun Resolver.getResolution(def : KoinMetaData.Definition) : KSDeclaration?{
-    return getResolutionForTag(def.getTagName())
+    return getResolutionForTag(TagFactory.getTagName(def))
 }
 
 fun Resolver.getResolutionForTag(tag : String?) : KSDeclaration?{

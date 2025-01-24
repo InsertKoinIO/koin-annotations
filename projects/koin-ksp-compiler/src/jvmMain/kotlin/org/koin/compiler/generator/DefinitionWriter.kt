@@ -23,7 +23,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinMetaData.Module.Companion.DEFINE_PREFIX
 import org.koin.compiler.metadata.SINGLE
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
-import org.koin.compiler.verify.ext.getResolution
+import org.koin.compiler.verify.getResolution
 import java.io.OutputStream
 
 class DefinitionWriter(
