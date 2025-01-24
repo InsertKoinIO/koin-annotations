@@ -26,7 +26,9 @@ class KoinTagWriter(
     val isConfigCheckActive : Boolean
 ) {
     private val alreadyDeclaredTags: ArrayList<String> = arrayListOf()
-    private var tagFileStream : OutputStream? = null
+    private var _tagFileStream : OutputStream? = null
+    private val fileStream : OutputStream
+        get() = _tagFileStream ?: error("KoinTagWriter - tagFileStream is null")
 
     fun writeAllTags(
         moduleList: List<KoinMetaData.Module>,
@@ -55,7 +57,10 @@ class KoinTagWriter(
         val tempFile = createTempFile("KoinMeta", ".kt")
         val sha256 = MessageDigest.getInstance("SHA-256");
         DigestOutputStream(tempFile.outputStream(), sha256).buffered().use {
-            tagFileStream = it
+            _tagFileStream = it
+            if (isConfigCheckActive){
+                writeImports()
+            }
             writeModuleTags(moduleList)
             writeDefinitionsTags(allDefinitions)
         }
@@ -92,6 +97,10 @@ class KoinTagWriter(
         if (module.alreadyGenerated == false){
             val tag = TagFactory.getTag(module)
             if (tag !in alreadyDeclaredTags) {
+                if (isConfigCheckActive){
+                    val metaLine = MetaAnnotationFactory.generate(module)
+                    writeMeta(metaLine)
+                }
                 writeTag(tag)
             }
         }
@@ -136,8 +145,22 @@ class KoinTagWriter(
         tag: String
     ) {
         val line = prepareTagLine(tag)
-        tagFileStream?.appendText(line) ?: error("KoinTagWriter - Could not write line $line")
+        fileStream.appendText(line)
         alreadyDeclaredTags.add(tag)
+    }
+
+    private fun writeMeta(
+        meta: String
+    ) {
+        fileStream.appendText("\n$meta")
+    }
+
+    private fun writeImports() {
+        fileStream.appendText("""
+            
+            import org.koin.meta.annotations.MetaDefinition
+            import org.koin.meta.annotations.MetaModule
+        """.trimIndent())
     }
 
     private fun prepareTagLine(tagName : String) : String {
