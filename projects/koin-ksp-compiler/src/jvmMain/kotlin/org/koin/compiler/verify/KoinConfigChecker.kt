@@ -20,8 +20,10 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
+import org.koin.compiler.metadata.TagFactory.clearPackageSymbols
 import org.koin.compiler.resolver.isAlreadyExisting
 import org.koin.compiler.scanner.ext.getValueArgument
+import org.koin.ext.clearQuotes
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
@@ -63,9 +65,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun verifyMetaDefinition(value: String, dependencies: ArrayList<String>) {
         dependencies.forEach { i ->
-            val exists = resolver.isAlreadyExisting(i)
+            val exists = resolver.isAlreadyExisting(i.clearPackageSymbols())
             if (!exists) {
-                logger.error("--> Missing Definition :'${i}' used by '$value'. Fix your configuration: add @Module annotation on the class.")
+                logger.error("--> Missing Definition :'${i}' used by '$value'. Fix your configuration: add definition annotation on the class.")
             }
         }
     }

@@ -10,6 +10,7 @@ public class MyScope
 @Scoped
 public class MyScopedInstance
 
+@Scope(name = "my_scope")
 @Factory
 public class MyScopeFactory(
     public val oc : MyOtherComponent,

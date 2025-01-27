@@ -34,8 +34,8 @@ object TagFactory {
     fun getTag(definition: KoinMetaData.Definition, clazz: KSDeclaration): String {
         return with(definition) {
             listOfNotNull(
-                clazz.qualifiedNameCamelCase() ?: "",
-                qualifier?.let { "Q_$it" },
+                clazz.qualifiedNameCamelCase()?.clearPackageSymbols() ?: "",
+                qualifier?.let { "Q_${escapeTagClass(it)}" },
                 scope?.getTagValue()?.camelCase()?.let { "S_$it" },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
@@ -51,7 +51,7 @@ object TagFactory {
         return with(definition) {
             listOfNotNull(
                 packageName.camelCase() + label.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
-                qualifier?.let { "Q_$it" },
+                qualifier?.let { "Q_${escapeTagClass(it)}" },
                 scope?.getTagValue()?.camelCase()?.let { "S_$it" },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
@@ -67,13 +67,24 @@ object TagFactory {
             val isExpect = ksClassDeclaration.isExpect
             val isActual = ksClassDeclaration.isActual
 
+            val packageNameConsolidated =
+                packageName.clearPackageSymbols().camelCase() + className.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
             listOfNotNull(
-                packageName.camelCase() + className.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
-                qualifier?.let { "Q_$it" },
-                scopeId?.let { "S_$it" },
+                packageNameConsolidated,
+                qualifier?.let { "Q_${escapeTagClass(it)}" },
+//                scopeId?.let { "S_$it" },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
+        }
+    }
+
+    internal fun String.clearPackageSymbols() = replace("`","").replace("'","")
+
+    private fun escapeTagClass(qualifier : String) : String {
+        return if (!qualifier.contains(".")) qualifier
+        else {
+            qualifier.split(".").joinToString("") { it.capitalize() }
         }
     }
 
