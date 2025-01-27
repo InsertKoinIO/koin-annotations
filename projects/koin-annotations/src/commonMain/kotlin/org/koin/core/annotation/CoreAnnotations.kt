@@ -209,6 +209,7 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  *
  * 1. Exact package: `"com.example.service"`
  *    - Scans only the `com.example.service` package.
+ *    - Same as `com.example.service**` in glob pattern.
  *
  * 2. Single-level wildcard (`*`): `"com.example.*.service"`
  *    - Matches one level of package hierarchy.
