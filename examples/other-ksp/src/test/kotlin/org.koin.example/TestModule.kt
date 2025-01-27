@@ -4,7 +4,6 @@ import org.junit.Test
 import org.koin.core.Koin
 import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.logger.Level
-import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
@@ -22,11 +21,17 @@ import org.koin.example.newmodule.mymodule.MyOtherComponent3
 import org.koin.example.scope.MyScopeFactory
 import org.koin.example.scope.MyScopedInstance
 import org.koin.example.scope.ScopeModule
+import org.koin.example.supertype.A
+import org.koin.example.supertype.B
+import org.koin.example.supertype.C
+import org.koin.example.supertype.D
+import org.koin.example.supertype.SuperTypesModule
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TestModule {
@@ -43,7 +48,8 @@ class TestModule {
                 AnimalModule().module,
                 ScopeModule().module,
                 ByModule().module,
-                MyModule().module
+                MyModule().module,
+                SuperTypesModule().module
             )
         }.koin
 
@@ -88,6 +94,11 @@ class TestModule {
         assertNotNull(koin.getOrNull<ByExampleSingle>())
 
         assertEquals(COMPONENT_DEFAULT,koin.get<Component>().param) // display warning in build logs
+
+        assertNotNull(koin.getOrNull<C>())
+        assertEquals(koin.get<C>(),koin.get<B>())
+        assertEquals(koin.get<C>(),koin.get<D>())
+        assertNull(koin.getOrNull<A>())
     }
 
 
