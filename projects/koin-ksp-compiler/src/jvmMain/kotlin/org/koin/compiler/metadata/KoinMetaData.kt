@@ -98,7 +98,7 @@ sealed class KoinMetaData {
         fun getValue(): String {
             return when (this) {
                 is StringScope -> name
-                is ClassScope -> "${type.packageName}.${type.simpleName}"
+                is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
             }
         }
 
