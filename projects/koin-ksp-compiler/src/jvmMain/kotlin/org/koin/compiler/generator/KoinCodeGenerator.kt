@@ -19,7 +19,7 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.ext.getResolution
+import org.koin.compiler.resolver.getResolution
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,

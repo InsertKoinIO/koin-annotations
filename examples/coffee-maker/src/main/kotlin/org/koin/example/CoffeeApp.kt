@@ -4,7 +4,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import org.koin.core.time.measureDuration
 import org.koin.example.coffee.CoffeeMaker
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
@@ -12,6 +11,7 @@ import org.koin.example.tea.TeaModule
 import org.koin.example.test.ext.ExternalModule
 import org.koin.example.test.scope.ScopeModule
 import org.koin.ksp.generated.*
+import kotlin.time.measureTime
 
 class CoffeeApp : KoinComponent {
     val maker: CoffeeMaker by inject()
@@ -37,13 +37,8 @@ fun main() {
     }
 
     val coffeeShop = CoffeeApp()
-    measureDuration("Got Coffee") {
+    val t = measureTime {
         coffeeShop.maker.brew()
     }
-}
-
-fun measureDuration(msg: String, code: () -> Unit): Double {
-    val duration = measureDuration(code)
-    println("$msg in $duration ms")
-    return duration
+    println("Got Coffee in $t")
 }

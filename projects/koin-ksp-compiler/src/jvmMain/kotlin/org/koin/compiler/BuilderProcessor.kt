@@ -20,12 +20,14 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
+import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
-import org.koin.compiler.verify.KoinTagWriter
+import kotlin.time.measureTime
 
 class BuilderProcessor(
-    codeGenerator: CodeGenerator,
+    private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
@@ -33,8 +35,6 @@ class BuilderProcessor(
     private val isViewModelMPActive = isKoinViewModelMPActive()
     private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinTagWriter = KoinTagWriter(codeGenerator, logger)
-    private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         initComponents(resolver)
@@ -62,22 +62,35 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
+        val isConfigCheckActive = isConfigCheckActive()
 
-        if (isConfigCheckActive()) {
-            logger.warn("Check Configuration ...")
+        // Tags are used to verify generated content (KMP)
+        KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
+            .writeAllTags(moduleList, defaultModule)
 
-            val allModules = moduleList + defaultModule
-            koinTagWriter.writeAllTags(moduleList, defaultModule)
+        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+        if (isConfigCheckActive && isAlreadyGenerated) {
+            logger.warn("Koin Configuration Check ...")
+            val t = measureTime {
 
-            koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
-            koinConfigChecker.verifyModuleIncludes(allModules, resolver)
+                val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
+                val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
+                if (invalidsMetaSymbols.isNotEmpty()) {
+                    logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
+                    return invalidSymbols
+                }
+
+                val checker = KoinConfigChecker(logger, resolver)
+                checker.verifyMetaModules(metaTagScanner.findMetaModules())
+                checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+            }
+            logger.warn("Koin Configuration Check done in $t")
         }
         return emptyList()
     }
 
     private fun initComponents(resolver: Resolver) {
         koinCodeGenerator.resolver = resolver
-        koinTagWriter.resolver = resolver
     }
 
     private fun isConfigCheckActive(): Boolean {

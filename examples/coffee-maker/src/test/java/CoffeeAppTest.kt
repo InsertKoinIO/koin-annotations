@@ -11,7 +11,6 @@ import org.koin.example.coffee.MyDetachCoffeeComponent
 import org.koin.example.coffee.pump.PumpCounter
 import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
-import org.koin.example.measureDuration
 import org.koin.example.tea.TeaModule
 import org.koin.example.tea.TeaPot
 import org.koin.example.test.CoffeeMakerTester
@@ -22,6 +21,7 @@ import org.koin.example.test.include.IncludedComponent
 import org.koin.example.test.scope.*
 import org.koin.ksp.generated.module
 import org.koin.mp.KoinPlatformTools
+import kotlin.time.measureTime
 
 class CoffeeAppTest {
 
@@ -44,9 +44,10 @@ class CoffeeAppTest {
         }
 
         val coffeeShop = CoffeeApp()
-        measureDuration("Got Coffee") {
+        val time = measureTime {
             coffeeShop.maker.brew()
         }
+        println("Got Coffee in $time")
 
         // Tests
         val koin = KoinPlatformTools.defaultContext().get()

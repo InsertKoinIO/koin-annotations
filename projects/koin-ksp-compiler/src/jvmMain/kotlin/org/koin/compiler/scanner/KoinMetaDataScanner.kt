@@ -25,9 +25,9 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.core.annotation.Definition
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.PropertyValue
+import org.koin.meta.annotations.ExternalDefinition
 
 class KoinMetaDataScanner(
     private val logger: KSPLogger
@@ -232,6 +232,6 @@ class KoinMetaDataScanner(
     }
 
     companion object {
-        private val DEFINITION_ANNOTATION = Definition::class.simpleName
+        private val DEFINITION_ANNOTATION = ExternalDefinition::class.simpleName
     }
 }

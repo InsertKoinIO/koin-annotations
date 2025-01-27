@@ -45,27 +45,28 @@ abstract class FunctionScanner(
         val allBindings: List<KSDeclaration> =  returnedType?.let { foundBindings + it } ?: foundBindings
         val functionParameters = ksFunctionDeclaration.parameters.getParameters()
         val isExpect = ksFunctionDeclaration.isExpect
+        val isActual = ksFunctionDeclaration.isActual
 
         return when (annotationName) {
             SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings, isExpect)
+                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings, isExpect, isActual = isActual)
             }
             SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings, isExpect)
+                createSingleDefinition(annotation, packageName, qualifier, functionName, functionParameters, allBindings, isExpect, isActual = isActual)
             }
             FACTORY.annotationName -> {
-                createDefinition(FACTORY,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect)
+                createDefinition(FACTORY,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_VIEWMODEL_ANDROID.annotationName -> {
-                createDefinition(KOIN_VIEWMODEL_ANDROID,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect)
+                createDefinition(KOIN_VIEWMODEL_ANDROID,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_WORKER.annotationName -> {
-                createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect)
+                createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
             }
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
                 val extraAnnotation = getExtraScopeAnnotation(annotations)
-                createDefinition(extraAnnotation ?: SCOPE,packageName,qualifier,functionName,functionParameters,allBindings,scope = scopeData, isExpect = isExpect)
+                createDefinition(extraAnnotation ?: SCOPE,packageName,qualifier,functionName,functionParameters,allBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
             }
             else -> null
         }
@@ -78,7 +79,8 @@ abstract class FunctionScanner(
         functionName: String,
         functionParameters: List<KoinMetaData.DefinitionParameter>,
         allBindings: List<KSDeclaration>,
-        isExpect : Boolean
+        isExpect : Boolean,
+        isActual : Boolean
     ): KoinMetaData.Definition.FunctionDefinition {
         val createdAtStart: Boolean =
             annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
@@ -91,7 +93,8 @@ abstract class FunctionScanner(
             functionParameters,
             allBindings,
             isCreatedAtStart = createdAtStart,
-            isExpect = isExpect
+            isExpect = isExpect,
+            isActual = isActual
         )
     }
 
@@ -104,7 +107,8 @@ abstract class FunctionScanner(
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
         scope: KoinMetaData.Scope? = null,
-        isExpect : Boolean
+        isExpect : Boolean,
+        isActual : Boolean
     ): KoinMetaData.Definition.FunctionDefinition {
         return KoinMetaData.Definition.FunctionDefinition(
             packageName = packageName,
@@ -115,7 +119,8 @@ abstract class FunctionScanner(
             bindings = allBindings,
             keyword = keyword,
             scope = scope,
-            isExpect = isExpect
+            isExpect = isExpect,
+            isActual = isActual
         ).apply { isClassFunction = isModuleFunction }
     }
 
