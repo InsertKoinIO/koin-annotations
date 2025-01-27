@@ -58,13 +58,12 @@ class TestModule {
         assertTrue { animals.any { it is Cat } }
 
         val scope = koin.createScope("my_scope_id", named("my_scope"))
-
         assertTrue {
-            koin.get<MyScopeFactory>().msi == scope.get<MyScopedInstance>()
+            scope.get<MyScopeFactory>().msi == scope.get<MyScopedInstance>()
         }
 
         assertTrue {
-            koin.get<MyScopeFactory>().msi == koin.get<MyScopeFactory>().msi
+            scope.get<MyScopeFactory>().msi == scope.get<MyScopeFactory>().msi
         }
 
         assertFailsWith(NoDefinitionFoundException::class) {

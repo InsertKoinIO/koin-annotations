@@ -20,17 +20,21 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
+import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.TagFactory.clearPackageSymbols
 import org.koin.compiler.resolver.isAlreadyExisting
+import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
-import org.koin.ext.clearQuotes
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
+
+data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String?)
 
 /**
  * Koin Configuration Checker
  */
 class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
+
 
     fun verifyMetaModules(metaModules: List<KSAnnotation>) {
         metaModules
@@ -58,24 +62,26 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     fun verifyMetaDefinitions(metaDefinitions: List<KSAnnotation>) {
         metaDefinitions
             .mapNotNull(::extractMetaDefinitionValues)
-            .forEach { (value,dependencies) ->
-                if (!dependencies.isNullOrEmpty()) verifyMetaDefinition(value,dependencies)
+            .forEach {
+                if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it)
             }
     }
 
-    private fun verifyMetaDefinition(value: String, dependencies: ArrayList<String>) {
-        dependencies.forEach { i ->
-            val exists = resolver.isAlreadyExisting(i.clearPackageSymbols())
+    private fun verifyMetaDefinition(dv : DefinitionVerification) {
+        dv.dependencies?.forEach { i ->
+            val tag = i.clearPackageSymbols()
+            val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.getTag(tag,dv))
             if (!exists) {
-                logger.error("--> Missing Definition :'${i}' used by '$value'. Fix your configuration: add definition annotation on the class.")
+                logger.error("--> Missing Definition :'${i}' used by '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
     }
 
-    private fun extractMetaDefinitionValues(a: KSAnnotation): Pair<String, ArrayList<String>?>? {
+    private fun extractMetaDefinitionValues(a: KSAnnotation): DefinitionVerification? {
         val value = a.arguments.getValueArgument()
         val includes = if (value != null) a.arguments.getArray("dependencies") else null
-        return value?.let { it to includes }
+        val scope = if (value != null) a.arguments.getScopeArgument() else null
+        return value?.let { DefinitionVerification(value,includes,scope) }
     }
 
     private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {

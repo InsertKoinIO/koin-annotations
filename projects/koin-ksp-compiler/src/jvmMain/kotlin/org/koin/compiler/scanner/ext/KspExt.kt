@@ -141,6 +141,10 @@ internal fun List<KSValueArgument>.getValueArgument(): String? {
     return firstOrNull { a -> a.name?.asString() == "value" }?.value as? String?
 }
 
+internal fun List<KSValueArgument>.getScopeArgument(): String? {
+    return firstOrNull { a -> a.name?.asString() == "scope" }?.value as? String?
+}
+
 fun KSClassDeclaration.getPackageName() : String = packageName.asString()
 
 val forbiddenKeywords = listOf("in","interface")

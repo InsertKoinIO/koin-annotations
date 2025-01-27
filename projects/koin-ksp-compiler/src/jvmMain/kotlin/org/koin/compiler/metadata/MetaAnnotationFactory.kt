@@ -46,8 +46,10 @@ object MetaAnnotationFactory {
 
         val depsString = depsTags?.let { ", dependencies=[$it]" } ?: ""
 
+        val scopeDef = if (def.isScoped()) def.scope?.getTagValue()?.camelCase() else null
+        val scopeString = scopeDef?.let { ", scope=\"$it\"" } ?: ""
         return """
-            @$metaDefinition("$fullpath"$depsString)
+            @$metaDefinition("$fullpath"$depsString$scopeString)
         """.trimIndent()
     }
 

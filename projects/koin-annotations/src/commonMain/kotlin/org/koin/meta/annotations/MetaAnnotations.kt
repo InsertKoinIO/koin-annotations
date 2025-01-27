@@ -33,9 +33,10 @@ annotation class ExternalDefinition(val value: String = "")
  * Meta Definition annotation to help represents
  * @param value: Definition full path
  * @param dependencies - Parameters Tags to check
+ * @param scope - Scope where it's declared
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaDefinition(val value: String = "", val dependencies: Array<String> = [])
+annotation class MetaDefinition(val value: String = "", val dependencies: Array<String> = [], val scope : String = "")
 
 /**
  * Meta Definition annotation to help represents
