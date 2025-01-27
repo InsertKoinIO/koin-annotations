@@ -46,16 +46,20 @@ abstract class ModuleWriter(
     protected fun writeEmptyLine() = writeln("")
     private lateinit var definitionFactory : DefinitionWriterFactory
 
-    private val modulePath = "${module.packageName}.${module.name}"
+    private val modulePath = if (module.packageName.isEmpty()) module.name else "${module.packageName}.${module.name}"
     private val generatedField = "${module.packageName("_").clearPackageSymbols()}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    fun writeModule(isViewModelMPActive: Boolean) {
+    fun writeModule(isViewModelMPActive: Boolean, generateIncludeModules: List<KoinMetaData.ModuleInclude> = emptyList()) {
         fileStream = createFileStream()
         definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
 
         writeHeader()
         writeHeaderImports(isViewModelMPActive)
+
+        if (generateIncludeModules.isNotEmpty()) {
+            writeGeneratedIncludeModule(generateIncludeModules)
+        }
 
         if (hasExternalDefinitions) {
             writeExternalDefinitionImports()
@@ -79,6 +83,13 @@ abstract class ModuleWriter(
         }
 
         onFinishWriteModule()
+    }
+
+    private fun writeGeneratedIncludeModule(generateIncludeModules: List<KoinMetaData.ModuleInclude>) {
+        generateIncludeModules.forEach { module ->
+            writeln("public class ${module.className}")
+        }
+        writeEmptyLine()
     }
 
     private fun writeExternalDefinitionImports() {
@@ -153,7 +164,10 @@ abstract class ModuleWriter(
     }
 
     private fun generateIncludes(): String? {
-        return module.includes?.joinToString(separator = ",") { "${it.packageName}.${it.className}().module" }
+        return module.includes?.joinToString(separator = ",") {
+            if (it.packageName.isEmpty()) "${it.className}().module"
+            else "${it.packageName}.${it.className}().module"
+        }
     }
 
     open fun writeDefinitions() {
