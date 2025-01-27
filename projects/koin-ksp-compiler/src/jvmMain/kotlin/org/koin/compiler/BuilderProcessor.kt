@@ -20,28 +20,32 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
+import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
-import org.koin.compiler.verify.KoinTagWriter
+import kotlin.time.TimeSource.Monotonic.markNow
+import kotlin.time.measureTime
 
 class BuilderProcessor(
-    codeGenerator: CodeGenerator,
+    private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     private val options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val isComposeViewModelActive = isComposeViewModelActive() || isKoinComposeViewModelActive()
-    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isComposeViewModelActive)
+    private val isViewModelMPActive = isKoinViewModelMPActive()
+    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
-    private val koinTagWriter = KoinTagWriter(codeGenerator,logger)
-    private val koinConfigChecker = KoinConfigChecker(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         initComponents(resolver)
 
+        val doLogTimes = doLogTimes()
+
+        val mainTime = if (doLogTimes) markNow() else null
         logger.logging("Scan symbols ...")
 
-        val invalidSymbols = koinMetaDataScanner.scanSymbols(resolver)
+        val invalidSymbols = koinMetaDataScanner.findInvalidSymbols(resolver)
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting for next round")
             return invalidSymbols
@@ -54,43 +58,60 @@ class BuilderProcessor(
         )
 
         logger.logging("Build metadata ...")
-        val moduleList = koinMetaDataScanner.scanKoinModules(defaultModule)
+        val moduleList = koinMetaDataScanner.scanKoinModules(
+            defaultModule,
+            resolver
+        )
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
-        val allModules = moduleList + defaultModule
-        koinTagWriter.writeAllTags(moduleList, defaultModule)
+        val isConfigCheckActive = isConfigCheckActive()
 
-        if (isConfigCheckActive()) {
-            logger.warn("Check Configuration ...")
-            koinConfigChecker.verifyDefinitionDeclarations(allModules, resolver)
-            koinConfigChecker.verifyModuleIncludes(allModules, resolver)
+        // Tags are used to verify generated content (KMP)
+        KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
+            .writeAllTags(moduleList, defaultModule)
+
+        if (doLogTimes && mainTime != null) {
+            mainTime.elapsedNow()
+            logger.warn("Koin Configuration Generated in ${mainTime.elapsedNow()}")
+        }
+
+        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+        if (isConfigCheckActive && isAlreadyGenerated) {
+            logger.warn("Koin Configuration Check ...")
+            val checkTime = if (doLogTimes) markNow() else null
+
+            val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
+            val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
+            if (invalidsMetaSymbols.isNotEmpty()) {
+                logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
+                return invalidSymbols
+            }
+
+            val checker = KoinConfigChecker(logger, resolver)
+            checker.verifyMetaModules(metaTagScanner.findMetaModules())
+            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+
+            if (doLogTimes && checkTime != null) {
+                checkTime.elapsedNow()
+                logger.warn("Koin Configuration Check done in ${checkTime.elapsedNow()}")
+            }
         }
         return emptyList()
     }
 
     private fun initComponents(resolver: Resolver) {
         koinCodeGenerator.resolver = resolver
-        koinTagWriter.resolver = resolver
     }
 
     private fun isConfigCheckActive(): Boolean {
         return options.getOrDefault(KOIN_CONFIG_CHECK.name, "false") == true.toString()
     }
 
-    //TODO Use Koin 4.0 ViewModel DSL
-    @Deprecated("use isKoinComposeViewModelActive")
-    private fun isComposeViewModelActive(): Boolean {
-        val option = options.getOrDefault(USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
-        if (option) logger.warn("[Deprecated] 'USE_COMPOSE_VIEWMODEL' arg is deprecated. Please use 'KOIN_USE_COMPOSE_VIEWMODEL'")
-        return option
-    }
-
-    private fun isKoinComposeViewModelActive(): Boolean {
-        val option =
-            options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "false") == true.toString()
-        if (option) logger.warn("Activate Compose ViewModel for @KoinViewModel generation")
+    // Allow to disable usage of ViewModel MP API and
+    private fun isKoinViewModelMPActive(): Boolean {
+        val option = options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "true") == true.toString()
         return option
     }
 
@@ -98,8 +119,11 @@ class BuilderProcessor(
     private fun isDefaultModuleActive(): Boolean {
         return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
     }
-}
 
+    private fun doLogTimes(): Boolean {
+        return options.getOrDefault(KOIN_LOG_TIMES.name, "false") == true.toString()
+    }
+}
 
 class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(

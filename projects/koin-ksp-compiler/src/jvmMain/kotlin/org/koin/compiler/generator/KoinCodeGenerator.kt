@@ -19,13 +19,13 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.ext.getResolution
+import org.koin.compiler.resolver.getResolution
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger,
     //TODO Remove isComposeViewModelActive with Koin 4
-    val isComposeViewModelActive: Boolean
+    val isViewModelMPActive: Boolean
 ) {
     lateinit var resolver: Resolver
 
@@ -57,7 +57,7 @@ class KoinCodeGenerator(
 
         if (defaultModule.alreadyGenerated == false && hasDefaultDefinitions){
             defaultModule.setCurrentDefinitionsToExternals()
-            DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule(isComposeViewModelActive)
+            DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule(isViewModelMPActive)
         }
     }
 
@@ -67,7 +67,7 @@ class KoinCodeGenerator(
         checkAlreadyGenerated(module)
 
         if (module.alreadyGenerated == false){
-            ClassModuleWriter(codeGenerator, resolver, module).writeModule(isComposeViewModelActive)
+            ClassModuleWriter(codeGenerator, resolver, module).writeModule(isViewModelMPActive)
         }
     }
 

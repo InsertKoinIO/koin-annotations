@@ -21,11 +21,12 @@ import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.ext.getNewFile
-import org.koin.compiler.metadata.KOIN_VIEWMODEL
-import org.koin.compiler.metadata.KOIN_VIEWMODEL_COMPOSE
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_MP
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
+import org.koin.compiler.type.clearPackageSymbols
 import java.io.OutputStream
 
 abstract class ModuleWriter(
@@ -46,15 +47,15 @@ abstract class ModuleWriter(
     private lateinit var definitionFactory : DefinitionWriterFactory
 
     private val modulePath = "${module.packageName}.${module.name}"
-    private val generatedField = "${module.packageName("_")}_${module.name}"
+    private val generatedField = "${module.packageName("_").clearPackageSymbols()}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    fun writeModule(isComposeViewModelActive: Boolean) {
+    fun writeModule(isViewModelMPActive: Boolean) {
         fileStream = createFileStream()
         definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
 
         writeHeader()
-        writeHeaderImports(isComposeViewModelActive)
+        writeHeaderImports(isViewModelMPActive)
 
         if (hasExternalDefinitions) {
             writeExternalDefinitionImports()
@@ -82,7 +83,7 @@ abstract class ModuleWriter(
 
     private fun writeExternalDefinitionImports() {
         writeln("""
-            import org.koin.core.annotation.Definition
+            import org.koin.meta.annotations.ExternalDefinition
             import org.koin.core.definition.KoinDefinition
         """.trimIndent())
     }
@@ -91,19 +92,19 @@ abstract class ModuleWriter(
         writeln(MODULE_HEADER)
     }
 
-    open fun writeHeaderImports(isComposeViewModelActive: Boolean) {
-        writeln(generateImports(module.definitions, isComposeViewModelActive))
+    open fun writeHeaderImports(isViewModelMPActive: Boolean) {
+        writeln(generateImports(module.definitions, isViewModelMPActive))
     }
 
     private fun generateImports(
         definitions: List<KoinMetaData.Definition>,
-        isComposeViewModelActive: Boolean
+        isViewModelMPActive: Boolean
     ): String {
         return definitions.map { definition -> definition.keyword }
             .toSet()
             .mapNotNull { keyword ->
-                if (isComposeViewModelActive && keyword == KOIN_VIEWMODEL) {
-                    KOIN_VIEWMODEL_COMPOSE.import.let { "import $it" }
+                if (isViewModelMPActive && keyword == KOIN_VIEWMODEL_ANDROID) {
+                    KOIN_VIEWMODEL_MP.import.let { "import $it" }
                 } else {
                     keyword.import?.let { "import $it" }
                 }

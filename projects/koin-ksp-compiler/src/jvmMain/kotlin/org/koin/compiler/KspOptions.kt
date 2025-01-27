@@ -17,9 +17,8 @@ package org.koin.compiler
 
 enum class KspOptions {
     KOIN_CONFIG_CHECK,
+    KOIN_LOG_TIMES,
     KOIN_DEFAULT_MODULE,
 
-    //TODO Remove isComposeViewModelActive with Koin 4
-    USE_COMPOSE_VIEWMODEL,
     KOIN_USE_COMPOSE_VIEWMODEL
 }

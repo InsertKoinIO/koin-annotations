@@ -1,4 +1,4 @@
-package org.koin.compiler.verify
+package org.koin.compiler.type
 
 
 internal val typeWhiteList = listOf(
@@ -9,5 +9,7 @@ internal val typeWhiteList = listOf(
     "androidx.appcompat.app.AppCompatActivity",
     "androidx.fragment.app.Fragment",
     "androidx.lifecycle.SavedStateHandle",
-    "androidx.lifecycle.ViewModel"
+    "androidx.lifecycle.ViewModel",
+    "androidx.work.WorkerParameters",
+    "org.koin.ktor.plugin.RequestScope"
 )
