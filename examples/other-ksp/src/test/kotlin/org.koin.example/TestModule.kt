@@ -4,12 +4,16 @@ import org.junit.Test
 import org.koin.core.Koin
 import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.logger.Level
+import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
 import org.koin.example.animal.*
 import org.koin.example.by.example.ByExampleSingle
 import org.koin.example.by.example.ByModule
+import org.koin.example.defaultparam.COMPONENT_DEFAULT
+import org.koin.example.defaultparam.Component
+import org.koin.example.defaultparam.MyModule
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
@@ -38,7 +42,8 @@ class TestModule {
                 MyModule2().module,
                 AnimalModule().module,
                 ScopeModule().module,
-                ByModule().module
+                ByModule().module,
+                MyModule().module
             )
         }.koin
 
@@ -81,7 +86,11 @@ class TestModule {
         assertEquals("Black", farm.blackBunny.color)
 
         assertNotNull(koin.getOrNull<ByExampleSingle>())
+
+        assertEquals(COMPONENT_DEFAULT,koin.get<Component>().param) // display warning in build logs
     }
+
+
 
     private fun randomGetAnimal(koin: Koin): Animal {
         val a = koin.get<Animal>()
