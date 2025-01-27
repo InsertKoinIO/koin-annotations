@@ -15,95 +15,77 @@
  */
 package org.koin.compiler.verify
 
-import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
-import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.ext.getResolutionForTag
+import com.google.devtools.ksp.symbol.KSValueArgument
+import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.TagFactory.clearPackageSymbols
+import org.koin.compiler.resolver.isAlreadyExisting
+import org.koin.compiler.scanner.ext.getScopeArgument
+import org.koin.compiler.scanner.ext.getValueArgument
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
+
+data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String?)
 
 /**
  * Koin Configuration Checker
  */
-class KoinConfigChecker(val codeGenerator: CodeGenerator, val logger: KSPLogger) {
+class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
-    fun verifyDefinitionDeclarations(
-        moduleList: List<KoinMetaData.Module>,
-        resolver: Resolver
-    ) {
-        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
-        val allDefinitions = moduleList.flatMap { it.definitions }
 
-        if (isAlreadyGenerated) {
-            verifyDependencies(allDefinitions, resolver)
-        }
+    fun verifyMetaModules(metaModules: List<KSAnnotation>) {
+        metaModules
+            .mapNotNull(::extractMetaModuleValues)
+            .forEach { (value,includes) ->
+                if (!includes.isNullOrEmpty()) verifyMetaModule(value,includes)
+            }
     }
 
-    private fun verifyDependencies(
-        allDefinitions: List<KoinMetaData.Definition>,
-        resolver: Resolver
-    ) {
-        allDefinitions.forEach { def ->
-            def.parameters
-                .filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
-                .forEach { param ->
-                    checkDependency(param, resolver, def)
-                    //TODO Check Cycle
-                }
-        }
-    }
-
-    private fun checkDependency(
-        param: KoinMetaData.DefinitionParameter.Dependency,
-        resolver: Resolver,
-        def: KoinMetaData.Definition
-    ) {
-        if (!param.hasDefault && !param.isNullable && !param.alreadyProvided) {
-            checkDependencyIsDefined(param, resolver, def)
-        }
-    }
-
-
-    private fun checkDependencyIsDefined(
-        dependencyToCheck: KoinMetaData.DefinitionParameter.Dependency,
-        resolver: Resolver,
-        definition: KoinMetaData.Definition,
-    ) {
-        val label = definition.label
-        val scope = (definition.scope as? KoinMetaData.Scope.ClassScope)?.type?.qualifiedName?.asString()
-        var targetTypeToCheck: KSDeclaration = dependencyToCheck.type.declaration
-
-        if (targetTypeToCheck.simpleName.asString() == "List" || targetTypeToCheck.simpleName.asString() == "Lazy") {
-            targetTypeToCheck =
-                dependencyToCheck.type.arguments.firstOrNull()?.type?.resolve()?.declaration ?: targetTypeToCheck
-        }
-
-        val parameterFullName = targetTypeToCheck.qualifiedName?.asString()
-        if (parameterFullName !in typeWhiteList && parameterFullName != null) {
-            val cn = targetTypeToCheck.qualifiedNameCamelCase()
-            val resolution = resolver.getResolutionForTag(cn)
-            val isNotScopeType = scope != parameterFullName
-            if (resolution == null && isNotScopeType) {
-                logger.error("--> Missing Definition type '$parameterFullName' for '${definition.packageName}.$label'. Fix your configuration to define type '${targetTypeToCheck.simpleName.asString()}'.")
+    private fun verifyMetaModule(value: String, includes: ArrayList<String>) {
+        includes.forEach { i ->
+            val exists = resolver.isAlreadyExisting(i)
+            if (!exists) {
+                logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
             }
         }
     }
 
-    fun verifyModuleIncludes(modules: List<KoinMetaData.Module>, resolver: Resolver) {
-        val noGenFile = codeGenerator.generatedFile.isEmpty()
-        if (noGenFile) {
-            modules.forEach { m ->
-                val mn = m.packageName + "." + m.name
-                m.includes?.forEach { inc ->
-                    val prop = resolver.getResolutionForTag(inc.getTagName())
-                    if (prop == null) {
-                        logger.error("--> Module Undefined :'${inc.className}' included in '$mn'. Fix your configuration: add @Module annotation on '${inc.className}' class.")
-                    }
-                }
+    private fun extractMetaModuleValues(a: KSAnnotation): Pair<String, ArrayList<String>?>? {
+        val value = a.arguments.getValueArgument()
+        val includes = if (value != null) a.arguments.getArray("includes") else null
+        return value?.let { it to includes }
+    }
+
+    fun verifyMetaDefinitions(metaDefinitions: List<KSAnnotation>) {
+        metaDefinitions
+            .mapNotNull(::extractMetaDefinitionValues)
+            .forEach {
+                if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it)
+            }
+    }
+
+    private fun verifyMetaDefinition(dv : DefinitionVerification) {
+        dv.dependencies?.forEach { i ->
+            val tag = i.clearPackageSymbols()
+            val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.getTag(tag,dv))
+            if (!exists) {
+                logger.error("--> Missing Definition :'${i}' used by '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
+    }
+
+    private fun extractMetaDefinitionValues(a: KSAnnotation): DefinitionVerification? {
+        val value = a.arguments.getValueArgument()
+        val includes = if (value != null) a.arguments.getArray("dependencies") else null
+        val scope = if (value != null) a.arguments.getScopeArgument() else null
+        return value?.let { DefinitionVerification(value,includes,scope) }
+    }
+
+    private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {
+        return firstOrNull { a -> a.name?.asString() == name }?.value as? ArrayList<String>?
     }
 }
 

@@ -2,13 +2,12 @@ package org.koin.example
 
 import org.junit.Test
 import org.koin.core.Koin
+import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.logger.Level
 import org.koin.core.qualifier.named
+import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
-import org.koin.example.animal.Animal
-import org.koin.example.animal.AnimalModule
-import org.koin.example.animal.Cat
-import org.koin.example.animal.Dog
+import org.koin.example.animal.*
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
@@ -19,6 +18,8 @@ import org.koin.example.scope.MyScopedInstance
 import org.koin.example.scope.ScopeModule
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class TestModule {
@@ -57,14 +58,23 @@ class TestModule {
         assertTrue { animals.any { it is Cat } }
 
         val scope = koin.createScope("my_scope_id", named("my_scope"))
-
         assertTrue {
-            koin.get<MyScopeFactory>().msi == scope.get<MyScopedInstance>()
+            scope.get<MyScopeFactory>().msi == scope.get<MyScopedInstance>()
         }
 
         assertTrue {
-            koin.get<MyScopeFactory>().msi == koin.get<MyScopeFactory>().msi
+            scope.get<MyScopeFactory>().msi == scope.get<MyScopeFactory>().msi
         }
+
+        assertFailsWith(NoDefinitionFoundException::class) {
+            koin.get<Bunny>()
+        }
+
+        assertEquals("White", koin.get<Bunny>(qualifier<WhiteBunny>()).color)
+
+        val farm = koin.get<Farm>()
+        assertEquals("White", farm.whiteBunny.color)
+        assertEquals("Black", farm.blackBunny.color)
     }
 
     private fun randomGetAnimal(koin: Koin): Animal {

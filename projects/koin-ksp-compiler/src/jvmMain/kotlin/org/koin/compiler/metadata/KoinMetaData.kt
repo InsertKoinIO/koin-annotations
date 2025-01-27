@@ -25,7 +25,6 @@ fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
 
 sealed class KoinMetaData {
 
-
     data class Module(
         val packageName: PackageName,
         val name: String,
@@ -37,18 +36,16 @@ sealed class KoinMetaData {
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,
-        val isExpect : Boolean = false
+        val isExpect : Boolean = false,
+        val isActual : Boolean = false
     ) : KoinMetaData() {
 
         var alreadyGenerated : Boolean? = null
 
-        fun getTagName() = packageName.camelCase() + name.capitalize() + if (isExpect) "Exp" else ""
-
         fun packageName(separator: String): String {
             return if (isDefault) ""
             else {
-                val default = Locale.getDefault()
-                packageName.split(".").joinToString(separator) { it.lowercase(default) }
+                splitPackage(packageName, separator)
             }
         }
 
@@ -84,10 +81,9 @@ sealed class KoinMetaData {
     data class ModuleInclude(
         val packageName: PackageName,
         val className : String,
-        val isExpect : Boolean
-    ){
-        fun getTagName() = packageName.camelCase() + className.capitalize() + if (isExpect) "Exp" else ""
-    }
+        val isExpect : Boolean,
+        val isActual : Boolean
+    )
 
     enum class ModuleType {
         FIELD, CLASS, OBJECT;
@@ -103,7 +99,14 @@ sealed class KoinMetaData {
         fun getValue(): String {
             return when (this) {
                 is StringScope -> name
-                is ClassScope -> "${type.packageName}.${type.simpleName}"
+                is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+            }
+        }
+
+        fun getTagValue(): String {
+            return when (this) {
+                is StringScope -> name
+                is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
             }
         }
     }
@@ -145,7 +148,8 @@ sealed class KoinMetaData {
         val keyword: DefinitionAnnotation,
         val bindings: List<KSDeclaration>,
         val scope: Scope? = null,
-        val isExpect : Boolean
+        val isExpect : Boolean,
+        val isActual : Boolean
     ) : KoinMetaData() {
 
         var alreadyGenerated : Boolean? = null
@@ -155,8 +159,6 @@ sealed class KoinMetaData {
         fun isType(keyword: DefinitionAnnotation): Boolean = this.keyword == keyword
 
         val packageNamePrefix : String = if (packageName.isEmpty()) "" else "${packageName}."
-
-        fun getTagName() = packageName.camelCase() + label.capitalize() + if (isExpect) "Exp" else ""
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -188,8 +190,9 @@ sealed class KoinMetaData {
             parameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
             scope: Scope? = null,
-            isExpect : Boolean
-        ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope, isExpect) {
+            isExpect : Boolean,
+            isActual : Boolean
+        ) : Definition(functionName, parameters, packageName, qualifier, isCreatedAtStart, keyword, bindings, scope, isExpect,isActual) {
             var isClassFunction: Boolean = true
         }
 
@@ -202,7 +205,8 @@ sealed class KoinMetaData {
             val constructorParameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
             scope: Scope? = null,
-            isExpect : Boolean
+            isExpect : Boolean,
+            isActual : Boolean
         ) : Definition(
             className,
             constructorParameters,
@@ -212,10 +216,9 @@ sealed class KoinMetaData {
             keyword,
             bindings,
             scope,
-            isExpect
+            isExpect,
+            isActual
         )
-
-
     }
 
     sealed class DefinitionParameter(val nullable: Boolean = false) {
@@ -252,6 +255,9 @@ sealed class KoinMetaData {
         Single, List, Lazy
     }
 }
+
+internal fun splitPackage(packageName : String, separator: String, default: Locale = Locale.getDefault()) : String =
+    packageName.split(".").joinToString(separator) { it.lowercase(default) }
 
 
 private fun KSDeclaration.getQualifiedName(): String {

@@ -33,6 +33,7 @@ class ModuleScanner(
         val isCreatedAtStart = getIsCreatedAtStart(annotations)
         val componentsScan = getComponentsScan(annotations)
         val isExpect = declaration.isExpect
+        val isActual = declaration.isActual
 
         val name = "$element"
         val type = if (declaration.classKind == ClassKind.OBJECT) {
@@ -49,7 +50,8 @@ class ModuleScanner(
             includes = includes.toModuleIncludes(),
             isCreatedAtStart = isCreatedAtStart,
             visibility = declaration.getVisibility(),
-            isExpect = isExpect
+            isExpect = isExpect,
+            isActual = isActual
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
@@ -109,7 +111,7 @@ class ModuleScanner(
     private fun KSDeclaration.mapModuleInclude(): KoinMetaData.ModuleInclude {
         val packageName: String = packageName.asString()
         val className = simpleName.asString()
-        return KoinMetaData.ModuleInclude(packageName, className, isExpect)
+        return KoinMetaData.ModuleInclude(packageName, className, isExpect, isActual)
     }
 }
 
