@@ -18,7 +18,7 @@ object TagFactory {
     fun getTag(module: KoinMetaData.Module): String {
         return with(module) {
             listOfNotNull(
-                packageName.camelCase().clearPackageSymbols() + name,
+                packageName.clearPackageSymbols()+"." + name,
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
@@ -28,7 +28,7 @@ object TagFactory {
     fun getTag(module: KoinMetaData.ModuleInclude): String {
         return with(module) {
             listOfNotNull(
-                packageName.camelCase().clearPackageSymbols() + className.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                packageName.clearPackageSymbols() + "." +className.capitalize(),
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
@@ -38,12 +38,24 @@ object TagFactory {
     fun getTag(definition: KoinMetaData.Definition, clazz: KSDeclaration): String {
         return with(definition) {
             listOfNotNull(
-                clazz.qualifiedNameCamelCase()?.clearPackageSymbols() ?: "",
+                clazz.qualifiedName?.asString() ?: "",
                 qualifier?.let { "$QUALIFIER_SYMBOL${escapeTagClass(it)}" },
                 scope?.getTagValue()?.camelCase()?.let { "$SCOPE_SYMBOL$it" },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
+        }
+    }
+
+    fun getTag(definition: KoinMetaData.Definition,dep: KoinMetaData.DefinitionParameter.Dependency ,clazz: KSDeclaration): String {
+        return with(definition) {
+            listOfNotNull(
+                clazz.qualifiedName?.asString() ?: "",
+                qualifier?.let { "$QUALIFIER_SYMBOL${escapeTagClass(it)}" },
+                scope?.getTagValue()?.camelCase()?.let { "$SCOPE_SYMBOL$it" },
+                if (isExpect) "Expect" else null,
+                if (isActual) "Actual" else null
+            ).joinToString(prefix = "${dep.name}:", separator = KOIN_TAG_SEPARATOR)
         }
     }
 
@@ -54,7 +66,7 @@ object TagFactory {
     fun getTag(definition: KoinMetaData.Definition): String {
         return with(definition) {
             listOfNotNull(
-                packageName.camelCase().clearPackageSymbols() + label.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                packageName.camelCase().clearPackageSymbols() + label.capitalize(),
                 qualifier?.let { "$QUALIFIER_SYMBOL${escapeTagClass(it)}" },
                 scope?.getTagValue()?.camelCase()?.let { "$SCOPE_SYMBOL$it" },
                 if (isExpect) "Expect" else null,
@@ -71,14 +83,13 @@ object TagFactory {
             val isExpect = ksClassDeclaration.isExpect
             val isActual = ksClassDeclaration.isActual
 
-            val packageNameConsolidated =
-                packageName.clearPackageSymbols().camelCase() + className.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+            val packageNameConsolidated = packageName + "." + className.capitalize()
             listOfNotNull(
                 packageNameConsolidated,
                 qualifier?.let { "$QUALIFIER_SYMBOL${escapeTagClass(it)}" },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
-            ).joinToString(separator = KOIN_TAG_SEPARATOR)
+            ).joinToString(prefix = "${dep.name}:", separator = KOIN_TAG_SEPARATOR)
         }
     }
 

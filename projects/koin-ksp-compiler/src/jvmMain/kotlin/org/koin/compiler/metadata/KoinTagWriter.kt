@@ -96,7 +96,7 @@ class KoinTagWriter(
         }
 
         if (module.alreadyGenerated == false){
-            val tag = TagFactory.getTag(module)
+            val tag = TagFactory.getTag(module).camelCase()
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(module)
@@ -155,7 +155,7 @@ class KoinTagWriter(
     ) {
         val name = binding.qualifiedName?.asString()
         if (name !in typeWhiteList) {
-            val tag = TagFactory.getTag(def, binding)
+            val tag = TagFactory.getTag(def, binding).camelCase()
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 writeTag(tag)

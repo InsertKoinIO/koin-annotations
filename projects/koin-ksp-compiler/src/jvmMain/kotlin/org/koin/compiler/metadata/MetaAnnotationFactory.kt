@@ -1,14 +1,12 @@
 package org.koin.compiler.metadata
 
 import org.koin.compiler.metadata.KoinMetaData.DependencyKind
-import org.koin.compiler.type.typeWhiteList
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
 
 object MetaAnnotationFactory {
     private val metaModule = MetaModule::class.simpleName!!
     private val metaDefinition = MetaDefinition::class.simpleName!!
-    private val whiteListTags = typeWhiteList.map { TagFactory.getTagFromFullPath(it) }
 
     fun generate(module: KoinMetaData.Module): String {
         val fullpath = module.packageName + "." + module.name
@@ -29,14 +27,13 @@ object MetaAnnotationFactory {
 
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
-            .mapNotNull {
-                if (it.kind == DependencyKind.Single) TagFactory.getTag(it)
+            .mapNotNull { dep ->
+                if (dep.kind == DependencyKind.Single) TagFactory.getTag(dep)
                 else {
-                    val ksDeclaration = extractLazyOrListType(it)
-                    ksDeclaration?.let { TagFactory.getTag(def, ksDeclaration) }
+                    val ksDeclaration = extractLazyOrListType(dep)
+                    ksDeclaration?.let { TagFactory.getTag(def, dep ,ksDeclaration) }
                 }
             }
-            .filter { it !in whiteListTags }
 
         val depsTags = if (cleanedDependencies.isNotEmpty()) cleanedDependencies.joinToString(
             "\",\"",

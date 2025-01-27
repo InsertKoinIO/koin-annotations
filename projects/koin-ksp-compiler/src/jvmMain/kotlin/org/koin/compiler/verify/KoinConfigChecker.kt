@@ -21,10 +21,12 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
 import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.resolver.isAlreadyExisting
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
+import org.koin.compiler.type.typeWhiteList
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
@@ -46,7 +48,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun verifyMetaModule(value: String, includes: ArrayList<String>) {
         includes.forEach { i ->
-            val exists = resolver.isAlreadyExisting(i)
+            val exists = resolver.isAlreadyExisting(i.camelCase())
             if (!exists) {
                 logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
             }
@@ -69,10 +71,13 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun verifyMetaDefinition(dv : DefinitionVerification) {
         dv.dependencies?.forEach { i ->
-            val tag = i.clearPackageSymbols()
+            val tagData = i.split(":")
+            val name = tagData[0]
+            val type = tagData[1].clearPackageSymbols()
+            val tag = type.camelCase()
             val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.getTag(tag,dv))
-            if (!exists) {
-                logger.error("--> Missing Definition :'${i}' used by '${dv.value}'. Fix your configuration: add definition annotation on the class.")
+            if (!exists && type !in typeWhiteList) {
+                logger.error("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
     }
