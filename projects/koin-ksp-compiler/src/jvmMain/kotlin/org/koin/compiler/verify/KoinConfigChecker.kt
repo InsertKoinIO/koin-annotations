@@ -21,10 +21,10 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
 import org.koin.compiler.metadata.TagFactory
-import org.koin.compiler.metadata.TagFactory.clearPackageSymbols
 import org.koin.compiler.resolver.isAlreadyExisting
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
+import org.koin.compiler.type.clearPackageSymbols
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 

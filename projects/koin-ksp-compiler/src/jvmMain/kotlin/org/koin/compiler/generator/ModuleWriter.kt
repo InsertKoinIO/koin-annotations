@@ -26,6 +26,7 @@ import org.koin.compiler.metadata.KOIN_VIEWMODEL_MP
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
+import org.koin.compiler.type.clearPackageSymbols
 import java.io.OutputStream
 
 abstract class ModuleWriter(
@@ -46,7 +47,7 @@ abstract class ModuleWriter(
     private lateinit var definitionFactory : DefinitionWriterFactory
 
     private val modulePath = "${module.packageName}.${module.name}"
-    private val generatedField = "${module.packageName("_")}_${module.name}"
+    private val generatedField = "${module.packageName("_").clearPackageSymbols()}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
     fun writeModule(isViewModelMPActive: Boolean) {

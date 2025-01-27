@@ -4,6 +4,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.scanner.ext.getPackageName
+import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.verify.DefinitionVerification
 import org.koin.compiler.verify.qualifiedNameCamelCase
 import java.util.*
@@ -17,7 +18,7 @@ object TagFactory {
     fun getTag(module: KoinMetaData.Module): String {
         return with(module) {
             listOfNotNull(
-                packageName.camelCase() + name,
+                packageName.camelCase().clearPackageSymbols() + name,
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
@@ -27,7 +28,7 @@ object TagFactory {
     fun getTag(module: KoinMetaData.ModuleInclude): String {
         return with(module) {
             listOfNotNull(
-                packageName.camelCase() + className.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                packageName.camelCase().clearPackageSymbols() + className.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
@@ -53,7 +54,7 @@ object TagFactory {
     fun getTag(definition: KoinMetaData.Definition): String {
         return with(definition) {
             listOfNotNull(
-                packageName.camelCase() + label.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                packageName.camelCase().clearPackageSymbols() + label.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
                 qualifier?.let { "$QUALIFIER_SYMBOL${escapeTagClass(it)}" },
                 scope?.getTagValue()?.camelCase()?.let { "$SCOPE_SYMBOL$it" },
                 if (isExpect) "Expect" else null,
@@ -80,8 +81,6 @@ object TagFactory {
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
         }
     }
-
-    internal fun String.clearPackageSymbols() = replace("`","").replace("'","")
 
     private fun escapeTagClass(qualifier : String) : String {
         return if (!qualifier.contains(".")) qualifier

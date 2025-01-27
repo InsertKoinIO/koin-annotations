@@ -1,7 +1,7 @@
 package org.koin.compiler.metadata
 
 import org.koin.compiler.metadata.KoinMetaData.DependencyKind
-import org.koin.compiler.verify.typeWhiteList
+import org.koin.compiler.type.typeWhiteList
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
 
