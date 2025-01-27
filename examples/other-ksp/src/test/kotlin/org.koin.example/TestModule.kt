@@ -8,6 +8,8 @@ import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
 import org.koin.example.animal.*
+import org.koin.example.by.example.ByExampleSingle
+import org.koin.example.by.example.ByModule
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
@@ -20,6 +22,7 @@ import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class TestModule {
@@ -34,7 +37,8 @@ class TestModule {
                 MyModule3().module,
                 MyModule2().module,
                 AnimalModule().module,
-                ScopeModule().module
+                ScopeModule().module,
+                ByModule().module
             )
         }.koin
 
@@ -75,6 +79,8 @@ class TestModule {
         val farm = koin.get<Farm>()
         assertEquals("White", farm.whiteBunny.color)
         assertEquals("Black", farm.blackBunny.color)
+
+        assertNotNull(koin.getOrNull<ByExampleSingle>())
     }
 
     private fun randomGetAnimal(koin: Koin): Animal {

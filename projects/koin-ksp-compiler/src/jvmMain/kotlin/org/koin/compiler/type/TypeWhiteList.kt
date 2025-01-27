@@ -1,4 +1,4 @@
-package org.koin.compiler.verify
+package org.koin.compiler.type
 
 
 internal val typeWhiteList = listOf(
