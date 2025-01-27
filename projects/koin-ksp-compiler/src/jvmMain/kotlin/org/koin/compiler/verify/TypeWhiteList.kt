@@ -10,5 +10,6 @@ internal val typeWhiteList = listOf(
     "androidx.fragment.app.Fragment",
     "androidx.lifecycle.SavedStateHandle",
     "androidx.lifecycle.ViewModel",
+    "androidx.work.WorkerParameters",
     "org.koin.ktor.plugin.RequestScope"
 )
