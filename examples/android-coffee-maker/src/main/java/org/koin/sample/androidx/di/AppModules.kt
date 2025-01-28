@@ -16,5 +16,5 @@ import org.koin.sample.clients.ClientModule
 
 
 @Module(includes = [CommonModule::class, ClientModule::class, RepositoryModule::class])
-@ComponentScan(values = ["org.koin.sample.androidx.data", "org.koin.sample.androidx.app"])
+@ComponentScan("org.koin.sample.androidx.data", "org.koin.sample.androidx.app")
 class AppModule

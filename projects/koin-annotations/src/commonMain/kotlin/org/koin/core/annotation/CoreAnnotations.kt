@@ -204,12 +204,12 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
 /**
  * Gather definitions declared with Koin definition annotation.
  * Will scan in current package or with the explicit packages names.
- * For scan current package use empty values array or empty string.
+ * For scan current package use empty value array or empty string.
  *
- * @param values: packages to scan
+ * @param value: packages to scan
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
-annotation class ComponentScan(val values: Array<String> = [])
+annotation class ComponentScan(vararg val value: String = [])
 
 /**
  * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
