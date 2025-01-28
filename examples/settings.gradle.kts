@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 
 include(
     ":coffee-maker",
+    ":coffee-maker-glob",
     ":coffee-maker-module",
     ":other-ksp",
     ":compile-perf",
