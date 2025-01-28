@@ -75,7 +75,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             val name = tagData[0]
             val type = tagData[1].clearPackageSymbols()
             val tag = type.camelCase()
-            val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.getTag(tag,dv))
+            val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.updateTagWithScope(tag,dv))
             if (!exists && type !in typeWhiteList) {
                 logger.error("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }

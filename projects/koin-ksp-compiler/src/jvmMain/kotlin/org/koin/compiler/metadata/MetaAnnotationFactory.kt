@@ -12,7 +12,7 @@ object MetaAnnotationFactory {
         val fullpath = module.packageName + "." + module.name
 
         val includesTags = if (module.includes?.isNotEmpty() == true) {
-            module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getTag(it) }
+            module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
         } else null
         val includesString = includesTags?.let { ", includes=[$it]" } ?: ""
 
@@ -28,10 +28,10 @@ object MetaAnnotationFactory {
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
             .mapNotNull { dep ->
-                if (dep.kind == DependencyKind.Single) TagFactory.getTag(dep)
+                if (dep.kind == DependencyKind.Single) TagFactory.getMetaTag(dep)
                 else {
                     val ksDeclaration = extractLazyOrListType(dep)
-                    ksDeclaration?.let { TagFactory.getTag(def, dep ,ksDeclaration) }
+                    ksDeclaration?.let { TagFactory.getMetaTag(def, dep ,ksDeclaration) }
                 }
             }
 

@@ -20,7 +20,7 @@ fun Resolver.isAlreadyExisting(def : KoinMetaData.Definition) : Boolean {
 }
 
 fun Resolver.getResolution(def : KoinMetaData.Definition) : KSDeclaration?{
-    return getResolutionForTag(TagFactory.getTag(def))
+    return getResolutionForTag(TagFactory.getTagClass(def))
 }
 
 fun Resolver.isAlreadyExisting(tag : String?) : Boolean {
