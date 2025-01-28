@@ -14,7 +14,7 @@ private const val SCOPE_SYMBOL = "S_"
 
 object TagFactory {
 
-    fun getTag(module: KoinMetaData.Module): String {
+    private fun getTag(module: KoinMetaData.Module): String {
         return with(module) {
             listOfNotNull(
                 packageName.clearPackageSymbols()+"." + name,
