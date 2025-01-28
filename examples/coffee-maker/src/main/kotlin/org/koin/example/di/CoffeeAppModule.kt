@@ -18,7 +18,7 @@ class CoffeeAppModule {
 }
 
 @Module
-@ComponentScan("org.koin.example.test")
+@ComponentScan(value = ["org.koin.example.test"])
 class CoffeeTesterModule {
 
     @Single
