@@ -1,10 +1,10 @@
 package org.koin.compiler.metadata
 
-import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
+import org.koin.compiler.generator.ext.appendText
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.resolver.isAlreadyExisting
 import org.koin.compiler.type.typeWhiteList
@@ -21,10 +21,9 @@ const val TAG_PREFIX = "KoinMeta_"
 private const val TAG_FILE_HASH_LIMIT = 8
 
 class KoinTagWriter(
-    val codeGenerator: CodeGenerator,
-    val logger: KSPLogger,
-    val resolver: Resolver,
-    val isConfigCheckActive : Boolean
+    private val codeGenerator: CodeGenerator,
+    private val logger: KSPLogger,
+    private val resolver: Resolver,
 ) {
     private val alreadyDeclaredTags: ArrayList<String> = arrayListOf()
     private var _tagFileStream : OutputStream? = null
@@ -56,12 +55,10 @@ class KoinTagWriter(
     ) {
         val allDefinitions = (moduleList + default).flatMap { it.definitions }
         val tempFile = createTempFile("KoinMeta", ".kt")
-        val sha256 = MessageDigest.getInstance("SHA-256");
+        val sha256 = MessageDigest.getInstance("SHA-256")
         DigestOutputStream(tempFile.outputStream(), sha256).buffered().use {
             _tagFileStream = it
-            if (isConfigCheckActive){
-                writeImports()
-            }
+            writeImports()
             writeModuleTags(moduleList)
             writeDefinitionsTags(allDefinitions)
         }
@@ -98,10 +95,8 @@ class KoinTagWriter(
         if (module.alreadyGenerated == false){
             val tag = TagFactory.getTagClass(module)
             if (tag !in alreadyDeclaredTags) {
-                if (isConfigCheckActive){
-                    val metaLine = MetaAnnotationFactory.generate(module)
-                    writeMeta(metaLine)
-                }
+                val metaLine = MetaAnnotationFactory.generate(module)
+                writeMeta(metaLine)
                 writeTag(tag)
             }
         }
@@ -140,10 +135,8 @@ class KoinTagWriter(
         if (!definition.isExpect && definition.alreadyGenerated == false){
             val tag = TagFactory.getTagClass(definition)
             if (tag !in alreadyDeclaredTags) {
-                if (isConfigCheckActive){
-                    val metaLine = MetaAnnotationFactory.generate(definition)
-                    writeMeta(metaLine)
-                }
+                val metaLine = MetaAnnotationFactory.generate(definition)
+                writeMeta(metaLine)
                 writeTag(tag)
             }
         }

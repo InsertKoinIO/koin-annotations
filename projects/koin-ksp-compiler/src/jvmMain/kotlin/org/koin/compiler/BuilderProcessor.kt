@@ -77,7 +77,7 @@ class BuilderProcessor(
             val checkTime = if (doLogTimes) markNow() else null
 
             // Tags are used to verify generated content (KMP)
-            KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
+            KoinTagWriter(codeGenerator, logger, resolver)
                 .writeAllTags(moduleList, defaultModule)
 
             val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
