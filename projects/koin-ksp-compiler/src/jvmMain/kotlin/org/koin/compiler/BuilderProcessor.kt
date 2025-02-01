@@ -24,8 +24,8 @@ import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
+import kotlin.time.TimeSource
 import kotlin.time.TimeSource.Monotonic.markNow
-import kotlin.time.measureTime
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -66,21 +66,25 @@ class BuilderProcessor(
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
-        val isConfigCheckActive = isConfigCheckActive()
-
-        // Tags are used to verify generated content (KMP)
-        KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
-            .writeAllTags(moduleList, defaultModule)
-
         if (doLogTimes && mainTime != null) {
             mainTime.elapsedNow()
             logger.warn("Koin Configuration Generated in ${mainTime.elapsedNow()}")
         }
 
-        val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
-        if (isConfigCheckActive && isAlreadyGenerated) {
+        val isConfigCheckActive = isConfigCheckActive()
+        if (isConfigCheckActive) {
             logger.warn("Koin Configuration Check ...")
             val checkTime = if (doLogTimes) markNow() else null
+
+            // Tags are used to verify generated content (KMP)
+            KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
+                .writeAllTags(moduleList, defaultModule)
+
+            val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+            if (!isAlreadyGenerated) {
+                warnConfigCheckDone(doLogTimes, checkTime)
+                return emptyList()
+            }
 
             val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
             val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
@@ -93,10 +97,7 @@ class BuilderProcessor(
             checker.verifyMetaModules(metaTagScanner.findMetaModules())
             checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
 
-            if (doLogTimes && checkTime != null) {
-                checkTime.elapsedNow()
-                logger.warn("Koin Configuration Check done in ${checkTime.elapsedNow()}")
-            }
+            warnConfigCheckDone(doLogTimes, checkTime)
         }
         return emptyList()
     }
@@ -122,6 +123,16 @@ class BuilderProcessor(
 
     private fun doLogTimes(): Boolean {
         return options.getOrDefault(KOIN_LOG_TIMES.name, "false") == true.toString()
+    }
+
+    private fun warnConfigCheckDone(
+        doLogTimes: Boolean,
+        checkTime: TimeSource.Monotonic.ValueTimeMark?
+    ) {
+        if (doLogTimes && checkTime != null) {
+            checkTime.elapsedNow()
+            logger.warn("Koin Configuration Check done in ${checkTime.elapsedNow()}")
+        }
     }
 }
 
