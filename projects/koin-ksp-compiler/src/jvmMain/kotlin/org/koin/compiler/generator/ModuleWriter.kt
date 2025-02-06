@@ -18,6 +18,7 @@ package org.koin.compiler.generator
 import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
+import org.koin.compiler.KspOptions
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.ext.getNewFile
@@ -80,6 +81,8 @@ abstract class ModuleWriter(
             }
             writeExternalDefinitionCalls()
             writeModuleFooter()
+        } else if (!generateModuleBody) {
+            writeModuleFooterWarning()
         }
 
         onFinishWriteModule()
@@ -214,6 +217,10 @@ abstract class ModuleWriter(
 
     private fun generateExternalDefinitionCalls(): String =
         module.externalDefinitions.joinToString(separator = "\n${TAB}") { "${it.name}()" }
+
+    private fun writeModuleFooterWarning(){
+        writeln("//DefaultModule generation is disabled. Use arg(\"KOIN_DEFAULT_MODULE\",\"true\") KSP option to activate DefaultModule generation.")
+    }
 
     open fun writeModuleFooter(closeBrackets : Boolean = true) {
         if (closeBrackets) {
