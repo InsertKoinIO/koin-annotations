@@ -7,7 +7,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.resolver.isAlreadyExisting
-import org.koin.compiler.type.typeWhiteList
+import org.koin.compiler.type.fullWhiteList
 import org.koin.compiler.verify.*
 import java.io.OutputStream
 import java.nio.file.Files
@@ -121,7 +121,7 @@ class KoinTagWriter(
         scope: KSDeclaration
     ) {
         val scopeName = scope.qualifiedName?.asString()
-        if (scopeName !in typeWhiteList) {
+        if (scopeName !in fullWhiteList) {
             val tag = TagFactory.getTagClass(scope)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
@@ -154,7 +154,7 @@ class KoinTagWriter(
         binding: KSDeclaration
     ) {
         val name = binding.qualifiedName?.asString()
-        if (name !in typeWhiteList) {
+        if (name !in fullWhiteList) {
             val tag = TagFactory.getTagClass(def, binding)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
