@@ -57,6 +57,9 @@ class KoinCodeGenerator(
         val hasDefaultDefinitions = defaultModule.definitions.any { resolver.getResolution(it) == null }
 
         if (defaultModule.alreadyGenerated == false && hasDefaultDefinitions){
+            if (generateDefaultModule && defaultModule.definitions.isNotEmpty()) {
+                LOGGER.warn("Generating 'defaultModule' with ${defaultModule.definitions.size} definitions")
+            }
             defaultModule.setCurrentDefinitionsToExternals()
             DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule(isViewModelMPActive)
         }
