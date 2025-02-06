@@ -75,7 +75,7 @@ class KoinCodeGenerator(
             val definitionsCount = module.definitions.size
             if (definitionsCount > MAX_MODULE_DEFINITIONS) {
                 val splitCount = definitionsCount / MAX_MODULE_DEFINITIONS
-                logger.warn("Module '${module.name}' is exceeding $MAX_MODULE_DEFINITIONS definitions. We need to split generation into ${splitCount +1} modules ...")
+                logger.warn("Module '${module.name}' is exceeding $MAX_MODULE_DEFINITIONS definitions ($definitionsCount found). We need to split generation into ${splitCount +1} modules ...")
                 // Create one main module to include sub generate modules
                 val subModules : List<KoinMetaData.Module> = module.definitions.chunked(MAX_MODULE_DEFINITIONS).mapIndexed { index, list ->
                     module.copy(includes = emptyList(), definitions = list.toMutableList(), externalDefinitions = mutableListOf(), packageName = "", name = module.packageName.camelCase()+module.name.capitalize()+index)
