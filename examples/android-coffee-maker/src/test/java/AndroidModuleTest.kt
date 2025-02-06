@@ -7,6 +7,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.koinApplication
+import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import org.koin.sample.android.library.CommonRepository
 import org.koin.sample.android.library.MyScope
@@ -16,7 +18,9 @@ import org.koin.sample.androidx.data.DataConsumer
 import org.koin.sample.androidx.data.MyDataConsumer
 import org.koin.sample.androidx.di.AppModule
 import org.koin.sample.androidx.di.DataModule
+import org.koin.sample.androidx.notcovered.IgnoredDefinition
 import org.koin.sample.androidx.repository.RepositoryModule
+import kotlin.test.assertNotNull
 
 class AndroidModuleTest {
 
@@ -45,6 +49,11 @@ class AndroidModuleTest {
 
         assert(koin.get<HttpClient>(named("clientA")) != koin.get<HttpClient>(named("clientB")))
 
+
+        val defaultKoin = koinApplication {
+            modules(defaultModule)
+        }.koin
+        assertNotNull(defaultKoin.getOrNull<IgnoredDefinition>())
 
         stopKoin()
     }
