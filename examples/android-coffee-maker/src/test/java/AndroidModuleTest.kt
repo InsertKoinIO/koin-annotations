@@ -18,8 +18,14 @@ import org.koin.sample.androidx.data.DataConsumer
 import org.koin.sample.androidx.data.MyDataConsumer
 import org.koin.sample.androidx.di.AppModule
 import org.koin.sample.androidx.di.DataModule
+import org.koin.sample.androidx.multi.FooB
+import org.koin.sample.androidx.multi.LibFooBModule
 import org.koin.sample.androidx.notcovered.IgnoredDefinition
 import org.koin.sample.androidx.repository.RepositoryModule
+import org.koin.sample.multi.FooA
+import org.koin.sample.multi.LibFooAModule
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 
 class AndroidModuleTest {
@@ -54,6 +60,9 @@ class AndroidModuleTest {
             modules(defaultModule)
         }.koin
         assertNotNull(defaultKoin.getOrNull<IgnoredDefinition>())
+
+        assertNotEquals(koin.get<FooB>().text,koin.get<FooA>().text)
+        assertEquals(koin.get<FooB>().textBase,koin.get<FooA>().textBase)
 
         stopKoin()
     }
