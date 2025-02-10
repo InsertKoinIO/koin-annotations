@@ -8,6 +8,8 @@ import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
 import org.koin.example.animal.*
+import org.koin.example.binds.BindTestsModule
+import org.koin.example.binds.ClientWithBinds
 import org.koin.example.by.example.ByExampleSingle
 import org.koin.example.by.example.ByModule
 import org.koin.example.defaultparam.COMPONENT_DEFAULT
@@ -49,7 +51,8 @@ class TestModule {
                 ScopeModule().module,
                 ByModule().module,
                 MyModule().module,
-                SuperTypesModule().module
+                SuperTypesModule().module,
+                BindTestsModule().module
             )
         }.koin
 
@@ -99,6 +102,8 @@ class TestModule {
         assertEquals(koin.get<C>(),koin.get<B>())
         assertEquals(koin.get<C>(),koin.get<D>())
         assertNull(koin.getOrNull<A>())
+
+        assertNotNull(koin.getOrNull<ClientWithBinds>())
     }
 
 
