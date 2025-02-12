@@ -10,6 +10,6 @@ import org.koin.example.multi.FooBase
 class LibFooBModule
 
 @Factory
-class FooB: FooBase(){
-    val text  = "text B"
+class FooB : FooBase() {
+    val text = "text B"
 }
