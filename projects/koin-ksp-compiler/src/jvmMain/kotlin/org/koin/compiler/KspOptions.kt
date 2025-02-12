@@ -17,6 +17,7 @@ package org.koin.compiler
 
 enum class KspOptions {
     KOIN_CONFIG_CHECK,
+    KOIN_LOG_TIMES,
     KOIN_DEFAULT_MODULE,
 
     KOIN_USE_COMPOSE_VIEWMODEL

@@ -41,13 +41,13 @@ class DefinitionWriter(
         }
 
         if (def.alreadyGenerated == true){
-            LOGGER.logging("skip ${def.label} -> ${TagFactory.getTag(def)} - already generated")
+            LOGGER.logging("skip ${def.label} -> ${TagFactory.getTagClass(def)} - already generated")
         } else {
             if (def.isExpect.not()){
                 LOGGER.logging("write definition ${def.label} ...")
 
                 val param = def.parameters.generateParamFunction()
-                val ctor = generateConstructor(def.parameters)
+                val ctor = generateConstructor(def, def.parameters)
                 val binds = generateBindings(def.bindings)
                 val qualifier = def.qualifier.generateQualifier()
                 val createAtStart = if (def.isType(SINGLE) && def.isCreatedAtStart == true) {
@@ -151,7 +151,8 @@ class DefinitionWriter(
         return parents.reversed()
     }
 
-    private fun generateConstructor(constructorParameters: List<KoinMetaData.DefinitionParameter>): String {
+    private fun generateConstructor(def : KoinMetaData.Definition, constructorParameters: List<KoinMetaData.DefinitionParameter>): String {
+        warnDefaultValues(constructorParameters, def)
         val paramsWithoutDefaultValues = constructorParameters.filter { !it.hasDefault || it is KoinMetaData.DefinitionParameter.Property}
         return paramsWithoutDefaultValues.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
             val isNullable: Boolean = ctorParam.nullable
@@ -182,6 +183,18 @@ class DefinitionWriter(
                 }
             }
         }
+    }
+
+    private fun warnDefaultValues(
+        constructorParameters: List<KoinMetaData.DefinitionParameter>,
+        def: KoinMetaData.Definition
+    ) {
+        constructorParameters.filter { it.hasDefault && it is KoinMetaData.DefinitionParameter.Dependency }
+            .forEach { ctorParam ->
+                if (ctorParam.hasDefault) {
+                    LOGGER.warn("Definition ${def.packageName}.${def.label} is using parameter '${ctorParam.name}' with default value. Injection is skipped for this parameter.")
+                }
+            }
     }
 
     companion object {

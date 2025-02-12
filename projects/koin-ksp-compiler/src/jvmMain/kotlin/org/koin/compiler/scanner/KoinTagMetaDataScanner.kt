@@ -43,12 +43,12 @@ class KoinTagMetaDataScanner(
     }
 
     fun findMetaModules(): List<KSAnnotation> {
-        logger.warn("scan meta modules ...")
+        logger.logging("scan meta modules ...")
         return resolver.getMetaModuleSymbols(isValid = true).map { it.annotations.first() }
     }
 
     fun findMetaDefinitions(): List<KSAnnotation> {
-        logger.warn("scan meta definitions ...")
+        logger.logging("scan meta definitions ...")
         return resolver.getMetaDefinitionSymbols(isValid = true).map { it.annotations.first() }
     }
 

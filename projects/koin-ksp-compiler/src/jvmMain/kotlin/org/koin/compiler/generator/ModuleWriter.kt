@@ -18,6 +18,7 @@ package org.koin.compiler.generator
 import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
+import org.koin.compiler.KspOptions
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.ext.getNewFile
@@ -26,6 +27,7 @@ import org.koin.compiler.metadata.KOIN_VIEWMODEL_MP
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
+import org.koin.compiler.type.clearPackageSymbols
 import java.io.OutputStream
 
 abstract class ModuleWriter(
@@ -45,16 +47,20 @@ abstract class ModuleWriter(
     protected fun writeEmptyLine() = writeln("")
     private lateinit var definitionFactory : DefinitionWriterFactory
 
-    private val modulePath = "${module.packageName}.${module.name}"
-    private val generatedField = "${module.packageName("_")}_${module.name}"
+    private val modulePath = if (module.packageName.isEmpty()) module.name else "${module.packageName}.${module.name}"
+    private val generatedField = "${module.packageName("_").clearPackageSymbols()}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
-    fun writeModule(isViewModelMPActive: Boolean) {
+    fun writeModule(isViewModelMPActive: Boolean, generateIncludeModules: List<KoinMetaData.ModuleInclude> = emptyList()) {
         fileStream = createFileStream()
         definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
 
         writeHeader()
         writeHeaderImports(isViewModelMPActive)
+
+        if (generateIncludeModules.isNotEmpty()) {
+            writeGeneratedIncludeModule(generateIncludeModules)
+        }
 
         if (hasExternalDefinitions) {
             writeExternalDefinitionImports()
@@ -75,9 +81,18 @@ abstract class ModuleWriter(
             }
             writeExternalDefinitionCalls()
             writeModuleFooter()
+        } else if (!generateModuleBody) {
+            writeModuleFooterWarning()
         }
 
         onFinishWriteModule()
+    }
+
+    private fun writeGeneratedIncludeModule(generateIncludeModules: List<KoinMetaData.ModuleInclude>) {
+        generateIncludeModules.forEach { module ->
+            writeln("public class ${module.className}")
+        }
+        writeEmptyLine()
     }
 
     private fun writeExternalDefinitionImports() {
@@ -152,7 +167,10 @@ abstract class ModuleWriter(
     }
 
     private fun generateIncludes(): String? {
-        return module.includes?.joinToString(separator = ",") { "${it.packageName}.${it.className}().module" }
+        return module.includes?.joinToString(separator = ",") {
+            if (it.packageName.isEmpty()) "${it.className}().module"
+            else "${it.packageName}.${it.className}().module"
+        }
     }
 
     open fun writeDefinitions() {
@@ -199,6 +217,10 @@ abstract class ModuleWriter(
 
     private fun generateExternalDefinitionCalls(): String =
         module.externalDefinitions.joinToString(separator = "\n${TAB}") { "${it.name}()" }
+
+    private fun writeModuleFooterWarning(){
+        writeln("//DefaultModule generation is disabled. Use arg(\"KOIN_DEFAULT_MODULE\",\"true\") KSP option to activate DefaultModule generation.")
+    }
 
     open fun writeModuleFooter(closeBrackets : Boolean = true) {
         if (closeBrackets) {

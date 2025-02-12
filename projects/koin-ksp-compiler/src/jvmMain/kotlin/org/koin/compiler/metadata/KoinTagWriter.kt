@@ -7,8 +7,8 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.resolver.isAlreadyExisting
+import org.koin.compiler.type.fullWhiteList
 import org.koin.compiler.verify.*
-import org.koin.compiler.verify.typeWhiteList
 import java.io.OutputStream
 import java.nio.file.Files
 import java.security.DigestOutputStream
@@ -96,7 +96,7 @@ class KoinTagWriter(
         }
 
         if (module.alreadyGenerated == false){
-            val tag = TagFactory.getTag(module)
+            val tag = TagFactory.getTagClass(module)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(module)
@@ -120,9 +120,9 @@ class KoinTagWriter(
     private fun writeScopeTag(
         scope: KSDeclaration
     ) {
-        val name = scope.qualifiedName?.asString()
-        if (name !in typeWhiteList) {
-            val tag = TagFactory.getTag(scope)
+        val scopeName = scope.qualifiedName?.asString()
+        if (scopeName !in fullWhiteList) {
+            val tag = TagFactory.getTagClass(scope)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 writeTag(tag)
@@ -138,7 +138,7 @@ class KoinTagWriter(
         }
 
         if (!definition.isExpect && definition.alreadyGenerated == false){
-            val tag = TagFactory.getTag(definition)
+            val tag = TagFactory.getTagClass(definition)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(definition)
@@ -154,8 +154,8 @@ class KoinTagWriter(
         binding: KSDeclaration
     ) {
         val name = binding.qualifiedName?.asString()
-        if (name !in typeWhiteList) {
-            val tag = TagFactory.getTag(def, binding)
+        if (name !in fullWhiteList) {
+            val tag = TagFactory.getTagClass(def, binding)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 writeTag(tag)

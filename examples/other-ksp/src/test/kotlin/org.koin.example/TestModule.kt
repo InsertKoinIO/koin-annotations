@@ -8,6 +8,13 @@ import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
 import org.koin.example.animal.*
+import org.koin.example.binds.BindTestsModule
+import org.koin.example.binds.ClientWithBinds
+import org.koin.example.by.example.ByExampleSingle
+import org.koin.example.by.example.ByModule
+import org.koin.example.defaultparam.COMPONENT_DEFAULT
+import org.koin.example.defaultparam.Component
+import org.koin.example.defaultparam.MyModule
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
@@ -16,10 +23,17 @@ import org.koin.example.newmodule.mymodule.MyOtherComponent3
 import org.koin.example.scope.MyScopeFactory
 import org.koin.example.scope.MyScopedInstance
 import org.koin.example.scope.ScopeModule
+import org.koin.example.supertype.A
+import org.koin.example.supertype.B
+import org.koin.example.supertype.C
+import org.koin.example.supertype.D
+import org.koin.example.supertype.SuperTypesModule
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TestModule {
@@ -34,7 +48,11 @@ class TestModule {
                 MyModule3().module,
                 MyModule2().module,
                 AnimalModule().module,
-                ScopeModule().module
+                ScopeModule().module,
+                ByModule().module,
+                MyModule().module,
+                SuperTypesModule().module,
+                BindTestsModule().module
             )
         }.koin
 
@@ -75,7 +93,20 @@ class TestModule {
         val farm = koin.get<Farm>()
         assertEquals("White", farm.whiteBunny.color)
         assertEquals("Black", farm.blackBunny.color)
+
+        assertNotNull(koin.getOrNull<ByExampleSingle>())
+
+        assertEquals(COMPONENT_DEFAULT,koin.get<Component>().param) // display warning in build logs
+
+        assertNotNull(koin.getOrNull<C>())
+        assertEquals(koin.get<C>(),koin.get<B>())
+        assertEquals(koin.get<C>(),koin.get<D>())
+        assertNull(koin.getOrNull<A>())
+
+        assertNotNull(koin.getOrNull<ClientWithBinds>())
     }
+
+
 
     private fun randomGetAnimal(koin: Koin): Animal {
         val a = koin.get<Animal>()

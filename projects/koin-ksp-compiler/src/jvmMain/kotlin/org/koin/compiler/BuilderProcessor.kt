@@ -24,7 +24,7 @@ import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
-import kotlin.time.measureTime
+import kotlin.time.TimeSource.Monotonic.markNow
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -39,6 +39,9 @@ class BuilderProcessor(
     override fun process(resolver: Resolver): List<KSAnnotated> {
         initComponents(resolver)
 
+        val doLogTimes = doLogTimes()
+
+        val mainTime = if (doLogTimes) markNow() else null
         logger.logging("Scan symbols ...")
 
         val invalidSymbols = koinMetaDataScanner.findInvalidSymbols(resolver)
@@ -68,23 +71,37 @@ class BuilderProcessor(
         KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
             .writeAllTags(moduleList, defaultModule)
 
+        if (doLogTimes && mainTime != null) {
+            mainTime.elapsedNow()
+            logger.warn("Koin Configuration Generated in ${mainTime.elapsedNow()}")
+        }
+
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+
+        //TODO Deprecation Warning
+        if(isDefaultModuleActive() && !isAlreadyGenerated) {
+            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP { arg(\"KOIN_DEFAULT_MODULE\",\"true\") } to activate default module generation.")
+        }
+
         if (isConfigCheckActive && isAlreadyGenerated) {
             logger.warn("Koin Configuration Check ...")
-            val t = measureTime {
+            val checkTime = if (doLogTimes) markNow() else null
 
-                val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
-                val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
-                if (invalidsMetaSymbols.isNotEmpty()) {
-                    logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
-                    return invalidSymbols
-                }
-
-                val checker = KoinConfigChecker(logger, resolver)
-                checker.verifyMetaModules(metaTagScanner.findMetaModules())
-                checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+            val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
+            val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
+            if (invalidsMetaSymbols.isNotEmpty()) {
+                logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
+                return invalidSymbols
             }
-            logger.warn("Koin Configuration Check done in $t")
+
+            val checker = KoinConfigChecker(logger, resolver)
+            checker.verifyMetaModules(metaTagScanner.findMetaModules())
+            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+
+            if (doLogTimes && checkTime != null) {
+                checkTime.elapsedNow()
+                logger.warn("Koin Configuration Check done in ${checkTime.elapsedNow()}")
+            }
         }
         return emptyList()
     }
@@ -103,9 +120,13 @@ class BuilderProcessor(
         return option
     }
 
-    //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
+    //TODO Deprecate KOIN_DEFAULT_MODULE to false by default - After 2.0
     private fun isDefaultModuleActive(): Boolean {
         return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
+    }
+
+    private fun doLogTimes(): Boolean {
+        return options.getOrDefault(KOIN_LOG_TIMES.name, "false") == true.toString()
     }
 }
 

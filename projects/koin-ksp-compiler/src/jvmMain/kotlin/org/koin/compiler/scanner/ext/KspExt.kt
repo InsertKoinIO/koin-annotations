@@ -19,6 +19,7 @@ import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.isScopeAnnotation
 import org.koin.compiler.metadata.isValidAnnotation
+import org.koin.compiler.type.forbiddenKeywords
 import org.koin.core.annotation.*
 
 fun KSAnnotated.getKoinAnnotations(): Map<String, KSAnnotation> {
@@ -153,7 +154,7 @@ internal fun List<KSValueArgument>.getScopeArgument(): String? {
 
 fun KSClassDeclaration.getPackageName() : String = packageName.asString()
 
-val forbiddenKeywords = listOf("in","interface")
+
 fun String.filterForbiddenKeywords() : String{
     return split(".").joinToString(".") {
         if (it in forbiddenKeywords) "`$it`" else it
