@@ -35,7 +35,7 @@ class AndroidModuleTest {
         val koin = startKoin {
             modules(
 //                defaultModule,
-                DataModule().module,
+                //DataModule().module,
                 RepositoryModule().module,
                 AppModule().module,
             )
@@ -66,4 +66,30 @@ class AndroidModuleTest {
 
         stopKoin()
     }
+
+    @Test
+    fun run_all_modules_common() {
+        val koin = startKoin {
+            modules(
+//                defaultModule,
+                AppModule().module,
+            )
+        }.koin
+
+        val commonRepository = koin.get<CommonRepository>()
+        assert(!commonRepository.lazyParam.isInitialized())
+        assert(commonRepository.lazyParam != null)
+
+        val scope = koin.createScope<MyScope>()
+        scope.get<ScopedStuff>()
+
+        assert(koin.getOrNull<DataConsumer>() != null)
+        assert(koin.getOrNull<MyDataConsumer>() != null)
+
+        assert(koin.getOrNull<ExampleSingleton>() != null)
+
+
+        stopKoin()
+    }
+
 }

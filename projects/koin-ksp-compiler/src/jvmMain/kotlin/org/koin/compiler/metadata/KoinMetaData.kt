@@ -31,7 +31,7 @@ sealed class KoinMetaData {
         val definitions: MutableList<Definition> = mutableListOf(),
         val externalDefinitions: MutableList<ExternalDefinition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
-        val componentScan: ComponentScan? = null,
+        val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
@@ -52,15 +52,16 @@ sealed class KoinMetaData {
         data class ComponentScan(val packageName: String = "")
 
         fun acceptDefinition(defPackageName: String): Boolean {
-            return when {
-                componentScan == null -> false
-                componentScan.packageName.isNotEmpty() -> defPackageName.contains(
-                    componentScan.packageName,
-                    ignoreCase = true
-                )
+            return componentsScan.any { componentScan ->
+                when {
+                    componentScan.packageName.isNotEmpty() -> defPackageName.contains(
+                        componentScan.packageName,
+                        ignoreCase = true
+                    )
 
-                componentScan.packageName.isEmpty() -> defPackageName.contains(packageName, ignoreCase = true)
-                else -> false
+                    componentScan.packageName.isEmpty() -> defPackageName.contains(packageName, ignoreCase = true)
+                    else -> false
+                }
             }
         }
 

@@ -12,6 +12,7 @@ import org.koin.sample.multi.LibFooAModule
 @ComponentScan("org.koin.sample.androidx.app")
 class AppModule
 
+
 @Module(includes = [CommonModule::class, ClientModule::class, RepositoryModule::class])
 @ComponentScan("org.koin.sample.androidx.data")
 internal class DataModule
