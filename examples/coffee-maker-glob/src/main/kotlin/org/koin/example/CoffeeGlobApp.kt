@@ -5,8 +5,7 @@ import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.example.coffee.CoffeeMaker
-import org.koin.example.di.CoffeeAppModule
-import org.koin.example.di.CoffeeTesterModule
+import org.koin.example.di.CoffeeAppAndTesterModule
 import org.koin.example.tea.TeaModule
 import org.koin.example.test.ext.ExternalModule
 import org.koin.example.test.scope.ScopeModule
@@ -27,8 +26,7 @@ fun main() {
 
         // else let's use our modules
         modules(
-            CoffeeAppModule().module,
-            CoffeeTesterModule().module,
+            CoffeeAppAndTesterModule().module,
             TeaModule().module,
             ExternalModule().module,
             org.koin.example.test.ext2.ExternalModule().module,

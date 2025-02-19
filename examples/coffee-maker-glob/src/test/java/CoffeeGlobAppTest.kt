@@ -9,8 +9,7 @@ import org.koin.example.CoffeeApp
 import org.koin.example.coffee.CoffeePumpList
 import org.koin.example.coffee.MyDetachCoffeeComponent
 import org.koin.example.coffee.pump.PumpCounter
-import org.koin.example.di.CoffeeAppModule
-import org.koin.example.di.CoffeeTesterModule
+import org.koin.example.di.CoffeeAppAndTesterModule
 import org.koin.example.tea.TeaModule
 import org.koin.example.tea.TeaPot
 import org.koin.example.test.CoffeeMakerTester
@@ -34,8 +33,7 @@ class CoffeeGlobAppTest {
 
             // else let's use our modules
             modules(
-                CoffeeAppModule().module,
-                CoffeeTesterModule().module,
+                CoffeeAppAndTesterModule().module,
                 TeaModule().module,
                 org.koin.example.test.ext.ExternalModule().module,
                 ExternalModule().module,
