@@ -125,7 +125,7 @@ class KoinMetaDataScanner(
         val moduleList = hashMapOf<String, KoinMetaData.Module>()
         val emptyScanList = arrayListOf<KoinMetaData.Module>()
         forEach { module ->
-            module.componentScan?.let { scan ->
+            module.componentsScan.forEach { scan ->
                 when (scan.packageName) {
                     "" -> emptyScanList.add(module)
                     else -> if (moduleList.anyMatch(scan.packageName)) {

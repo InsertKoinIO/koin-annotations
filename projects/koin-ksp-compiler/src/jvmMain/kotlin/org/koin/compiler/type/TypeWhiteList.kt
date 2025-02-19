@@ -13,3 +13,5 @@ internal val typeWhiteList = listOf(
     "androidx.work.WorkerParameters",
     "org.koin.ktor.plugin.RequestScope"
 )
+internal val typeWhiteListActualExpect = typeWhiteList.flatMap { listOf("${it}_Actual","${it}_Expect") }
+val fullWhiteList = typeWhiteList + typeWhiteListActualExpect

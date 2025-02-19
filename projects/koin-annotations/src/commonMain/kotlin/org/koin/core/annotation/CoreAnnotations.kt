@@ -202,8 +202,9 @@ annotation class PropertyValue(val value: String)
 annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
 
 /**
- * Gather definitions declared with Koin definition annotation
- * Will scan in current package or with the explicit package name
+ * Gather definitions declared with Koin definition annotation.
+ * Will scan in current package or with the explicit packages names.
+ * For scan current package use empty value array or empty string.
  *
  * The [value] parameter supports both exact package names and glob patterns:
  *
@@ -224,11 +225,11 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  * - `"com.**.service.*data"`: All packages that ends with "data" in any `service` subpackage.
  * - `"com.*.service.**"`: All classes in `com.X.service` and its subpackages.
  *
- * @param value The package to scan. Can be an exact package name or a glob pattern.
+ * @param value The packages to scan. Can be an exact package name or a glob pattern.
  *              Defaults to the package of the annotated element if empty.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
-annotation class ComponentScan(val value: String = "")
+annotation class ComponentScan(vararg val value: String = [])
 
 /**
  * Tag a dependency as already provided by Koin (like DSL declaration, or internals)

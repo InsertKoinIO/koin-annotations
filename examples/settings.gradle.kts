@@ -23,5 +23,6 @@ include(
     ":other-ksp",
     ":compile-perf",
     ":android-coffee-maker",
-    ":android-library"
+    ":android-library",
+    ":android-library-other",
 )

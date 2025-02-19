@@ -25,7 +25,6 @@ import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
 import kotlin.time.TimeSource.Monotonic.markNow
-import kotlin.time.measureTime
 
 class BuilderProcessor(
     private val codeGenerator: CodeGenerator,
@@ -78,6 +77,12 @@ class BuilderProcessor(
         }
 
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
+
+        //TODO Deprecation Warning
+        if(isDefaultModuleActive() && !isAlreadyGenerated) {
+            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP argument arg(\"KOIN_DEFAULT_MODULE\",\"true\") to activate default module generation.")
+        }
+
         if (isConfigCheckActive && isAlreadyGenerated) {
             logger.warn("Koin Configuration Check ...")
             val checkTime = if (doLogTimes) markNow() else null
@@ -115,7 +120,7 @@ class BuilderProcessor(
         return option
     }
 
-    //TODO turn KOIN_DEFAULT_MODULE to false by default - Next Major version (breaking)
+    //TODO Deprecate KOIN_DEFAULT_MODULE to false by default - After 2.0
     private fun isDefaultModuleActive(): Boolean {
         return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
     }

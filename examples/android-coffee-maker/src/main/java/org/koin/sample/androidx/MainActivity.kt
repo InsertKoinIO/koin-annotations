@@ -8,17 +8,16 @@ import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.AndroidScopeComponent
 import org.koin.androidx.scope.activityRetainedScope
-import org.koin.androidx.scope.activityScope
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.core.component.KoinScopeComponent
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.sample.android.library.MyScope
 import org.koin.sample.androidx.app.*
 import org.koin.sample.androidx.app.scope.ScopeViewModel
-import org.koin.sample.androidx.data.ProvidedComponent
 import org.koin.sample.androidx.data.TaskDatasource
+import org.koin.sample.androidx.multi.FooB
+import org.koin.sample.multi.FooA
 
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
@@ -31,6 +30,9 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     val heater : AndroidHeater by inject()
     val coffeeFactory : AndroidCoffeeMakerTester by inject()
     val scopeVM : ScopeViewModel by viewModel()
+
+    val fooA : FooA by inject()
+    val fooB : FooB by inject()
 
     private val button : Button by lazy { findViewById(R.id.main_button) }
     private val textView : TextView by lazy { findViewById(R.id.main_text) }
@@ -59,5 +61,8 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         scope.get<ScopedStuff>()
 
         println("VM scope data: ${scopeVM.data.id}")
+
+        assert(fooB.text != fooA.text)
+        assert(fooB.textBase == fooA.textBase)
     }
 }
