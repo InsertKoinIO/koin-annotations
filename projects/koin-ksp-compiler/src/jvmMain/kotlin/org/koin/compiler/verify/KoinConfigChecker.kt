@@ -20,9 +20,12 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
+import org.koin.compiler.metadata.KOIN_TAG_SEPARATOR
+import org.koin.compiler.metadata.QUALIFIER_SYMBOL
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.resolver.isAlreadyExisting
+import org.koin.compiler.scanner.ext.getArgument
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
@@ -30,7 +33,7 @@ import org.koin.compiler.type.fullWhiteList
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
-data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String?,val binds: ArrayList<String>?)
+data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String? ,val binds: ArrayList<String>?, val qualifier: String?)
 
 /**
  * Koin Configuration Checker
@@ -65,8 +68,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         // First extract all the definitions from annotations.
         val definitions = metaDefinitions.mapNotNull(::extractMetaDefinitionValues)
         val allScopes = definitions.mapNotNull { it.scope }
-        val allBinds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { it.binds!! }
-        val availableTypes = allScopes + allBinds
+        val allBinds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { if (it.qualifier == null) it.binds!! else it.binds!!.mapNotNull { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${it.qualifier}" }}
+        val availableTypes = (allScopes + allBinds + definitions.map { it.value }).toSet().toList()
 
         // Verify that each dependency is defined.
         definitions.forEach {
@@ -83,8 +86,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             val type = tagData[1].clearPackageSymbols()
             val tag = type.camelCase()
             val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.updateTagWithScope(tag,dv))
-            if (!exists && type !in fullWhiteList && tag !in availableTypes) {
-                logger.error("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
+            if (!exists && type !in fullWhiteList && (type !in availableTypes)) {
+                println("tag: $tag")
+                logger.warn("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
     }
@@ -94,7 +98,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val includes = if (value != null) a.arguments.getArray("dependencies") else null
         val scope = if (value != null) a.arguments.getScopeArgument() else null
         val binds = if (value != null) a.arguments.getArray("binds") else null
-        return value?.let { DefinitionVerification(value,includes,scope,binds) }
+        val qualifier = if (value != null) a.arguments.getArgument("qualifier") else null
+        return value?.let { DefinitionVerification(value,includes,scope,binds,qualifier) }
     }
 
     private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {

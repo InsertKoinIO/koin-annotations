@@ -152,6 +152,10 @@ internal fun List<KSValueArgument>.getScopeArgument(): String? {
     return firstOrNull { a -> a.name?.asString() == "scope" }?.value as? String?
 }
 
+internal fun List<KSValueArgument>.getArgument(name : String): String? {
+    return firstOrNull { a -> a.name?.asString() == name }?.value as? String?
+}
+
 fun KSClassDeclaration.getPackageName() : String = packageName.asString()
 
 

@@ -9,8 +9,8 @@ import org.koin.compiler.verify.DefinitionVerification
 import org.koin.compiler.verify.qualifiedNameCamelCase
 
 const val KOIN_TAG_SEPARATOR = "_"
-private const val QUALIFIER_SYMBOL = "Q_"
-private const val SCOPE_SYMBOL = "S_"
+internal const val QUALIFIER_SYMBOL = "Q_"
+internal const val SCOPE_SYMBOL = "S_"
 
 object TagFactory {
 

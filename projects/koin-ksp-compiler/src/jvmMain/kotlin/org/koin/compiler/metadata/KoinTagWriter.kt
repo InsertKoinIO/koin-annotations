@@ -37,7 +37,7 @@ class KoinTagWriter(
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (!isAlreadyGenerated) {
-            logger.logging("Koin Tags Generation ...")
+            logger.warn("Koin Tags Generation ...")
             createTagsForModules(moduleList, default)
         }
     }
@@ -111,24 +111,24 @@ class KoinTagWriter(
         def: KoinMetaData.Definition,
     ) {
         writeDefinitionTag(def)
-//        def.bindings.forEach { writeBindingTag(def,it) }
-//        if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope){
-//            writeScopeTag(def.scope.type)
-//        }
+        def.bindings.forEach { writeBindingTag(def,it) }
+        if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope){
+            writeScopeTag(def.scope.type)
+        }
     }
 
-//    private fun writeScopeTag(
-//        scope: KSDeclaration
-//    ) {
-//        val scopeName = scope.qualifiedName?.asString()
-//        if (scopeName !in fullWhiteList) {
-//            val tag = TagFactory.getTagClass(scope)
-//            val alreadyGenerated = resolver.isAlreadyExisting(tag)
-//            if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
-//                writeTag(tag)
-//            }
-//        }
-//    }
+    private fun writeScopeTag(
+        scope: KSDeclaration
+    ) {
+        val scopeName = scope.qualifiedName?.asString()
+        if (scopeName !in fullWhiteList) {
+            val tag = TagFactory.getTagClass(scope)
+            val alreadyGenerated = resolver.isAlreadyExisting(tag)
+            if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
+                writeTag(tag, asFunction = true)
+            }
+        }
+    }
 
     private fun writeDefinitionTag(
         definition: KoinMetaData.Definition
@@ -149,25 +149,25 @@ class KoinTagWriter(
         }
     }
 
-//    private fun writeBindingTag(
-//        def: KoinMetaData.Definition,
-//        binding: KSDeclaration
-//    ) {
-//        val name = binding.qualifiedName?.asString()
-//        if (name !in fullWhiteList) {
-//            val tag = TagFactory.getTagClass(def, binding)
-//            val alreadyGenerated = resolver.isAlreadyExisting(tag)
-//            println("resolver.isAlreadyExisting(tag): $tag - $alreadyGenerated")
-//            if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
-//                writeTag(tag)
-//            }
-//        }
-//    }
+    private fun writeBindingTag(
+        def: KoinMetaData.Definition,
+        binding: KSDeclaration
+    ) {
+        val name = binding.qualifiedName?.asString()
+        if (name !in fullWhiteList) {
+            val tag = TagFactory.getTagClass(def, binding)
+            val alreadyGenerated = resolver.isAlreadyExisting(tag)
+            if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
+                writeTag(tag, asFunction = true)
+            }
+        }
+    }
 
     private fun writeTag(
-        tag: String
+        tag: String,
+        asFunction : Boolean = false,
     ) {
-        val line = prepareTagLine(tag)
+        val line = prepareTagLine(tag,asFunction)
         fileStream.appendText(line)
         alreadyDeclaredTags.add(tag)
     }
@@ -186,7 +186,9 @@ class KoinTagWriter(
         """.trimIndent())
     }
 
-    private fun prepareTagLine(tagName : String) : String {
-        return "\npublic class $TAG_PREFIX$tagName"
+    private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
+        return if (asFunction){
+            "\npublic fun $TAG_PREFIX$tagName() : Unit = Unit"
+        } else "\npublic class $TAG_PREFIX$tagName"
     }
 }

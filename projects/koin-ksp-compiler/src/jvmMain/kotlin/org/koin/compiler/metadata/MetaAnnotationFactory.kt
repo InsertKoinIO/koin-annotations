@@ -25,12 +25,15 @@ object MetaAnnotationFactory {
     fun generate(def: KoinMetaData.Definition): String {
         val fullpath = def.packageName + "." + def.label
         val dependencies = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
-        val bindings = def.bindings.filter { it.qualifiedName?.asString() !in fullWhiteList }
+
+        val bindings = def.bindings.map { it.qualifiedName?.asString() }.filter { it !in fullWhiteList }
         val boundTypes = if (bindings.isNotEmpty()) bindings.joinToString(
             "\",\"",
             prefix = "\"",
             postfix = "\""
         ) else null
+
+        val qualifier = def.qualifier
 
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
@@ -50,11 +53,12 @@ object MetaAnnotationFactory {
 
         val depsString = depsTags?.let { ", dependencies=[$it]" } ?: ""
 
-        val scopeDef = if (def.isScoped()) def.scope?.getTagValue()?.camelCase() else null
+        val scopeDef = if (def.isScoped()) def.scope?.getValue() else null
         val scopeString = scopeDef?.let { ", scope=\"$it\"" } ?: ""
         val bindsString = boundTypes?.let { ", binds=[$it]" } ?: ""
+        val qualifierString = qualifier?.let { ", qualifier=\"$it\"" } ?: ""
         return """
-            @$metaDefinition("$fullpath"$depsString$scopeString$bindsString)
+            @$metaDefinition("$fullpath"$depsString$scopeString$bindsString$qualifierString)
         """.trimIndent()
     }
 
