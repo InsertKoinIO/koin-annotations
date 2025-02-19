@@ -80,7 +80,7 @@ class BuilderProcessor(
 
         //TODO Deprecation Warning
         if(isDefaultModuleActive() && !isAlreadyGenerated) {
-            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP { arg(\"KOIN_DEFAULT_MODULE\",\"true\") } to activate default module generation.")
+            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP argument arg(\"KOIN_DEFAULT_MODULE\",\"true\") to activate default module generation.")
         }
 
         if (isConfigCheckActive && isAlreadyGenerated) {
