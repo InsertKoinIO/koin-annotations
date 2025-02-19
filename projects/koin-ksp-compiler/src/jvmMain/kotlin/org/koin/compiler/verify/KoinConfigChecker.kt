@@ -25,6 +25,7 @@ import org.koin.compiler.metadata.QUALIFIER_SYMBOL
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.resolver.isAlreadyExisting
+import org.koin.compiler.resolver.isExtTagAlreadyExisting
 import org.koin.compiler.scanner.ext.getArgument
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
@@ -85,9 +86,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             val name = tagData[0]
             val type = tagData[1].clearPackageSymbols()
             val tag = type.camelCase()
-            val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.updateTagWithScope(tag,dv))
+            val exists = if (dv.scope == null) resolver.isExtTagAlreadyExisting(tag) else resolver.isExtTagAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.updateTagWithScope(tag,dv))
             if (!exists && type !in fullWhiteList && (type !in availableTypes)) {
-                println("tag: $tag")
                 logger.warn("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }

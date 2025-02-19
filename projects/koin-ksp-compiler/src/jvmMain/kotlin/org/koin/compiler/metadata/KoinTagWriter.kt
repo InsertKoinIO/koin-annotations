@@ -37,7 +37,7 @@ class KoinTagWriter(
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (!isAlreadyGenerated) {
-            logger.warn("Koin Tags Generation ...")
+            logger.logging("Koin Tags Generation ...")
             createTagsForModules(moduleList, default)
         }
     }
@@ -125,7 +125,7 @@ class KoinTagWriter(
             val tag = TagFactory.getTagClass(scope)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
-                writeTag(tag, asFunction = true)
+                writeTag(tag, asProperty = true)
             }
         }
     }
@@ -158,16 +158,16 @@ class KoinTagWriter(
             val tag = TagFactory.getTagClass(def, binding)
             val alreadyGenerated = resolver.isAlreadyExisting(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
-                writeTag(tag, asFunction = true)
+                writeTag(tag, asProperty = true)
             }
         }
     }
 
     private fun writeTag(
         tag: String,
-        asFunction : Boolean = false,
+        asProperty : Boolean = false,
     ) {
-        val line = prepareTagLine(tag,asFunction)
+        val line = prepareTagLine(tag,asProperty)
         fileStream.appendText(line)
         alreadyDeclaredTags.add(tag)
     }
@@ -188,7 +188,7 @@ class KoinTagWriter(
 
     private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
         return if (asFunction){
-            "\npublic fun $TAG_PREFIX$tagName() : Unit = Unit"
+            "\npublic val $TAG_PREFIX$tagName : Unit = Unit"
         } else "\npublic class $TAG_PREFIX$tagName"
     }
 }

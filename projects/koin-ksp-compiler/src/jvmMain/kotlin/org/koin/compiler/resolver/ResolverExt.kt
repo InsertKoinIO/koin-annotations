@@ -1,9 +1,8 @@
 package org.koin.compiler.resolver
 
-import com.google.devtools.ksp.getFunctionDeclarationsByName
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.TAG_PREFIX
@@ -26,14 +25,18 @@ fun Resolver.getResolution(def : KoinMetaData.Definition) : KSDeclaration?{
 }
 
 fun Resolver.isAlreadyExisting(tag : String?) : Boolean {
-    return getResolutionForTag(tag) != null || getResolutionForTagFun(tag).count() > 0
+    return getResolutionForTag(tag) != null
+}
+
+fun Resolver.isExtTagAlreadyExisting(tag : String?) : Boolean {
+    return getResolutionForTag(tag) != null || getResolutionForTagFun(tag) != null
 }
 
 fun Resolver.getResolutionForTag(tag : String?) : KSDeclaration?{
     return getResolutionForClass("$codeGenerationPackage.$TAG_PREFIX$tag")
 }
 
-fun Resolver.getResolutionForTagFun(tag : String?) : Sequence<KSFunctionDeclaration> {
+fun Resolver.getResolutionForTagFun(tag : String?) : KSPropertyDeclaration? {
     return getResolutionForFun("$codeGenerationPackage.$TAG_PREFIX$tag")
 }
 
@@ -41,6 +44,6 @@ fun Resolver.getResolutionForClass(name : String) : KSDeclaration?{
     return getClassDeclarationByName(getKSNameFromString(name))
 }
 
-fun Resolver.getResolutionForFun(name : String) : Sequence<KSFunctionDeclaration> {
-    return getFunctionDeclarationsByName(getKSNameFromString(name),true)
+fun Resolver.getResolutionForFun(name : String) : KSPropertyDeclaration? {
+    return getPropertyDeclarationByName(getKSNameFromString(name),true)
 }
