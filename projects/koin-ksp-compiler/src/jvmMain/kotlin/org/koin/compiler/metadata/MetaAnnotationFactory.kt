@@ -1,6 +1,7 @@
 package org.koin.compiler.metadata
 
 import org.koin.compiler.metadata.KoinMetaData.DependencyKind
+import org.koin.compiler.type.fullWhiteList
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
 
@@ -24,6 +25,12 @@ object MetaAnnotationFactory {
     fun generate(def: KoinMetaData.Definition): String {
         val fullpath = def.packageName + "." + def.label
         val dependencies = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
+        val bindings = def.bindings.filter { it.qualifiedName?.asString() !in fullWhiteList }
+        val boundTypes = if (bindings.isNotEmpty()) bindings.joinToString(
+            "\",\"",
+            prefix = "\"",
+            postfix = "\""
+        ) else null
 
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
@@ -45,8 +52,9 @@ object MetaAnnotationFactory {
 
         val scopeDef = if (def.isScoped()) def.scope?.getTagValue()?.camelCase() else null
         val scopeString = scopeDef?.let { ", scope=\"$it\"" } ?: ""
+        val bindsString = boundTypes?.let { ", binds=[$it]" } ?: ""
         return """
-            @$metaDefinition("$fullpath"$depsString$scopeString)
+            @$metaDefinition("$fullpath"$depsString$scopeString$bindsString)
         """.trimIndent()
     }
 

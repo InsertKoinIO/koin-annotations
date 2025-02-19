@@ -30,7 +30,7 @@ import org.koin.compiler.type.fullWhiteList
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
-data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String?)
+data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String?,val binds: ArrayList<String>?)
 
 /**
  * Koin Configuration Checker
@@ -64,22 +64,26 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     fun verifyMetaDefinitions(metaDefinitions: List<KSAnnotation>) {
         // First extract all the definitions from annotations.
         val definitions = metaDefinitions.mapNotNull(::extractMetaDefinitionValues)
+        val allScopes = definitions.mapNotNull { it.scope }
+        val allBinds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { it.binds!! }
+        val availableTypes = allScopes + allBinds
+
         // Verify that each dependency is defined.
         definitions.forEach {
-            if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it)
+            if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it, availableTypes)
         }
         // Now run cycle detection on the dependency graph.
         detectDependencyCycles(definitions)
     }
 
-    private fun verifyMetaDefinition(dv : DefinitionVerification) {
+    private fun verifyMetaDefinition(dv: DefinitionVerification, availableTypes: List<String>) {
         dv.dependencies?.forEach { i ->
             val tagData = i.split(":")
             val name = tagData[0]
             val type = tagData[1].clearPackageSymbols()
             val tag = type.camelCase()
             val exists = if (dv.scope == null) resolver.isAlreadyExisting(tag) else resolver.isAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.updateTagWithScope(tag,dv))
-            if (!exists && type !in fullWhiteList) {
+            if (!exists && type !in fullWhiteList && tag !in availableTypes) {
                 logger.error("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
@@ -89,7 +93,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val value = a.arguments.getValueArgument()
         val includes = if (value != null) a.arguments.getArray("dependencies") else null
         val scope = if (value != null) a.arguments.getScopeArgument() else null
-        return value?.let { DefinitionVerification(value,includes,scope) }
+        val binds = if (value != null) a.arguments.getArray("binds") else null
+        return value?.let { DefinitionVerification(value,includes,scope,binds) }
     }
 
     private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {
