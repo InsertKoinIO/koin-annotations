@@ -24,8 +24,8 @@ import org.koin.compiler.metadata.KOIN_TAG_SEPARATOR
 import org.koin.compiler.metadata.QUALIFIER_SYMBOL
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
-import org.koin.compiler.resolver.isAlreadyExisting
-import org.koin.compiler.resolver.isExtTagAlreadyExisting
+import org.koin.compiler.resolver.tagAlreadyExists
+import org.koin.compiler.resolver.tagPropAlreadyExists
 import org.koin.compiler.scanner.ext.getArgument
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
@@ -52,7 +52,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun verifyMetaModule(value: String, includes: ArrayList<String>) {
         includes.forEach { i ->
-            val exists = resolver.isAlreadyExisting(i.camelCase())
+            val exists = resolver.tagAlreadyExists(i.camelCase())
             if (!exists) {
                 logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
             }
@@ -86,11 +86,15 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             val name = tagData[0]
             val type = tagData[1].clearPackageSymbols()
             val tag = type.camelCase()
-            val exists = if (dv.scope == null) resolver.isExtTagAlreadyExisting(tag) else resolver.isExtTagAlreadyExisting(tag) || resolver.isAlreadyExisting(TagFactory.updateTagWithScope(tag,dv))
+            val exists = if (dv.scope == null){ tagAlreadyExists(tag) } else { tagAlreadyExists(tag) || tagAlreadyExists(TagFactory.updateTagWithScope(tag,dv)) }
             if (!exists && type !in fullWhiteList && (type !in availableTypes)) {
-                logger.warn("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
+                logger.error("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
+    }
+
+    private fun tagAlreadyExists(tag : String) : Boolean{
+        return resolver.tagAlreadyExists(tag) || resolver.tagPropAlreadyExists(tag)
     }
 
     private fun extractMetaDefinitionValues(a: KSAnnotation): DefinitionVerification? {
