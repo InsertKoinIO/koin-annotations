@@ -16,6 +16,7 @@ import org.koin.sample.android.library.MyScope
 import org.koin.sample.androidx.app.*
 import org.koin.sample.androidx.app.scope.ScopeViewModel
 import org.koin.sample.androidx.data.TaskDatasource
+import org.koin.sample.androidx.di.UseContext
 import org.koin.sample.androidx.multi.FooB
 import org.koin.sample.multi.FooA
 
@@ -64,5 +65,7 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
 
         assert(fooB.text != fooA.text)
         assert(fooB.textBase == fooA.textBase)
+
+        getKoin().get<UseContext>()
     }
 }

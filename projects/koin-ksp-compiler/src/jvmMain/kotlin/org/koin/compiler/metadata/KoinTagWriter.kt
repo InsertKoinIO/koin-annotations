@@ -138,7 +138,7 @@ class KoinTagWriter(
             definition.alreadyGenerated = resolver.tagAlreadyExists(definition)
         }
 
-        if (!definition.isExpect && definition.alreadyGenerated == false){
+        if (definition.alreadyGenerated == false){
             val tag = TagFactory.getTagClass(definition)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
