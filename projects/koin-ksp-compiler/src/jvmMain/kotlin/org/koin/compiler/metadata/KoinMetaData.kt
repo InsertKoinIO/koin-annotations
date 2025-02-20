@@ -225,6 +225,7 @@ sealed class KoinMetaData {
 
         abstract val name: String?
         abstract val hasDefault: Boolean
+        abstract val type: KSType
 
         data class Dependency(
             override val name: String?,
@@ -233,13 +234,15 @@ sealed class KoinMetaData {
             val scopeId: String? = null,
             override val hasDefault: Boolean,
             val alreadyProvided : Boolean = false,
-            val type: KSType, val kind: DependencyKind = DependencyKind.Single
+            override val type: KSType,
+            val kind: DependencyKind = DependencyKind.Single
         ) : DefinitionParameter(isNullable)
 
         data class ParameterInject(
             override val name: String?,
             val isNullable: Boolean = false,
-            override val hasDefault: Boolean
+            override val hasDefault: Boolean,
+            override val type: KSType
         ) : DefinitionParameter(isNullable)
 
         data class Property(
@@ -247,7 +250,8 @@ sealed class KoinMetaData {
             val value: String? = null,
             val isNullable: Boolean = false,
             var defaultValue: PropertyValue? = null,
-            override val hasDefault: Boolean
+            override val hasDefault: Boolean,
+            override val type: KSType
         ) : DefinitionParameter(isNullable)
     }
 
