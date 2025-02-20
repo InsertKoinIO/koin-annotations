@@ -75,7 +75,7 @@ class CoffeeAppTest {
         koin.createScope("_ID2_", named(MY_SCOPE_SESSION))
             .get<MyScopedSessionComponent>()
 
-        assert(koin.get<TestComponentConsumer3>().id == null)
+        assert(koin.get<TestComponentConsumer3>{ parametersOf(null) }.id == null)
         assert(koin.get<TestComponentConsumer3>{ parametersOf("42") }.id == "42")
 
         koin.get<IncludedComponent>()

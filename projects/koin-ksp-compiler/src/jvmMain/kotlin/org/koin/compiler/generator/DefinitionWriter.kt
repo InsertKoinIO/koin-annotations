@@ -96,7 +96,16 @@ class DefinitionWriter(
     }
 
     private fun List<KoinMetaData.DefinitionParameter>.generateParamFunction(): String {
-        return if (any { it is KoinMetaData.DefinitionParameter.ParameterInject }) "params -> " else "_ -> "
+        return if (any { it is KoinMetaData.DefinitionParameter.ParameterInject }) {
+            val injectedParams = filter { it is KoinMetaData.DefinitionParameter.ParameterInject && it.name != null && !it.hasDefault }
+            if (injectedParams.isNotEmpty()) {
+                injectedParams.joinToString(",", "(", ") -> ") {
+                    val nullable = if (it.nullable) "?" else ""
+                    val type = it.type.declaration.qualifiedName?.asString()
+                    "${it.name} : ${type}$nullable"
+                }
+            } else "_ -> "
+        } else "_ -> "
     }
 
     private fun String?.generateQualifier(): String = when {
@@ -176,7 +185,7 @@ class DefinitionWriter(
                     }
                 }
 
-                is KoinMetaData.DefinitionParameter.ParameterInject -> if (!isNullable) "params.get()" else "params.getOrNull()"
+                is KoinMetaData.DefinitionParameter.ParameterInject -> ctorParam.name!!
                 is KoinMetaData.DefinitionParameter.Property -> {
                     val defaultValue = ctorParam.defaultValue?.let { ",${it.field}" } ?: ""
                     if (!isNullable) "getProperty(\"${ctorParam.value}\"$defaultValue)" else "getPropertyOrNull(\"${ctorParam.value}\",$defaultValue)"
