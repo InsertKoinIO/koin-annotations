@@ -130,7 +130,9 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
             val scopeAnnotation = annotations.firstOrNull { it.shortName.asString() == ScopeId::class.simpleName }
             val scopeIdValue = scopeAnnotation?.arguments?.getScope()?.getValue()
 
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = if (!isList) qualifier else null, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param), scopeId = scopeIdValue)
+            val isKoinScope = resolvedType.declaration.qualifiedName?.asString() == "org.koin.core.scope.Scope"
+
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = if (!isList) qualifier else null, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param), scopeId = scopeIdValue, isKoinScope = isKoinScope)
         }
     }
 }

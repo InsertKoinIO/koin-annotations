@@ -236,7 +236,8 @@ sealed class KoinMetaData {
             override val hasDefault: Boolean,
             val alreadyProvided : Boolean = false,
             override val type: KSType,
-            val kind: DependencyKind = DependencyKind.SingleValue
+            val kind: DependencyKind = DependencyKind.SingleValue,
+            val isKoinScope : Boolean = false,
         ) : DefinitionParameter(isNullable)
 
         data class ParameterInject(

@@ -167,16 +167,20 @@ class DefinitionWriter(
             val isNullable: Boolean = ctorParam.nullable
             when (ctorParam) {
                 is KoinMetaData.DefinitionParameter.Dependency -> {
-                    val scopeId = ctorParam.scopeId
-                    val keyword = when (ctorParam.kind) {
-                        KoinMetaData.DependencyKind.Lazy -> "inject"
-                        KoinMetaData.DependencyKind.List -> "getAll"
-                        else -> "get"
+                    if (ctorParam.isKoinScope){
+                        "this"
+                    } else {
+                        val scopeId = ctorParam.scopeId
+                        val keyword = when (ctorParam.kind) {
+                            KoinMetaData.DependencyKind.Lazy -> "inject"
+                            KoinMetaData.DependencyKind.List -> "getAll"
+                            else -> "get"
+                        }
+                        val qualifier = ctorParam.qualifier?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                        val operator = if (isNullable && ctorParam.kind != KoinMetaData.DependencyKind.List) "${keyword}OrNull($qualifier)" else "$keyword($qualifier)"
+                        val scopedOperator = scopeId?.let { "getScope(\"$scopeId\").$operator" } ?: operator
+                        if (ctorParam.name == null) scopedOperator else "${ctorParam.name}=$scopedOperator"
                     }
-                    val qualifier = ctorParam.qualifier?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
-                    val operator = if (isNullable && ctorParam.kind != KoinMetaData.DependencyKind.List) "${keyword}OrNull($qualifier)" else "$keyword($qualifier)"
-                    val scopedOperator = scopeId?.let { "getScope(\"$scopeId\").$operator" } ?: operator
-                    if (ctorParam.name == null) scopedOperator else "${ctorParam.name}=$scopedOperator"
                 }
 
                 is KoinMetaData.DefinitionParameter.ParameterInject -> ctorParam.name!!
