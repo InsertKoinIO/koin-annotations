@@ -38,7 +38,7 @@ object MetaAnnotationFactory {
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
             .mapNotNull { dep ->
-                if (dep.kind == DependencyKind.Single) TagFactory.getMetaTag(dep)
+                if (dep.kind == DependencyKind.SingleValue) TagFactory.getMetaTag(dep)
                 else {
                     val ksDeclaration = extractLazyOrListType(dep)
                     ksDeclaration?.let { TagFactory.getMetaTag(def, dep ,ksDeclaration) }

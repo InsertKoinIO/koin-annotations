@@ -236,7 +236,7 @@ sealed class KoinMetaData {
             override val hasDefault: Boolean,
             val alreadyProvided : Boolean = false,
             override val type: KSType,
-            val kind: DependencyKind = DependencyKind.Single
+            val kind: DependencyKind = DependencyKind.SingleValue
         ) : DefinitionParameter(isNullable)
 
         data class ParameterInject(
@@ -257,7 +257,7 @@ sealed class KoinMetaData {
     }
 
     enum class DependencyKind {
-        Single, List, Lazy
+        SingleValue, List, Lazy
     }
 }
 

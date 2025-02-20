@@ -75,18 +75,23 @@ fun List<KSValueArgument>.getQualifier(): KoinMetaData.Qualifier {
 }
 
 private val qualifierAnnotations = listOf(Named::class.simpleName, Qualifier::class.simpleName)
+
+fun KSAnnotation.hasQualifier(): Boolean {
+    val annotationName = shortName.asString()
+    return annotationName in qualifierAnnotations || annotationType.resolve().isCustomQualifierAnnotation()
+}
+
+fun KSAnnotation.getQualifier(): String? {
+    return when(shortName.asString()){
+        "${Named::class.simpleName}" -> arguments.getNamed().getValue()
+        "${Qualifier::class.simpleName}" -> arguments.getQualifier().getValue()
+        else -> annotationType.resolve().declaration.qualifiedName?.asString()
+    }
+}
+
 fun KSAnnotated.getQualifier(): String? {
-    val qualifierAnnotation = annotations.firstOrNull { a ->
-        val annotationName = a.shortName.asString()
-        annotationName in qualifierAnnotations || a.annotationType.resolve().isCustomQualifierAnnotation()
-    }
-    return qualifierAnnotation?.let {
-        when(it.shortName.asString()){
-            "${Named::class.simpleName}" -> it.arguments.getNamed().getValue()
-            "${Qualifier::class.simpleName}" -> it.arguments.getQualifier().getValue()
-            else -> it.annotationType.resolve().declaration.qualifiedName?.asString()
-        }
-    }
+    val qualifierAnnotation = annotations.firstOrNull { it.hasQualifier() }
+    return qualifierAnnotation?.getQualifier()
 }
 
 fun List<KSValueParameter>.getParameters(): List<KoinMetaData.DefinitionParameter> {
@@ -96,9 +101,11 @@ fun List<KSValueParameter>.getParameters(): List<KoinMetaData.DefinitionParamete
 private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParameter {
     // Get the first annotation that is not a Provided annotation
     // The [Provided] annotation will be evaluated when making the dependency graph.
-    val firstAnnotation = param.annotations.filter { it.shortName.asString() != Provided::class.simpleName }.firstOrNull()
-    val annotationName = firstAnnotation?.shortName?.asString()
-    val annotationValue = firstAnnotation?.arguments?.getValueArgument()
+    val annotations = param.annotations
+    val firstAnnotation = annotations.filter { it.shortName.asString() != Provided::class.simpleName }.firstOrNull()
+    val firstAnnotationName = firstAnnotation?.shortName?.asString()
+    val firstAnnotationValue = firstAnnotation?.arguments?.getValueArgument()
+
     val paramName = param.name?.asString()
     val resolvedType: KSType = param.type.resolve()
     val isNullable = resolvedType.isMarkedNullable
@@ -108,34 +115,22 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
     val isList = resolvedTypeString.startsWith("List<")
     val isLazy = resolvedTypeString.startsWith("Lazy<")
 
-    return when (annotationName) {
+    return when (firstAnnotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.DefinitionParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault,type = resolvedType)
-        "${Property::class.simpleName}" -> KoinMetaData.DefinitionParameter.Property(name = paramName, value = annotationValue, isNullable, hasDefault = hasDefault,type = resolvedType)
-        "${Named::class.simpleName}" -> {
-            val qualifier = firstAnnotation.arguments.getNamed().getValue()
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
-        }
-        "${Qualifier::class.simpleName}" -> {
-            val qualifier = firstAnnotation.arguments.getQualifier().getValue()
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = qualifier, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
-        }
-        "${ScopeId::class.simpleName}" -> {
-            val scopeIdValue: String = firstAnnotation.arguments.getScope().getValue()
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, scopeId = scopeIdValue)
-        }
-        //TODO type value for ScopeId
+        "${Property::class.simpleName}" -> KoinMetaData.DefinitionParameter.Property(name = paramName, value = firstAnnotationValue, isNullable, hasDefault = hasDefault,type = resolvedType)
         else -> {
-            val annotationType = firstAnnotation?.annotationType?.resolve()
-            if (annotationType != null && annotationType.isCustomQualifierAnnotation()) {
-                KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = annotationType.declaration.qualifiedName?.asString(), isNullable = isNullable, hasDefault = hasDefault, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
-            } else {
-                val kind = when {
-                    isList -> KoinMetaData.DependencyKind.List
-                    isLazy -> KoinMetaData.DependencyKind.Lazy
-                    else -> KoinMetaData.DependencyKind.Single
-                }
-                KoinMetaData.DefinitionParameter.Dependency(name = paramName, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param))
+            val kind = when {
+                isList -> KoinMetaData.DependencyKind.List
+                isLazy -> KoinMetaData.DependencyKind.Lazy
+                else -> KoinMetaData.DependencyKind.SingleValue
             }
+            val qualifierAnnotation = annotations.firstOrNull { it.hasQualifier() }
+            val qualifier = qualifierAnnotation?.getQualifier()
+
+            val scopeAnnotation = annotations.firstOrNull { it.shortName.asString() == ScopeId::class.simpleName }
+            val scopeIdValue = scopeAnnotation?.arguments?.getScope()?.getValue()
+
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = if (!isList) qualifier else null, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param), scopeId = scopeIdValue)
         }
     }
 }

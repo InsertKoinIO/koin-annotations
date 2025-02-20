@@ -24,6 +24,7 @@ import org.koin.example.qualifier.LazyStuffCounter
 import org.koin.example.qualifier.QualifierModule
 import org.koin.example.qualifier.Stuff
 import org.koin.example.qualifier.StuffCounter
+import org.koin.example.qualifier.StuffList
 import org.koin.example.scope.MyScopeFactory
 import org.koin.example.scope.MyScopedInstance
 import org.koin.example.scope.ScopeModule
@@ -110,8 +111,9 @@ class TestModule {
 
         assertNotNull(koin.getOrNull<ClientWithBinds>())
 
-        assertEquals(2,koin.get<List<Stuff>>(named("stuffs")).size)
+        assertEquals(2,koin.get<StuffList>(named("stuffs")).list.size)
         assertEquals(2,koin.get<StuffCounter>().list.size)
+
         assertEquals(2,koin.get<LazyStuffCounter>().lazyCounter.value.list.size)
         assertEquals("lazy",koin.get<LazyStuffCounter>().lazyCounter.value.name)
     }
