@@ -23,6 +23,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinMetaData.Module.Companion.DEFINE_PREFIX
 import org.koin.compiler.metadata.SINGLE
 import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.resolver.getResolution
 import java.io.OutputStream
@@ -92,7 +93,7 @@ class DefinitionWriter(
         binds: String
     ) {
         writeln("@ExternalDefinition(\"${def.packageName}\")")
-        writeln("public fun Module.$DEFINE_PREFIX${def.label}() : KoinDefinition<*> = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds")
+        writeln("public fun Module.$DEFINE_PREFIX${def.packageName.camelCase()}${def.label}() : KoinDefinition<*> = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds")
     }
 
     private fun List<KoinMetaData.DefinitionParameter>.generateParamFunction(): String {

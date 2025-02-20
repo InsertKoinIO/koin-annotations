@@ -69,7 +69,7 @@ sealed class KoinMetaData {
         fun setCurrentDefinitionsToExternals() {
             val externals = definitions
                 .filter { !it.isExpect }
-                .map { ExternalDefinition(it.packageName, "$DEFINE_PREFIX${it.label}") }
+                .map { ExternalDefinition(it.packageName, "$DEFINE_PREFIX${it.packageName.camelCase()}${it.label}") }
 
             externalDefinitions.addAll(externals)
         }
