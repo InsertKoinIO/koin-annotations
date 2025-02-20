@@ -12,6 +12,8 @@ public data class Stuff(val name : String)
 @Module
 public class QualifierModule {
 
+    //Can't have Qualifier + List
+
     @Named("stuffs")
     @Single
     public fun listOfStuff() : StuffList = StuffList(listOf(Stuff("1"),Stuff("2")))

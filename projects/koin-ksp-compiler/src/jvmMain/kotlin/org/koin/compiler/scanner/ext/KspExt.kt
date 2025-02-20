@@ -113,7 +113,7 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
     val resolvedTypeString = resolvedType.toString()
 
     val isList = resolvedTypeString.startsWith("List<")
-    val isLazy = resolvedTypeString.startsWith("Lazy<") || resolvedTypeString.startsWith("Kotlin.Lazy<")
+    val isLazy = resolvedTypeString.startsWith("Lazy<")
 
     return when (firstAnnotationName) {
         "${InjectedParam::class.simpleName}" -> KoinMetaData.DefinitionParameter.ParameterInject(name = paramName, isNullable = isNullable, hasDefault = hasDefault,type = resolvedType)
@@ -124,14 +124,13 @@ private fun getParameter(param: KSValueParameter): KoinMetaData.DefinitionParame
                 isLazy -> KoinMetaData.DependencyKind.Lazy
                 else -> KoinMetaData.DependencyKind.SingleValue
             }
-            val isSingleValue = kind == KoinMetaData.DependencyKind.SingleValue
             val qualifierAnnotation = annotations.firstOrNull { it.hasQualifier() }
             val qualifier = qualifierAnnotation?.getQualifier()
 
             val scopeAnnotation = annotations.firstOrNull { it.shortName.asString() == ScopeId::class.simpleName }
             val scopeIdValue = scopeAnnotation?.arguments?.getScope()?.getValue()
 
-            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = if (isSingleValue) qualifier else null, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param), scopeId = scopeIdValue)
+            KoinMetaData.DefinitionParameter.Dependency(name = paramName, qualifier = if (!isList) qualifier else null, hasDefault = hasDefault, kind = kind, isNullable = isNullable, type = resolvedType, alreadyProvided = hasProvidedAnnotation(param), scopeId = scopeIdValue)
         }
     }
 }
