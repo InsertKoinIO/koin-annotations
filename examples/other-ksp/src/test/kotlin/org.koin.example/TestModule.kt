@@ -112,6 +112,7 @@ class TestModule {
 
         assertEquals(2,koin.get<List<Stuff>>(named("stuffs")).size)
         assertEquals(2,koin.get<StuffCounter>().list.size)
+
         assertEquals(2,koin.get<LazyStuffCounter>().lazyCounter.value.list.size)
         assertEquals("lazy",koin.get<LazyStuffCounter>().lazyCounter.value.name)
     }

@@ -168,21 +168,15 @@ class DefinitionWriter(
             when (ctorParam) {
                 is KoinMetaData.DefinitionParameter.Dependency -> {
                     val scopeId = ctorParam.scopeId
-                    when (ctorParam.kind) {
-                        KoinMetaData.DependencyKind.List -> "getAll()"
-                        else -> {
-                            val keyword = when (ctorParam.kind) {
-                                KoinMetaData.DependencyKind.Lazy -> "inject"
-                                else -> "get"
-                            }
-                            val qualifier =
-                                ctorParam.qualifier?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" }
-                                    ?: ""
-                            val operator = if (!isNullable) "$keyword($qualifier)" else "${keyword}OrNull($qualifier)"
-                            val scopeOperator = scopeId?.let { "getScope(\"$scopeId\").$operator" } ?: operator
-                            if (ctorParam.name == null) scopeOperator else "${ctorParam.name}=$scopeOperator"
-                        }
+                    val keyword = when (ctorParam.kind) {
+                        KoinMetaData.DependencyKind.Lazy -> "inject"
+                        KoinMetaData.DependencyKind.List -> "getAll"
+                        else -> "get"
                     }
+                    val qualifier = ctorParam.qualifier?.let { "qualifier=org.koin.core.qualifier.StringQualifier(\"${it}\")" } ?: ""
+                    val operator = if (isNullable && ctorParam.kind != KoinMetaData.DependencyKind.List) "${keyword}OrNull($qualifier)" else "$keyword($qualifier)"
+                    val scopedOperator = scopeId?.let { "getScope(\"$scopeId\").$operator" } ?: operator
+                    if (ctorParam.name == null) scopedOperator else "${ctorParam.name}=$scopedOperator"
                 }
 
                 is KoinMetaData.DefinitionParameter.ParameterInject -> ctorParam.name!!
