@@ -208,25 +208,33 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
  *
  * The [value] parameter supports both exact package names and glob patterns:
  *
- * 1. Exact package: `"com.example.service"`
- *    - Scans only the `com.example.service` package.
- *    - Same as `com.example.service**` in glob pattern.
+ * **Exact package names (without wildcards):**
+ * - Example: `com.example.service`
+ *    - Scans all classes in the specified package and its subpackages.
+ *    - This is equivalent to the glob pattern `com.example**`.
  *
- * 2. Single-level wildcard (`*`): `"com.example.*.service"`
- *    - Matches one level of package hierarchy.
- *    - E.g., `com.example.user.service`, `com.example.order.service`.
- *    - Does NOT match `com.example.service` or `com.example.user.impl.service`.
+ * **Glob patterns:**
+ * 1. Multi-level scan including the root package:
+ *    - `com.example**` scans classes in `com.example` as well as in all its subpackages.
  *
- * 3. Multi-level wildcard (`**`): `"com.example.**"`
- *    - Matches any number of package levels.
- *    - E.g., `com.example`, `com.example.service`, `com.example.service.user`.
+ * 2. Multi-level scan excluding the root package:
+ *    - `com.example.**` scans only the subpackages of `com.example`, and does not include classes
+ *      directly in `com.example`.
  *
- * Wildcards can be combined and used at any level:
- * - `"com.**.service.*data"`: All packages that ends with "data" in any `service` subpackage.
- * - `"com.*.service.**"`: All classes in `com.X.service` and its subpackages.
+ * 3. Single-level wildcard (*):
+ *    - Example: `com.example.*.service`
+ *       - Matches exactly one level in the package hierarchy.
+ *       - For instance, it matches `com.example.user.service` or `com.example.order.service`,
+ *         but does NOT match `com.example.service` or `com.example.user.impl.service`.
  *
- * @param value The packages to scan. Can be an exact package name or a glob pattern.
- *              Defaults to the package of the annotated element if empty.
+ * Wildcards can be combined at any level:
+ * - Example: `com.**.service.*data`
+ *   - Matches any package where, at some level, a "service" subpackage contains a package ending with "data".
+ * - Example: `com.*.service.**`
+ *   - Scans all classes in any subpackage of a package matching `com.<anything>.service`.
+ *
+ * @param value The packages to scan. Specify either an exact package name or a glob pattern.
+ *              If left empty, the package of the annotated element is used.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(vararg val value: String = [])
