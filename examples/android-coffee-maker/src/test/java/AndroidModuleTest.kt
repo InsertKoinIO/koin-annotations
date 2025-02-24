@@ -16,6 +16,8 @@ import org.koin.sample.androidx.data.DataConsumer
 import org.koin.sample.androidx.data.MyDataConsumer
 import org.koin.sample.androidx.di.AppModule
 import org.koin.sample.androidx.multi.FooB
+import org.koin.sample.androidx.multi.FooC
+import org.koin.sample.androidx.multi.FooD
 import org.koin.sample.androidx.notcovered.IgnoredDefinition
 import org.koin.sample.androidx.repository.RepositoryModule
 import org.koin.sample.multi.FooA
@@ -58,6 +60,8 @@ class AndroidModuleTest {
 
         assertNotEquals(koin.get<FooB>().text,koin.get<FooA>().text)
         assertEquals(koin.get<FooB>().textBase,koin.get<FooA>().textBase)
+        assertNotEquals(koin.get<FooC>().text,koin.get<FooA>().text)
+        assertNotEquals(koin.get<FooD>().text,koin.get<FooA>().text)
 
         stopKoin()
     }

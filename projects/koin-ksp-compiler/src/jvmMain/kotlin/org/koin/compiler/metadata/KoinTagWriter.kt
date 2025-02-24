@@ -187,9 +187,11 @@ class KoinTagWriter(
         """.trimIndent())
     }
 
+    // Compat with KSP1
+    //TODO change for property once KSP2
     private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
         return if (asFunction){
-            "\npublic val $TAG_PREFIX$tagName : Unit = Unit"
+            "\npublic fun $TAG_PREFIX$tagName() : Unit = Unit"
         } else "\npublic class $TAG_PREFIX$tagName"
     }
 }
