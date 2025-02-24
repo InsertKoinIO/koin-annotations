@@ -2,8 +2,6 @@ package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
-import org.koin.compiler.scanner.ext.filterForbiddenKeywords
-import org.koin.compiler.scanner.ext.getPackageName
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.verify.DefinitionVerification
 import org.koin.compiler.verify.qualifiedNameCamelCase
@@ -80,14 +78,12 @@ object TagFactory {
     fun getMetaTag(dep: KoinMetaData.DefinitionParameter.Dependency): String {
         return with(dep) {
             val ksClassDeclaration = (dep.type.declaration as KSClassDeclaration)
-            val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
-            val className = ksClassDeclaration.simpleName.asString()
+            val fullClassName = ksClassDeclaration.qualifiedName?.asString()
             val isExpect = ksClassDeclaration.isExpect
             val isActual = ksClassDeclaration.isActual
 
-            val packageNameConsolidated = packageName + "." + className.capitalize()
             listOfNotNull(
-                packageNameConsolidated,
+                fullClassName,
                 qualifier?.let { "$QUALIFIER_SYMBOL${escapeTagClass(it)}" },
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
