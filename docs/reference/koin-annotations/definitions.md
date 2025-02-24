@@ -3,7 +3,7 @@ title: Definitions with Annotations
 ---
 
 
-Koin Annotations allow to declare the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotation, and it will generate everything for you!
+Koin Annotations allows to declare the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotation, and it will generate everything for you!
 
 For example the equivalent to `single { MyComponent(get()) }` DSL declaration, is just done by tagging with `@Single` like this:
 
@@ -20,9 +20,9 @@ Koin Annotations keep the same semantic as the Koin DSL. You can declare your co
 
 For Scopes, check the [Declaring Scopes](/docs/reference/koin-core/scopes.md) section.
 
-### Generate Compose ViewModel for Kotlin Multipaltform (since 1.4.0)
+### Generate Compose ViewModel for Kotlin Multiplatform (since 1.4.0)
 
-The `@KoinViewModel` annotation can be used to generate either Android or Compsoe KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `KOIN_USE_COMPOSE_VIEWMODEL` option:  
+The `@KoinViewModel` annotation can be used to generate either Android or Compose KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `KOIN_USE_COMPOSE_VIEWMODEL` option:  
 
 ```groovy
 ksp {
@@ -35,7 +35,7 @@ ksp {
 :::
 
 :::note
-    Koin 4.0 should bring merge of those 2 ViewModel DSL into only one, as the ViewModel type argiument comes from teh same library
+    Koin 4.0 should bring merge of those 2 ViewModel DSL into only one, as the ViewModel type argument comes from the same library
 :::
 
 ## Automatic or Specific Binding
@@ -205,4 +205,4 @@ public class ComponentWithProps(
 }
 ```
 
-The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id", ComponentWithProps.DEFAAULT_ID)) }`
+The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id", ComponentWithProps.DEFAULT_ID)) }`
