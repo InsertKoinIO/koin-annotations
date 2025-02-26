@@ -55,6 +55,7 @@ class PlatformModule
 
 // package com.jetbrains.kmpapp.platform 
 
+@Single
 expect class PlatformHelper {
     fun getName() : String
 }

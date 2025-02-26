@@ -17,6 +17,7 @@ Koin Annotations keep the same semantic as the Koin DSL. You can declare your co
 - `@Single` - singleton instance (declared with `single { }` in DSL)
 - `@Factory` - factory instance. For instances recreated each time you need an instance. (declared with `factory { }` in DSL)
 - `@KoinViewModel` - Android ViewModel instance (declared with `viewModel { }` in DSL)
+- `@KoinWorker` - Android Worker Workmanager instance (declared with `worker { }` in DSL)
 
 For Scopes, check the [Declaring Scopes](/docs/reference/koin-core/scopes.md) section.
 
