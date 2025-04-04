@@ -38,7 +38,7 @@ abstract class FunctionScanner(
         qualifier: String?,
         functionName: String,
         ksFunctionDeclaration: KSFunctionDeclaration,
-        annotations: Map<String, KSAnnotation> = emptyMap()
+        annotations: Map<String, List<KSAnnotation>> = emptyMap()
     ): KoinMetaData.Definition.FunctionDefinition? {
         val foundBindings: List<KSDeclaration> = declaredBindings(annotation)?.let { if (!it.hasDefaultUnitValue()) it else emptyList() } ?: emptyList()
         val returnedType: KSDeclaration? = ksFunctionDeclaration.returnType?.resolve()?.declaration

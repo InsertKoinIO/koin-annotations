@@ -74,6 +74,7 @@ annotation class Factory(val binds: Array<KClass<*>> = [Unit::class])
  * example:
  *
  * @Scope(MyScope::class)
+ * @Scope(MyAnotherScope::class)
  * class MyClass(val d : MyDependency)
  *
  * will generate:
@@ -81,11 +82,15 @@ annotation class Factory(val binds: Array<KClass<*>> = [Unit::class])
  * scope<MyScope> {
  *  scoped { MyClass(get()) }
  * }
+ * scope<MyAnotherScope> {
+ *  scoped { MyClass(get()) }
+ * }
  * ```
  *
  * @param value: scope class value
  * @param name: scope string value
  */
+@Repeatable
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class Scope(val value: KClass<*> = Unit::class, val name: String = "")
 

@@ -60,7 +60,7 @@ class ModuleScanner(
             }
             .toList()
 
-        val definitions = annotatedFunctions.mapNotNull { addFunctionDefinition(it) }
+        val definitions = annotatedFunctions.mapNotNull { addFunctionDefinitions(it) }.flatten()
         moduleMetadata.definitions += definitions
 
         return moduleMetadata
@@ -81,7 +81,7 @@ class ModuleScanner(
         return componentScan?.let(::componentsScanValue)?.toSet() ?: emptySet()
     }
 
-    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
+    private fun addFunctionDefinitions(element: KSAnnotated): List<KoinMetaData.Definition>? {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
@@ -90,14 +90,18 @@ class ModuleScanner(
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
             val annotations = element.getKoinAnnotations()
-            val scopeAnnotation = annotations.getScopeAnnotation()
+            val scopeAnnotations = annotations.getScopeAnnotations()
 
-            return if (scopeAnnotation != null){
-                declareDefinition(scopeAnnotation.first, scopeAnnotation.second, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
-            } else {
-                annotations.firstNotNullOf { (annotationName, annotation) ->
-                    declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
+            return if (scopeAnnotations != null) {
+                scopeAnnotations.second.mapNotNull {
+                    declareDefinition(scopeAnnotations.first, it, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
                 }
+            } else {
+                listOf(
+                    annotations.firstNotNullOf { (annotationName, annotation) ->
+                        declareDefinition(annotationName, annotation.single(), packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
+                    }
+                )
             }
         }
     }

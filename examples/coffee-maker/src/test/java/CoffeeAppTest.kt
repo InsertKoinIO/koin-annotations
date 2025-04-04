@@ -21,6 +21,7 @@ import org.koin.example.test.include.IncludedComponent
 import org.koin.example.test.scope.*
 import org.koin.ksp.generated.module
 import org.koin.mp.KoinPlatformTools
+import kotlin.test.*
 import kotlin.time.measureTime
 
 class CoffeeAppTest {
@@ -72,8 +73,48 @@ class CoffeeAppTest {
 
         assert(scopeS.getOrNull<AdditionalTypeScope2>() != null)
 
-        koin.createScope("_ID2_", named(MY_SCOPE_SESSION))
-            .get<MyScopedSessionComponent>()
+        val myScopeSession = koin.createScope("_ID2_", named(MY_SCOPE_SESSION))
+        assertNotNull(myScopeSession.getOrNull<MyScopedSessionComponent>())
+
+        // BEGIN MUltiScope
+        val myAnotherScope = MyAnotherScope()
+        val anotherScopeS = koin.createScope("_ID3_", named<MyAnotherScope>(), myAnotherScope)
+        assertEquals(myScope, scopeS.get<MyScopedComponentMultiScope>().myScope.value)
+        assertFails { scopeS.get<MyScopedComponentMultiScope>().myAnotherScope.value }
+        assertEquals(myAnotherScope, anotherScopeS.get<MyScopedComponentMultiScope>().myAnotherScope.value)
+        assertFails { anotherScopeS.get<MyScopedComponentMultiScope>().myScope.value }
+
+        assertEquals(myScope, scopeS.get<MyScopedComponentMultiScope2>().myScope.value)
+        assertFails { scopeS.get<MyScopedComponentMultiScope2>().myAnotherScope.value }
+        assertEquals(myAnotherScope, anotherScopeS.get<MyScopedComponentMultiScope2>().myAnotherScope.value)
+        assertFails { anotherScopeS.get<MyScopedComponentMultiScope2>().myScope.value }
+
+        assertEquals(myScope, scopeS.get<MyScopedComponentMultiScope3>().myScope.value)
+        assertFails { scopeS.get<MyScopedComponentMultiScope3>().myAnotherScope.value }
+        assertEquals(myAnotherScope, anotherScopeS.get<MyScopedComponentMultiScope3>().myAnotherScope.value)
+        assertFails { anotherScopeS.get<MyScopedComponentMultiScope3>().myScope.value }
+        assertNotEquals(scopeS.get<MyScopedComponentMultiScope3>(), scopeS.get<MyScopedComponentMultiScope3>())
+        assertNotEquals(anotherScopeS.get<MyScopedComponentMultiScope3>(), anotherScopeS.get<MyScopedComponentMultiScope3>())
+
+        assertEquals(myScope, scopeS.get<MyScopedComponentMultiScope4>().myScope.value)
+        assertFails { scopeS.get<MyScopedComponentMultiScope4>().myAnotherScope.value }
+        assertEquals(myAnotherScope, anotherScopeS.get<MyScopedComponentMultiScope4>().myAnotherScope.value)
+        assertFails { anotherScopeS.get<MyScopedComponentMultiScope4>().myScope.value }
+        assertNotEquals(scopeS.get<MyScopedComponentMultiScope4>(), scopeS.get<MyScopedComponentMultiScope4>())
+        assertNotEquals(anotherScopeS.get<MyScopedComponentMultiScope4>(), anotherScopeS.get<MyScopedComponentMultiScope4>())
+
+        assertNotNull(scopeS.getOrNull<AdditionalTypeMultiScope>())
+        assertNotNull(anotherScopeS.getOrNull<AdditionalTypeMultiScope>())
+
+        assertNotNull(scopeS.getOrNull<AdditionalTypeMultiScope2>())
+        assertSame(scopeS.getOrNull<AdditionalTypeMultiScope2>(), scopeS.getOrNull<MyScopedComponentMultiScope5>())
+        assertNotNull(anotherScopeS.getOrNull<AdditionalTypeMultiScope2>())
+        assertSame(anotherScopeS.getOrNull<AdditionalTypeMultiScope2>(), anotherScopeS.getOrNull<MyScopedComponentMultiScope5>())
+
+        assertNotNull(myScopeSession.getOrNull<MyScopedSessionComponentMultiScope>())
+        val myScopeSession2 = koin.createScope("_ID4_", named(MY_SCOPE_SESSION2))
+        assertNotNull(myScopeSession2.getOrNull<MyScopedSessionComponentMultiScope>())
+        // END MUltiScope
 
         assert(koin.get<TestComponentConsumer3>{ parametersOf(null) }.id == null)
         assert(koin.get<TestComponentConsumer3>{ parametersOf("42") }.id == "42")

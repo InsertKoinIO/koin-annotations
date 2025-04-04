@@ -16,22 +16,24 @@
 package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.*
-import org.koin.compiler.metadata.*
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.scanner.ext.getKoinAnnotations
 import org.koin.compiler.scanner.ext.getQualifier
-import org.koin.compiler.scanner.ext.getScopeAnnotation
+import org.koin.compiler.scanner.ext.getScopeAnnotations
 
 class FunctionComponentScanner(
     val logger: KSPLogger
 ) : FunctionScanner(isModuleFunction = false) {
 
-    fun createFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
-        return addFunctionDefinition(element)
+    fun createFunctionDefinitions(element: KSAnnotated): List<KoinMetaData.Definition>? {
+        return addFunctionDefinitions(element)
     }
 
-    private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {
+    private fun addFunctionDefinitions(element: KSAnnotated): List<KoinMetaData.Definition>? {
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.packageName.asString().filterForbiddenKeywords()
         val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
@@ -45,14 +47,18 @@ class FunctionComponentScanner(
             }
 
             val annotations = element.getKoinAnnotations()
-            val scopeAnnotation = annotations.getScopeAnnotation()
+            val scopeAnnotations = annotations.getScopeAnnotations()
 
-            val definition = if (scopeAnnotation != null){
-                declareDefinition(scopeAnnotation.first, scopeAnnotation.second, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
-            } else {
-                annotations.firstNotNullOf { (annotationName, annotation) ->
-                    declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
+            val definition = if (scopeAnnotations != null) {
+                scopeAnnotations.second.mapNotNull {
+                    declareDefinition(scopeAnnotations.first, it, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
                 }
+            } else {
+                listOf(
+                    annotations.firstNotNullOf { (annotationName, annotation) ->
+                        declareDefinition(annotationName, annotation.single(), packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
+                    }
+                )
             }
             definition
         }

@@ -22,16 +22,15 @@ import org.koin.compiler.metadata.isValidAnnotation
 import org.koin.compiler.type.forbiddenKeywords
 import org.koin.core.annotation.*
 
-fun KSAnnotated.getKoinAnnotations(): Map<String, KSAnnotation> {
+fun KSAnnotated.getKoinAnnotations(): Map<String, List<KSAnnotation>> {
     return annotations
         .filter { isValidAnnotation(it.shortName.asString()) }
-        .map { annotation -> Pair(annotation.shortName.asString(), annotation) }
-        .toMap()
+        .groupBy { it.shortName.asString() }
 }
 
-fun Map<String, KSAnnotation>.getScopeAnnotation(): Pair<String, KSAnnotation>? {
-    return firstNotNullOfOrNull { (name, annotation) ->
-        if (isScopeAnnotation(name)) Pair(name, annotation) else null
+fun Map<String, List<KSAnnotation>>.getScopeAnnotations(): Pair<String, List<KSAnnotation>>? {
+    return firstNotNullOfOrNull { (name, annotations) ->
+        if (isScopeAnnotation(name)) Pair(name, annotations) else null
     }
 }
 

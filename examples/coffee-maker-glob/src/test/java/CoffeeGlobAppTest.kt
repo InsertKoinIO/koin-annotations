@@ -24,6 +24,8 @@ import org.koin.example.test.scope.*
 import org.koin.ksp.generated.module
 import org.koin.mp.KoinPlatformTools
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.measureTime
 
@@ -73,10 +75,32 @@ class CoffeeGlobAppTest {
         assert(scopeS.get<MyScopedComponent3>() != scopeS.get<MyScopedComponent3>())
         assert(myScope == scopeS.get<MyScopedComponent4>().myScope)
 
-        assert(scopeS.getOrNull<AdditionalTypeScope2>() != null)
+        assert(myScope == scopeS.get<MyScopedComponentMultiScope>().myScope.value)
+        assert(myScope == scopeS.get<MyScopedComponentMultiScope2>().myScope.value)
+        assert(myScope == scopeS.get<MyScopedComponentMultiScope3>().myScope.value)
+        assert(scopeS.get<MyScopedComponentMultiScope3>() != scopeS.get<MyScopedComponentMultiScope3>())
+        assert(myScope == scopeS.get<MyScopedComponentMultiScope4>().myScope.value)
 
-        koin.createScope("_ID2_", named(MY_SCOPE_SESSION))
-            .get<MyScopedSessionComponent>()
+        assert(scopeS.getOrNull<AdditionalTypeScope2>() != null)
+        assert(scopeS.getOrNull<AdditionalTypeMultiScope2>() != null)
+
+        val myScopeSession = koin.createScope("_ID2_", named(MY_SCOPE_SESSION))
+        assertNotNull(myScopeSession.get<MyScopedSessionComponent>())
+        assertNotNull(myScopeSession.get<MyScopedSessionComponentMultiScope>())
+
+        val myAnotherScope = MyAnotherScope()
+        val anotherScopeS = koin.createScope("_ID3_", named<MyScope>(), myAnotherScope)
+        assert(myAnotherScope == anotherScopeS.get<MyScopedComponentMultiScope>().myAnotherScope.value)
+        assert(myAnotherScope == anotherScopeS.get<MyScopedComponentMultiScope2>().myAnotherScope.value)
+        assert(myAnotherScope == anotherScopeS.get<MyScopedComponentMultiScope3>().myAnotherScope.value)
+        assert(anotherScopeS.get<MyScopedComponentMultiScope3>() != anotherScopeS.get<MyScopedComponentMultiScope3>())
+        assert(myAnotherScope == anotherScopeS.get<MyScopedComponentMultiScope4>().myAnotherScope.value)
+
+        assert(anotherScopeS.getOrNull<AdditionalTypeMultiScope2>() != null)
+
+        val myScopeSession2 = koin.createScope("_ID4_", named(MY_SCOPE_SESSION2))
+        assertNull(myScopeSession2.getOrNull<MyScopedSessionComponent>())
+        assertNotNull(myScopeSession2.get<MyScopedSessionComponentMultiScope>())
 
         assert(koin.get<TestComponentConsumer3>{ parametersOf(null) }.id == null)
         assert(koin.get<TestComponentConsumer3> { parametersOf("42") }.id == "42")
