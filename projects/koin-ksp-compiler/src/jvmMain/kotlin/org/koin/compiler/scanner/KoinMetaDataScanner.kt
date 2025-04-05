@@ -154,8 +154,8 @@ class KoinMetaDataScanner(
 
         val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSFunctionDeclaration>()
-            .mapNotNull { functionMetadataScanner.createFunctionDefinition(it) }
-            .toList()
+            .mapNotNull { functionMetadataScanner.createFunctionDefinitions(it) }
+            .flatten()
 
         definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
         return definitions
@@ -170,8 +170,7 @@ class KoinMetaDataScanner(
 
         val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSClassDeclaration>()
-            .map { componentMetadataScanner.createClassDefinition(it) }
-            .toList()
+            .flatMap { componentMetadataScanner.createClassDefinitions(it) }
         definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
         return definitions
     }

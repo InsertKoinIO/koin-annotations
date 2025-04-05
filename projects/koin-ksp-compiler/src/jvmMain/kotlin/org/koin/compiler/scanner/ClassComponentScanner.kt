@@ -24,19 +24,23 @@ class ClassComponentScanner(
     val logger: KSPLogger,
 ) {
 
-    fun createClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
+    fun createClassDefinitions(element: KSAnnotated): List<KoinMetaData.Definition> {
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
         val className = ksClassDeclaration.simpleName.asString()
         val qualifier = ksClassDeclaration.getQualifier()
         val annotations = element.getKoinAnnotations()
-        val scopeAnnotation = annotations.getScopeAnnotation()
-        return if (scopeAnnotation != null){
-            createClassDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
-        } else {
-            annotations.firstNotNullOf { (annotationName, annotation) ->
-                createClassDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
+        val scopeAnnotations = annotations.getScopeAnnotations()
+        return if (scopeAnnotations != null) {
+            scopeAnnotations.second.map {
+                createClassDefinition(element, it, ksClassDeclaration, scopeAnnotations.first, packageName, qualifier, className, annotations)
             }
+        } else {
+            listOf(
+                annotations.firstNotNullOf { (annotationName, annotation) ->
+                    createClassDefinition(element, annotation.single(), ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
+                }
+            )
         }
     }
 
@@ -48,7 +52,7 @@ class ClassComponentScanner(
         packageName: String,
         qualifier: String?,
         className: String,
-        annotations: Map<String, KSAnnotation> = emptyMap()
+        annotations: Map<String, List<KSAnnotation>> = emptyMap()
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
@@ -77,7 +81,7 @@ class ClassComponentScanner(
             SCOPE.annotationName -> {
                 val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
                 val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
-                val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
+                val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]?.single()
                 val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
                 val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
                 createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)

@@ -55,7 +55,7 @@ fun isValidAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) in 
 fun isValidScopeExtraAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) in SCOPE_DEFINITION_ANNOTATION_LIST_NAMES
 fun isScopeAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) == SCOPE.annotationName?.lowercase(Locale.getDefault())
 
-fun getExtraScopeAnnotation(annotations: Map<String, KSAnnotation>): DefinitionAnnotation? {
+fun getExtraScopeAnnotation(annotations: Map<String, List<KSAnnotation>>): DefinitionAnnotation? {
     val key = annotations.keys.firstOrNull { k -> isValidScopeExtraAnnotation(k) }
     val definitionAnnotation = when (key) {
         SCOPED.annotationName -> SCOPED
