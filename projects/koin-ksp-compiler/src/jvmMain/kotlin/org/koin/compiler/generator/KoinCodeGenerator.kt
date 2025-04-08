@@ -40,7 +40,11 @@ class KoinCodeGenerator(
         generateDefaultModule : Boolean
     ) {
         logger.logging("generate ${moduleList.size} modules ...")
-        moduleList.forEach { if (it.isActual.not() ) generateModule(it) }
+        moduleList.forEach {
+            val isActualWithLocalDefinitions = it.isActual && it.definitions.all { it.isActual.not() }
+            val isNotActual = it.isActual.not()
+            if (isNotActual || isActualWithLocalDefinitions) generateModule(it)
+        }
 
         if (defaultModule.definitions.isNotEmpty()) {
             generateDefaultFile(defaultModule, generateDefaultModule)

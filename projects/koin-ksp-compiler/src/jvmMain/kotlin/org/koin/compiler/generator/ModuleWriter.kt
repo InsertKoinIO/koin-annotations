@@ -18,7 +18,6 @@ package org.koin.compiler.generator
 import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
-import org.koin.compiler.KspOptions
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.ext.getNewFile
@@ -69,7 +68,7 @@ abstract class ModuleWriter(
 
         writeEmptyLine()
 
-        if (module.isActual){
+        if (module.isExpect && module.definitions.isEmpty()) {
             writeModuleFooter(closeBrackets = false)
         } else if (generateModuleBody){
             writeModuleFunction()
@@ -225,10 +224,16 @@ abstract class ModuleWriter(
         if (closeBrackets) {
             writeln(MODULE_FOOTER)
         }
+        val isExpectAndEmpty = module.isExpect && module.definitions.isEmpty()
+        val actualKeyword = when {
+            module.isActual -> "actual "
+            isExpectAndEmpty -> "expect "
+            else -> ""
+        }
 
         val visibilityString = module.visibility.toSourceString()
-        val returnedValue = " get() = $generatedField"
-        writeln("${visibilityString}val $modulePath.module : org.koin.core.module.Module${returnedValue}")
+        val returnedValue = if (!isExpectAndEmpty) " get() = $generatedField" else ""
+        writeln("$actualKeyword${visibilityString}val $modulePath.module : org.koin.core.module.Module${returnedValue}")
     }
 
     open fun onFinishWriteModule() {
