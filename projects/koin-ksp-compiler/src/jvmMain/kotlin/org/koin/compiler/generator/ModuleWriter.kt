@@ -69,9 +69,8 @@ abstract class ModuleWriter(
 
         writeEmptyLine()
 
-        if (module.isExpect){
+        if (module.isActual){
             writeModuleFooter(closeBrackets = false)
-
         } else if (generateModuleBody){
             writeModuleFunction()
             writeModuleInstance()
@@ -228,13 +227,8 @@ abstract class ModuleWriter(
         }
 
         val visibilityString = module.visibility.toSourceString()
-        val actualKeyword = when {
-            module.isActual -> "actual "
-            module.isExpect -> "expect "
-            else -> ""
-        }
-        val returnedValue = if (!module.isExpect) " get() = $generatedField" else ""
-        writeln("${actualKeyword}${visibilityString}val $modulePath.module : org.koin.core.module.Module${returnedValue}")
+        val returnedValue = " get() = $generatedField"
+        writeln("${visibilityString}val $modulePath.module : org.koin.core.module.Module${returnedValue}")
     }
 
     open fun onFinishWriteModule() {
