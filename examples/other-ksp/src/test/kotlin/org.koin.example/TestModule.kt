@@ -25,7 +25,6 @@ import org.koin.example.newmodule.mymodule.MyModule3
 import org.koin.example.newmodule.mymodule.MyOtherComponent3
 import org.koin.example.qualifier.LazyStuffCounter
 import org.koin.example.qualifier.QualifierModule
-import org.koin.example.qualifier.Stuff
 import org.koin.example.qualifier.StuffCounter
 import org.koin.example.qualifier.StuffList
 import org.koin.example.scope.MyScopeFactory
@@ -63,6 +62,7 @@ class TestModule {
                 BindTestsModule().module,
                 QualifierModule().module,
                 InjectedParamModule().module,
+                QualifierModule().module,
             )
         }.koin
 
