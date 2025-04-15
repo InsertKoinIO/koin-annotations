@@ -77,7 +77,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it, availableTypes)
         }
         // Now run cycle detection on the dependency graph.
-        detectDependencyCycles(definitions)
+        //detectDependencyCycles(definitions)
     }
 
     private fun verifyMetaDefinition(dv: DefinitionVerification, availableTypes: List<String>) {
@@ -110,73 +110,74 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         return firstOrNull { a -> a.name?.asString() == name }?.value as? ArrayList<String>?
     }
 
-    /**
-     * Build a dependency graph from all definitions and then
-     * perform a DFS to check for cycles.
-     *
-     * Nodes are identified by the normalized (camelCased) value of the definition,
-     * and each edge comes from a dependency string like "name:Type" (where Type is normalized).
-     */
-    internal fun detectDependencyCycles(definitions: List<DefinitionVerification>) {
-        // Graph: Map<NormalizedDefinition, List<NormalizedDependencies>>
-        val graph = mutableMapOf<String, MutableList<String>>()
-        // Mapping from normalized key back to the original definition value.
-        val normalizedToReal = mutableMapOf<String, String>()
-
-        // First, add every definition as a node in the graph.
-        definitions.forEach { def ->
-            val normalizedKey = def.value.camelCase()
-            graph[normalizedKey] = mutableListOf()
-            normalizedToReal[normalizedKey] = def.value
-        }
-
-        // Then, for each definition, add its dependencies as edges.
-        definitions.forEach { def ->
-            val normalizedKey = def.value.camelCase()
-            // Each dependency is given as a string "property:RealType"
-            val deps = def.dependencies?.mapNotNull { dep ->
-                val parts = dep.split(":")
-                if (parts.size < 2) null
-                else {
-                    // Extract the "real" type name from the dependency.
-                    val realDependency = parts[1].clearPackageSymbols()
-                    val normalizedDep = realDependency.camelCase()
-                    // Only add an edge if the dependency is among the definitions.
-                    if (normalizedDep in graph) normalizedDep else null
-                }
-            }?.toMutableList() ?: mutableListOf()
-            graph[normalizedKey] = deps
-        }
-
-        val visited = mutableSetOf<String>()
-        val recStack = mutableSetOf<String>()
-
-        fun dfs(node: String, path: List<String>) {
-            visited.add(node)
-            recStack.add(node)
-            val newPath = path + node
-            for (neighbor in graph[node] ?: emptyList()) {
-                if (neighbor !in visited) {
-                    dfs(neighbor, newPath)
-                } else if (neighbor in recStack) {
-                    // Cycle detected: extract the cycle portion of the path.
-                    val cycleNormalized = (newPath.dropWhile { it != neighbor } + neighbor)
-                    // Map normalized names back to their real type names.
-                    val cycleReal = cycleNormalized.map { normalizedToReal[it] ?: it }
-                    val cycleString = cycleReal.joinToString(" -> ")
-                    logger.error("--> Dependency cycle detected: $cycleString")
-                }
-            }
-            recStack.remove(node)
-        }
-
-        // Start DFS from every node.
-        for (node in graph.keys) {
-            if (node !in visited) {
-                dfs(node, emptyList())
-            }
-        }
-    }
+    //TODO To be rewritten
+//    /**
+//     * Build a dependency graph from all definitions and then
+//     * perform a DFS to check for cycles.
+//     *
+//     * Nodes are identified by the normalized (camelCased) value of the definition,
+//     * and each edge comes from a dependency string like "name:Type" (where Type is normalized).
+//     */
+//    internal fun detectDependencyCycles(definitions: List<DefinitionVerification>) {
+//        // Graph: Map<NormalizedDefinition, List<NormalizedDependencies>>
+//        val graph = mutableMapOf<String, MutableList<String>>()
+//        // Mapping from normalized key back to the original definition value.
+//        val normalizedToReal = mutableMapOf<String, String>()
+//
+//        // First, add every definition as a node in the graph.
+//        definitions.forEach { def ->
+//            val normalizedKey = def.value.camelCase()
+//            graph[normalizedKey] = mutableListOf()
+//            normalizedToReal[normalizedKey] = def.value
+//        }
+//
+//        // Then, for each definition, add its dependencies as edges.
+//        definitions.forEach { def ->
+//            val normalizedKey = def.value.camelCase()
+//            // Each dependency is given as a string "property:RealType"
+//            val deps = def.dependencies?.mapNotNull { dep ->
+//                val parts = dep.split(":")
+//                if (parts.size < 2) null
+//                else {
+//                    // Extract the "real" type name from the dependency.
+//                    val realDependency = parts[1].clearPackageSymbols()
+//                    val normalizedDep = realDependency.camelCase()
+//                    // Only add an edge if the dependency is among the definitions.
+//                    if (normalizedDep in graph) normalizedDep else null
+//                }
+//            }?.toMutableList() ?: mutableListOf()
+//            graph[normalizedKey] = deps
+//        }
+//
+//        val visited = mutableSetOf<String>()
+//        val recStack = mutableSetOf<String>()
+//
+//        fun dfs(node: String, path: List<String>) {
+//            visited.add(node)
+//            recStack.add(node)
+//            val newPath = path + node
+//            for (neighbor in graph[node] ?: emptyList()) {
+//                if (neighbor !in visited) {
+//                    dfs(neighbor, newPath)
+//                } else if (neighbor in recStack) {
+//                    // Cycle detected: extract the cycle portion of the path.
+//                    val cycleNormalized = (newPath.dropWhile { it != neighbor } + neighbor)
+//                    // Map normalized names back to their real type names.
+//                    val cycleReal = cycleNormalized.map { normalizedToReal[it] ?: it }
+//                    val cycleString = cycleReal.joinToString(" -> ")
+//                    logger.error("--> Dependency cycle detected: $cycleString")
+//                }
+//            }
+//            recStack.remove(node)
+//        }
+//
+//        // Start DFS from every node.
+//        for (node in graph.keys) {
+//            if (node !in visited) {
+//                dfs(node, emptyList())
+//            }
+//        }
+//    }
 }
 
 internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.capitalize() }
