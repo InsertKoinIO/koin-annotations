@@ -1,6 +1,5 @@
 package org.koin.compiler.metadata
 
-import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.verify.DefinitionVerification
@@ -77,10 +76,10 @@ object TagFactory {
 
     fun getMetaTag(dep: KoinMetaData.DefinitionParameter.Dependency): String {
         return with(dep) {
-            val ksClassDeclaration = (dep.type.declaration as KSClassDeclaration)
-            val fullClassName = ksClassDeclaration.qualifiedName?.asString()
-            val isExpect = ksClassDeclaration.isExpect
-            val isActual = ksClassDeclaration.isActual
+            val ksDeclaration = dep.type.declaration
+            val fullClassName = ksDeclaration.qualifiedName?.asString()
+            val isExpect = ksDeclaration.isExpect
+            val isActual = ksDeclaration.isActual
 
             listOfNotNull(
                 fullClassName,
