@@ -20,6 +20,7 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass
@@ -81,10 +82,11 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
     return declaredBindingsTypes?.map { it.declaration }
 }
 
-fun componentsScanValue(annotation: KSAnnotation): List<KoinMetaData.Module.ComponentScan>? {
-    val declaredBindingsTypes = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? List<String>?
-    val values = declaredBindingsTypes ?: listOf("")
-    return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }
+fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.ComponentScan> {
+    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
+    val declaredBindingsTypes = csValue as? List<String>
+    val values = if (declaredBindingsTypes?.isEmpty() == true) listOf("") else declaredBindingsTypes ?: listOf("")
+    return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
 }
 
 fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {

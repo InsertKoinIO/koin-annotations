@@ -58,9 +58,7 @@ class KoinMetaDataScanner(
         resolver: Resolver
     ): List<KoinMetaData.Module> {
         val moduleList = scanClassModules(resolver)
-        LOGGER.warn("scanClassModules: ${moduleList.joinToString { it.packageName+"."+it.name }}")
         val index = moduleList.generateScanComponentIndex()
-        LOGGER.warn("generateScanComponentIndex: ${index.joinToString { it.packageName+"."+it.name }}")
         scanClassComponents(defaultModule, index, resolver)
         scanFunctionComponents(defaultModule, index, resolver)
         scanDefaultProperties(index+defaultModule, resolver)
@@ -127,14 +125,11 @@ class KoinMetaDataScanner(
     private fun List<KoinMetaData.Module>.generateScanComponentIndex(): List<KoinMetaData.Module> {
         val moduleList = hashMapOf<String, KoinMetaData.Module>()
         val emptyScanList = arrayListOf<KoinMetaData.Module>()
-        LOGGER.warn("generateScanComponentIndex -> $size")
         forEach { module ->
-            LOGGER.warn("generateScanComponentIndex ${module.name} - scan:${module.componentsScan} - isExpect:${module.isExpect} isActual:${module.isActual}?")
             module.componentsScan.forEach { scan ->
                 when (scan.packageName) {
                     "" -> emptyScanList.add(module)
                     else -> if (moduleList.anyMatch(scan.packageName)) {
-//                        val existing = moduleList[scan.packageName]!!
                         if (module.isActual || !module.isExpect){
                             moduleList[scan.packageName] = module
                         }
