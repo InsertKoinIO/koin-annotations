@@ -23,6 +23,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.util.anyMatch
@@ -57,7 +58,9 @@ class KoinMetaDataScanner(
         resolver: Resolver
     ): List<KoinMetaData.Module> {
         val moduleList = scanClassModules(resolver)
+        LOGGER.warn("scanClassModules: ${moduleList.joinToString { it.packageName+"."+it.name }}")
         val index = moduleList.generateScanComponentIndex()
+        LOGGER.warn("generateScanComponentIndex: ${index.joinToString { it.packageName+"."+it.name }}")
         scanClassComponents(defaultModule, index, resolver)
         scanFunctionComponents(defaultModule, index, resolver)
         scanDefaultProperties(index+defaultModule, resolver)
@@ -124,7 +127,9 @@ class KoinMetaDataScanner(
     private fun List<KoinMetaData.Module>.generateScanComponentIndex(): List<KoinMetaData.Module> {
         val moduleList = hashMapOf<String, KoinMetaData.Module>()
         val emptyScanList = arrayListOf<KoinMetaData.Module>()
+        LOGGER.warn("generateScanComponentIndex -> $size")
         forEach { module ->
+            LOGGER.warn("generateScanComponentIndex ${module.name} - scan:${module.componentsScan} - isExpect:${module.isExpect} isActual:${module.isActual}?")
             module.componentsScan.forEach { scan ->
                 when (scan.packageName) {
                     "" -> emptyScanList.add(module)
