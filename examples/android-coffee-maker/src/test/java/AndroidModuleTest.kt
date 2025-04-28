@@ -1,7 +1,7 @@
 package org.koin.sample.androidx
 
 import io.ktor.client.HttpClient
-import it.example.component.ExampleSingleton
+import it.example.component.singleton.ExampleSingleton
 import org.junit.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
