@@ -16,9 +16,7 @@
 package org.koin.compiler.scanner.ext
 
 import com.google.devtools.ksp.symbol.*
-import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.metadata.isScopeAnnotation
-import org.koin.compiler.metadata.isValidAnnotation
+import org.koin.compiler.metadata.*
 import org.koin.compiler.type.forbiddenKeywords
 import org.koin.core.annotation.*
 
@@ -46,6 +44,15 @@ fun List<KSValueArgument>.getScope(): KoinMetaData.Scope {
     }
         ?: scopeStringType?.let { KoinMetaData.Scope.StringScope(it) }
         ?: error("Scope annotation needs parameters: either type value or name")
+}
+
+fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>, allBindings : List<KSDeclaration>): Triple<KoinMetaData.Scope, List<KSDeclaration>, DefinitionAnnotation?> {
+    val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
+    val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
+    val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
+    val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
+    val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
+    return Triple(scopeData, extraScopeBindings, extraAnnotationDefinition)
 }
 
 fun List<KSValueArgument>.getNamed(): KoinMetaData.Named {

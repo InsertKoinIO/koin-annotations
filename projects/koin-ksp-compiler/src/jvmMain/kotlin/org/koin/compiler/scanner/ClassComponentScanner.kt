@@ -75,11 +75,7 @@ class ClassComponentScanner(
                 createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             SCOPE.annotationName -> {
-                val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
-                val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
-                val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
-                val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
-                val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
+                val (scopeData, extraScopeBindings, extraAnnotationDefinition) = getAnnotationScopeData(annotation, annotations, allBindings)
                 createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
             }
             else -> error("Unknown annotation type: $annotationName")

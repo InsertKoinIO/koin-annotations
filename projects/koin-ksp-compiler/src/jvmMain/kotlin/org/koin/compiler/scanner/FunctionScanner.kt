@@ -20,7 +20,7 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.getParameters
-import org.koin.compiler.scanner.ext.getScope
+import org.koin.compiler.scanner.ext.getAnnotationScopeData
 
 /**
  * Scan for Koin function component metadata
@@ -64,9 +64,8 @@ abstract class FunctionScanner(
                 createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
             }
             SCOPE.annotationName -> {
-                val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
-                val extraAnnotation = getExtraScopeAnnotation(annotations)
-                createDefinition(extraAnnotation ?: SCOPE,packageName,qualifier,functionName,functionParameters,allBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
+                val (scopeData, extraScopeBindings, extraAnnotationDefinition) = getAnnotationScopeData(annotation, annotations, allBindings)
+                createDefinition(extraAnnotationDefinition ?: SCOPE,packageName,qualifier,functionName,functionParameters, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
             }
             else -> null
         }
