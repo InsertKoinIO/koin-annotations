@@ -4,6 +4,7 @@ import org.junit.Test
 import org.koin.core.Koin
 import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.logger.Level
+import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.koinApplication
@@ -15,6 +16,8 @@ import org.koin.example.by.example.ByModule
 import org.koin.example.defaultparam.COMPONENT_DEFAULT
 import org.koin.example.defaultparam.Component
 import org.koin.example.defaultparam.MyModule
+import org.koin.example.injparam.InjectedParamModule
+import org.koin.example.injparam.MyInjectFactory
 import org.koin.example.`interface`.MyInterfaceExt
 import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
@@ -58,7 +61,8 @@ class TestModule {
                 MyModule().module,
                 SuperTypesModule().module,
                 BindTestsModule().module,
-                QualifierModule().module
+                QualifierModule().module,
+                InjectedParamModule().module,
             )
         }.koin
 
@@ -116,6 +120,9 @@ class TestModule {
 
         assertEquals(2,koin.get<LazyStuffCounter>().lazyCounter.value.list.size)
         assertEquals("lazy",koin.get<LazyStuffCounter>().lazyCounter.value.name)
+
+        val ints = listOf(1,2,3)
+        assertEquals(ints,koin.get<MyInjectFactory>{ parametersOf(ints) }.ints)
     }
 
 
