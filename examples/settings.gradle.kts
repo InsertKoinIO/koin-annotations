@@ -25,4 +25,5 @@ include(
     ":android-coffee-maker",
     ":android-library",
     ":android-library-other",
+    ":cycle-module",
 )
