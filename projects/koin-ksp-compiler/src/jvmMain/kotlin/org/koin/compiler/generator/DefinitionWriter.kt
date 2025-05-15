@@ -44,7 +44,7 @@ class DefinitionWriter(
         if (def.alreadyGenerated == true){
             LOGGER.logging("skip ${def.label} -> ${TagFactory.getTagClass(def)} - already generated")
         } else {
-            if (def.isExpect.not()){
+            if (def.isActual.not()){
                 LOGGER.logging("write definition ${def.label} ...")
 
                 val param = def.parameters.generateParamFunction()
@@ -102,8 +102,9 @@ class DefinitionWriter(
             if (injectedParams.isNotEmpty()) {
                 injectedParams.joinToString(",", "(", ") -> ") {
                     val nullable = if (it.nullable) "?" else ""
-                    val type = it.type.declaration.qualifiedName?.asString()
-                    "${it.name} : ${type}$nullable"
+                    val type = it.type.declaration.qualifiedName?.asString() //TODO write list of types here - Fix #240
+                    val typeArgs = if (it.type.arguments.isNotEmpty()) it.type.arguments.mapNotNull { it.type?.resolve()?.declaration?.qualifiedName?.asString() }.joinToString(",", prefix = "<", postfix = ">") else ""
+                    "${it.name} : ${type}$typeArgs$nullable"
                 }
             } else "_ -> "
         } else "_ -> "

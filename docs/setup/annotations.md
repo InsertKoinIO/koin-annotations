@@ -32,9 +32,9 @@ plugins {
 }
 ```
 
-Latest KSP compatible version: `1.9.24-1.0.20`
+Latest KSP compatible version: `2.0.21-1.0.28`
 
-## Kotlin & Multiplatform
+## Kotlin Multiplatform Setup
 
 In a standard Kotlin/Kotlin Multiplatform project, you need to setup KSP as follow:
 
@@ -48,7 +48,6 @@ In a standard Kotlin/Kotlin Multiplatform project, you need to setup KSP as foll
 plugins {
    id("com.google.devtools.ksp")
 }
-
 
 kotlin {
 
@@ -87,7 +86,7 @@ project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
 
 ```
 
-## Android App Setup
+## Android & Ktor App KSP Setup
 
 - use KSP Gradle plugin
 - add dependency for koin annotations and koin ksp compiler
@@ -95,11 +94,8 @@ project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
 
 ```groovy
 plugins {
-   id("com.google.devtools.ksp")
+   id("com.google.devtools.ksp") version "$ksp_version"
 }
-
-
-android {
 
     dependencies {
         // Koin
@@ -109,16 +105,5 @@ android {
         // Koin Annotations KSP Compiler
         ksp("io.insert-koin:koin-ksp-compiler:$koin_annotations_version")
     }
-
-    // Set KSP sourceSet
-    applicationVariants.all {
-        val variantName = name
-        sourceSets {
-            getByName("main") {
-                java.srcDir(File("build/generated/ksp/$variantName/kotlin"))
-            }
-        }
-    }
 }
-
 ```

@@ -23,6 +23,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.util.anyMatch
@@ -129,13 +130,9 @@ class KoinMetaDataScanner(
                 when (scan.packageName) {
                     "" -> emptyScanList.add(module)
                     else -> if (moduleList.anyMatch(scan.packageName)) {
-                        val existing = moduleList[scan.packageName]!!
                         if (module.isActual || !module.isExpect){
                             moduleList[scan.packageName] = module
                         }
-//                        else {
-//                            logger.error("@ComponentScan with '${scan.packageName}' from module ${module.name} is already declared in ${existing.name}. Please fix @ComponentScan value ")
-//                        }
                     } else {
                         moduleList[scan.packageName] = module
                     }
