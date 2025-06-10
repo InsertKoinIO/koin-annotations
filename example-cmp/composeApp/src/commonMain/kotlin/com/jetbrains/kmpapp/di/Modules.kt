@@ -1,6 +1,7 @@
 package com.jetbrains.kmpapp.di
 
 import com.jetbrains.kmpapp.native.PlatformComponentB
+import com.jetbrains.kmpapp.nativetest.NativeTestModule
 import com.jetbrains.kmpapp.screens.ViewModelModule
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -31,7 +32,7 @@ class DataModule {
 //@ComponentScan("com.jetbrains.kmpapp.screens")
 //class ViewModelModule
 
-@Module(includes = [DataModule::class,ViewModelModule::class, NativeModuleA::class, NativeModuleB::class, NativeModuleC::class])
+@Module(includes = [DataModule::class,ViewModelModule::class, NativeModuleA::class, NativeModuleB::class, NativeModuleC::class, NativeTestModule::class])
 class AppModule
 
 @Module
