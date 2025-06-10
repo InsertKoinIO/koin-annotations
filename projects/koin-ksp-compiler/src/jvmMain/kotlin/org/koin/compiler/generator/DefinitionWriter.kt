@@ -57,7 +57,7 @@ class DefinitionWriter(
                 val space = if (def.isScoped()) TAB + TAB else TAB
 
                 if (isExternalDefinition) {
-                    writeExternalDefinitionFunction(def, qualifier, createAtStart, param, prefix, ctor, binds)
+                    writeExternalDefinitionFunction(def, qualifier, createAtStart, param, prefix, ctor, binds, def.scope?.getTagValue())
                 }
                 else {
                     writeDefinition(space, def, qualifier, createAtStart, param, prefix, ctor, binds)
@@ -90,10 +90,18 @@ class DefinitionWriter(
         param: String,
         prefix: String,
         ctor: String,
-        binds: String
+        binds: String,
+        scopeTag : String? = null
     ) {
+        val definitionString = "${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds"
+        val scopeDefinitionString = if (scopeTag == null) {
+            definitionString
+        } else {
+            "scope<$scopeTag>{ $definitionString }"
+        }
+
         writeln("@ExternalDefinition(\"${def.packageName}\")")
-        writeln("public fun Module.$DEFINE_PREFIX${def.packageName.camelCase()}${def.label}() : KoinDefinition<*> = ${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds")
+        writeln("public fun Module.$DEFINE_PREFIX${def.packageName.camelCase()}${def.label}() : Unit { $scopeDefinitionString }")
     }
 
     private fun List<KoinMetaData.DefinitionParameter>.generateParamFunction(): String {
