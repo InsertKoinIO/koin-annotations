@@ -2,6 +2,7 @@ package org.koin.sample.androidx
 
 import io.ktor.client.HttpClient
 import it.example.component.singleton.ExampleSingleton
+import org.junit.After
 import org.junit.Test
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -14,6 +15,8 @@ import org.koin.sample.android.library.MyScope
 import org.koin.sample.androidx.app.ScopedStuff
 import org.koin.sample.androidx.data.DataConsumer
 import org.koin.sample.androidx.data.MyDataConsumer
+import org.koin.sample.androidx.data.MyDataScope
+import org.koin.sample.androidx.data.ScopeData
 import org.koin.sample.androidx.di.AppModule
 import org.koin.sample.androidx.multi.FooB
 import org.koin.sample.androidx.multi.FooC
@@ -26,6 +29,11 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 
 class AndroidModuleTest {
+
+    @After
+    fun after(){
+        stopKoin()
+    }
 
     @Test
     fun run_all_modules() {
@@ -63,7 +71,6 @@ class AndroidModuleTest {
         assertNotEquals(koin.get<FooC>().text,koin.get<FooA>().text)
         assertNotEquals(koin.get<FooD>().text,koin.get<FooA>().text)
 
-        stopKoin()
     }
 
     @Test
@@ -87,8 +94,8 @@ class AndroidModuleTest {
 
         assert(koin.getOrNull<ExampleSingleton>() != null)
 
-
-        stopKoin()
+        val ds = koin.createScope<MyDataScope>()
+        assertNotNull(ds.getOrNull<ScopeData>())
     }
 
 }
