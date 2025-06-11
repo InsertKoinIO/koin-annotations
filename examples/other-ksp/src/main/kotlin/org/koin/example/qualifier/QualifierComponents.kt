@@ -29,4 +29,11 @@ public class QualifierModule {
 //    public fun lazyCounter(@Named("lazyStuffCounter") counter : StuffCounter) : LazyStuffCounter = LazyStuffCounter(lazy { counter })
      @Single
      public fun lazyCounter(@Named("lazyStuffCounter") counter : Lazy<StuffCounter>) : LazyStuffCounter = LazyStuffCounter(counter)
+
+    @Named("another-counter")
+    @Single
+    public fun anotherList(): StuffList = StuffList(listOf(Stuff("1"),Stuff("2")))
+
+    @Single
+    public fun anotherCounter(@Named("another-counter") stuffs: StuffList): StuffCounter = StuffCounter(stuffs.list,"another-counter")
 }

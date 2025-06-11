@@ -123,6 +123,9 @@ class TestModule {
 
         val ints = listOf(1,2,3)
         assertEquals(ints,koin.get<MyInjectFactory>{ parametersOf(ints) }.ints)
+
+        assertEquals(2,koin.get<StuffList>(named("another-counter")).list.size)
+        assertEquals("another-counter",koin.get<StuffCounter>().name)
     }
 
 

@@ -191,7 +191,7 @@ class KoinTagWriter(
     //TODO change for property once KSP2
     private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
         return if (asFunction){
-            "\npublic fun $TAG_PREFIX$tagName() : Unit = Unit"
-        } else "\npublic class $TAG_PREFIX$tagName"
+            "\npublic fun $TAG_PREFIX${tagName.replace("-","_")}() : Unit = Unit"
+        } else "\npublic class $TAG_PREFIX${tagName.replace("-","_")}"
     }
 }
