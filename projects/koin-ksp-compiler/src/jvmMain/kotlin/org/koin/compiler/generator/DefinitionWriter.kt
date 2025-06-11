@@ -152,9 +152,9 @@ class DefinitionWriter(
         val parents = getParentDeclarations(declaration)
         return if (parents.isNotEmpty()) {
             val parentNames = parents.joinToString(".") { it.simpleName.asString() }
-            "$packageName.$parentNames.$className::class"
+            if (packageName.isNotEmpty()) "$packageName.$parentNames.$className::class" else "$parentNames.$className::class"
         } else {
-            "$packageName.$className::class"
+            if (packageName.isNotEmpty()) "$packageName.$className::class" else "$className::class"
         }
     }
 

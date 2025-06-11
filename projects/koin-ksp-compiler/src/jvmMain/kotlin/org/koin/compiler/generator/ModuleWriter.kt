@@ -105,6 +105,10 @@ abstract class ModuleWriter(
     }
 
     open fun writeHeaderImports(isViewModelMPActive: Boolean) {
+        // import default name
+        if (!module.isDefault && module.packageName.isEmpty() && !module.isSplit) {
+            writeln("import ${module.name}")
+        }
         writeln(generateImports(module.definitions, isViewModelMPActive))
     }
 
