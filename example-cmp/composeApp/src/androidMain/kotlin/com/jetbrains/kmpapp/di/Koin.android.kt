@@ -1,17 +1,18 @@
 package com.jetbrains.kmpapp.di
 
-import com.jetbrains.kmpapp.native.PlatformComponentB
+import com.jetbrains.kmpapp.native.PlatformComponentD
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Module
-
-@Module
-actual class NativeModuleB {
-
-    @Factory
-    actual fun providesPlatformComponentB() = PlatformComponentB()
-}
+import org.koin.core.scope.Scope
 
 @Module
 @ComponentScan("com.jetbrains.kmpapp.other.android")
-actual class NativeModuleC actual constructor()
+actual class NativeModuleC
+
+@Module
+actual class NativeModuleD {
+
+    @Factory
+    actual fun providesPlatformComponentD(scope: Scope) : PlatformComponentD = PlatformComponentD(scope)
+}

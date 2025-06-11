@@ -1,6 +1,7 @@
 package com.jetbrains.kmpapp.di
 
 import com.jetbrains.kmpapp.native.PlatformComponentB
+import com.jetbrains.kmpapp.native.PlatformComponentD
 import com.jetbrains.kmpapp.screens.ViewModelModule
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -11,6 +12,7 @@ import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import org.koin.core.scope.Scope
 
 @Module
 @ComponentScan("com.jetbrains.kmpapp.data")
@@ -27,11 +29,7 @@ class DataModule {
     }
 }
 
-//@Module
-//@ComponentScan("com.jetbrains.kmpapp.screens")
-//class ViewModelModule
-
-@Module(includes = [DataModule::class,ViewModelModule::class, NativeModuleA::class, NativeModuleB::class, NativeModuleC::class])
+@Module(includes = [DataModule::class,ViewModelModule::class, NativeModuleA::class, NativeModuleB::class, NativeModuleC::class, NativeModuleD::class])
 class AppModule
 
 @Module
@@ -40,13 +38,20 @@ class NativeModuleA()
 // Def is Tagged in CommonMain
 
 @Module
-expect class NativeModuleB() {
+class NativeModuleB() {
 
     @Factory
-    fun providesPlatformComponentB() : PlatformComponentB
+    fun providesPlatformComponentB() : PlatformComponentB = PlatformComponentB()
 }
 // Def is Tagged in CommonMain
 
 @Module
 expect class NativeModuleC()
 // No def in commonMain - let scan in native
+
+@Module
+expect class NativeModuleD() {
+
+    @Factory
+    fun providesPlatformComponentD(scope: Scope) : PlatformComponentD
+}

@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.jetbrains.kmpapp.native.PlatformComponentD
 import com.jetbrains.kmpapp.other.android.PlatformComponentC
+import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
@@ -20,6 +22,8 @@ class MainActivity : ComponentActivity() {
         }
 
         println("platformComponentC: ${platformComponentC.sayHello()}")
+
+        println("platformComponentD: ${getKoin().get<PlatformComponentD>().sayHello()}")
     }
 }
 
