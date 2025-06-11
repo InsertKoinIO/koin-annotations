@@ -6,7 +6,7 @@ The goal of Koin Annotations project is to help declare Koin definition in a ver
 
 ## Getting Started
 
-Not familiar with Koin? First take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
+Not familiar with Koin? First, take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
 
 Tag your components with definition & module annotations, and use the regular Koin API.
 
@@ -23,7 +23,7 @@ class MyComponent
 class MyModule
 ```
 
-Use the `org.koin.ksp.generated.*` import as follow to be able to use generated code:
+Use the `org.koin.ksp.generated.*` import as follows to be able to use generated code:
 
 ```kotlin
 // Use Koin Generation
@@ -51,7 +51,7 @@ The Koin compiler offers some options to configure. Following the official doc, 
 
 ### Compile Safety - check your Koin config at compile time (since 1.3.0)
 
-Koin Annotations allows the compiler plugin to verify your Koin configuration at compile time. This can be activated with the following Ksp options, to add to your Gradle module: 
+Koin Annotations allows the compiler plugin to verify your Koin configuration at compile time. This can be activated with the following Ksp options, to add to your Gradle module:
 
 ```groovy
 // in build.gradle or build.gradle.kts
@@ -61,11 +61,11 @@ ksp {
 }
 ```
 
-The compiler will check that all dependencies used in your configuration is declared, and all used modules are accessible.
+The compiler will check that all dependencies used in your configuration are declared, and all used modules are accessible.
 
 ### Bypass Compile Safety with @Provided (since 1.4.0)
 
-Among the ignored type from Compiler (Android common types), the compiler plugin can verify your Koin configuration at compile time. If you want to exclude a parameter from being checked, you can use `@Provided` on a parameter to indicates that this type is provided externally to current Koin Annotations config.
+Among the ignored types from the Compiler (Android common types), the compiler plugin can verify your Koin configuration at compile time. If you want to exclude a parameter from being checked, you can use `@Provided` on a parameter to indicate that this type is provided externally to the current Koin Annotations config.
 
 The following indicates that `MyProvidedComponent` is already declared in Koin:
 
@@ -76,9 +76,9 @@ class MyProvidedComponent
 class MyPresenter(@Provided val provided : MyProvidedComponent)
 ```
 
-### Disabling Default Module (since 1.3.0) 
+### Disabling Default Module (since 1.3.0)
 
-By default, the Koin compiler detect any definition not bound to a module and put it in a "default module", a Koin module generated at the root of your project. You can disable the use and generation of default module with the following option:
+By default, the Koin compiler detects any definition not bound to a module and puts it in a "default module", a Koin module generated at the root of your project. You can disable the use and generation of the default module with the following option:
 
 ```groovy
 // in build.gradle or build.gradle.kts
@@ -90,6 +90,18 @@ ksp {
 
 ### Kotlin KMP Setup
 
-Please follow KSP setup as described in official documentation: [KSP with Kotlin Multiplatform](https://kotlinlang.org/docs/ksp-multiplatform.html)
+Please follow the KSP setup as described in the official documentation: [KSP with Kotlin Multiplatform](https://kotlinlang.org/docs/ksp-multiplatform.html)
 
-You can also check the [Hello Koin KMP](https://github.com/InsertKoinIO/hello-kmp/tree/annotations) project with basic setup for Koin Annotations.
+You can also check the [Hello Koin KMP](https://github.com/InsertKoinIO/hello-kmp/tree/annotations) project with a basic setup for Koin Annotations.
+
+### Pro-Guard
+
+If you intend to embed the Koin Annotations application as an SDK, take a look at those pro-guard rules:
+
+```
+# Keep annotation definitions
+-keep class org.koin.core.annotation.** { *; }
+
+# Keep classes annotated with Koin annotations  
+-keep @org.koin.core.annotation.* class * { *; }
+```
