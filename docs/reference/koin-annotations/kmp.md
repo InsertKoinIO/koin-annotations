@@ -1,5 +1,5 @@
 ---
-title: Annotations for Definitions and Modules in Kotlin Multiplatform App
+title: Kotlin Multiplatform - Definitions and Modules Annotations
 ---
 
 ## KSP Setup
@@ -40,14 +40,15 @@ dependencies {
 }
 ```
 
-## Declaring Common Modules
+## Defining Definitions and Modules in common code, and Manage native parts
 
-In your commonMain sourceSet, you just need to declare a Module to scan the package that will have native implementations of your expect class or function.
+In your commonMain sourceSet, declare your Module, scan for definitions, or define functions as a regular declaration. See [Definitions](definitions.md) and [Modules](./modules.md).
 
-Below we have a `PlatformModule`, scanning in `com.jetbrains.kmpapp.platform` package where we have `PlatformHelper` expect class. The module class is annotated with `@Module` and `@ComponentScan` annotations. 
+Below we have a `PlatformModule`, scanning in `com.jetbrains.kmpapp.platform` package where we have `PlatformHelper` class. The module class is annotated with `@Module` and `@ComponentScan` annotations.
 
 ```kotlin
 // in commonMain
+
 @Module
 @ComponentScan("com.jetbrains.kmpapp.platform")
 class PlatformModule
@@ -59,17 +60,21 @@ class PlatformHelper {
 }
 ```
 
-## Using Modules and Expect/actual for Kotlin Native Components
+In a Kotlin Multiplatform application, some components will need to be implemented specifically per platform. You can share those components at the definition level, with expected/actual on the given class (definition or module). 
+You can share a definition with expect/actual implementation, or a module with expect/actual.
 
-in a Kotlin Multiplatform application you will need to have specific implementation per platform on some components. You can share those components at definition level, with expect/actual on the given class. 
-Or you can share an entire module, with expect/actual on the class module.
+### Sharing Definition - Scanning Expect/Actual class definition from common sources
 
-### Sharing Definitions - Scanning for expect definitions
+From your commonMain code sourceSet, you can scan for expect classes that will have their own implementation on each native platform. Be aware to use `expect/actual` definitions, even on constructors if needed (not using default constructor).
 
-From your commonMain code sourceSet, you can scan for expect classes that will have their own implementation on each native platform. Be aware to use `expect/actual` definitions, even on constructors.
+:::note
+You scan for definitions in commonMain sources. Each expect class, has its implementation in each native source folder.
+:::
 
 In commonMain:
 ```kotlin
+// commonMain
+
 @Module
 @ComponentScan("com.jetbrains.kmpapp.native")
 class NativeModuleA()
@@ -81,35 +86,41 @@ expect class PlatformComponentA() {
 }
 ```
 
-in native sourceSets:
+In native sources:
 
 ```kotlin
 // androidMain
 
 // package com.jetbrains.kmpapp.native
-actual class PlatformComponentA actual constructor() {
+actual class PlatformComponentA {
     actual fun sayHello() : String = "I'm Android - A"
 }
 
 // iOSMain
 
 // package com.jetbrains.kmpapp.native
-actual class PlatformComponentA actual constructor() {
+actual class PlatformComponentA {
     actual fun sayHello() : String = "I'm iOS - A"
 }
 ```
 
-### Sharing Definitions - Module with expect definition function
+### Sharing Definition - Declaring Expect/Actual function definition from common module
 
 From your commonMain code sourceSet, you can define an expect class definition with their own implementation on each native platform. Be aware to use `expect/actual` definitions, even on constructors.
 
+:::note
+You declare definitions in commonMain sources, for given common module. Each expect class, has its implementation in each native source folder.
+:::
+
 In commonMain:
 ```kotlin
+// commonMain
+
 @Module
-expect class NativeModuleB() {
+class NativeModuleB {
 
     @Factory
-    fun providesPlatformComponentB() : PlatformComponentB
+    fun providesPlatformComponentB() : PlatformComponentB = PlatformComponentB()
 }
 
 // package com.jetbrains.kmpapp.native
@@ -118,40 +129,50 @@ expect class PlatformComponentB() {
 }
 ```
 
-in native sourceSets:
+In native sourceSets:
 
 ```kotlin
 // androidMain
 
 // package com.jetbrains.kmpapp.native
-actual class PlatformComponentB actual constructor() {
+actual class PlatformComponentB {
     actual fun sayHello() : String = "I'm Android - B"
 }
 
 // iOSMain
 
 // package com.jetbrains.kmpapp.native
-actual class PlatformComponentB actual constructor() {
+actual class PlatformComponentB {
     actual fun sayHello() : String = "I'm iOS - B"
 }
 ```
 
-### Sharing Module - expect/actual Module
+### Sharing Module - Declaring pure native Module, using expect/actual for Module class
+
+:::note
+You declare a common class Module, with expect/actual. Each platform implementation will scan or declare its own definitions
+:::
+
+:::info
+No definitions are declared in the common Module! Else it won't scan for native components.
+:::
 
 In commonMain:
 ```kotlin
+// commonMain
+
 @Module
 expect class NativeModuleC()
 ```
 
-in native sourceSets:
+In native sourceSets:
 
 ```kotlin
 // androidMain
 
 @Module
 @ComponentScan("com.jetbrains.kmpapp.other.android")
-actual class NativeModuleC actual constructor()
+actual class NativeModuleC
 
 // package com.jetbrains.kmpapp.other.android
 @Factory 
@@ -163,3 +184,48 @@ class PlatformComponentC(val context: Context) {
 :::note
 Your module needs to not have any definition from the commonMain source set, to be considered as used only on the platform. 
 :::
+
+
+### Sharing Definition - Dynamically passing native around components with Expect/Actual definition
+
+Your expect/actual class "contract" is strong. You can't modify a class constructor in one platform, but not in the others.
+
+You can mitigate that, either by scanning on a native module side, or by passing around `scope : Scope` as a regular injection. This allows to request directly Koin with some missing parts.
+
+:::info
+This kind of dynamic part is not backed by the annotations. Use this kind of behavior carefully. 
+:::
+
+In commonMain:
+```kotlin
+// commonMain
+
+@Module
+class NativeModuleD() {
+    
+    //dynamically passing current Koin scope to let resolve side components
+    @Factory 
+    fun providesPlatformComponentD(scope: Scope) : PlatformComponentD = PlatformComponentD(scope)
+}
+
+expect class PlatformComponentD(scope: Scope) {
+    fun sayHello() : String
+}
+```
+
+In native sourceSets:
+
+```kotlin
+// androidMain
+actual class PlatformComponentD actual constructor(scope: Scope) {
+    
+    // use scope to retrieve context
+    val context : Context = scope.get<Context>()
+    actual fun sayHello() : String = "I'm Android - D - with $context"
+}
+
+// iOSMain
+actual class PlatformComponentD actual constructor(scope: Scope) {
+    actual fun sayHello() : String = "I'm iOS - D"
+}
+```
