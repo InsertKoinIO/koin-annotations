@@ -50,8 +50,8 @@ expect class NativeModuleC()
 // No def in commonMain - let scan in native
 
 @Module
-expect class NativeModuleD() {
+class NativeModuleD() {
 
-    @Factory
-    fun providesPlatformComponentD(scope: Scope) : PlatformComponentD
+    @Factory //dynamically passing scope to let resolve side components
+    fun providesPlatformComponentD(scope: Scope) : PlatformComponentD = PlatformComponentD(scope)
 }
