@@ -14,3 +14,8 @@ public class CycleA(private val b : CycleB)
 public class CycleB(private val c : CycleC)
 @Single
 public class CycleC(private val a : CycleA)
+
+@Single
+public class CycleLazyA(private val b : Lazy<CycleLazyB>)
+@Single
+public class CycleLazyB(private val a : Lazy<CycleLazyA>)
