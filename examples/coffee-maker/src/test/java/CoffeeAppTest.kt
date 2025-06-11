@@ -21,6 +21,7 @@ import org.koin.example.test.include.IncludedComponent
 import org.koin.example.test.scope.*
 import org.koin.ksp.generated.module
 import org.koin.mp.KoinPlatformTools
+import kotlin.test.assertNotNull
 import kotlin.time.measureTime
 
 class CoffeeAppTest {
@@ -39,7 +40,8 @@ class CoffeeAppTest {
                 TeaModule().module,
                 org.koin.example.test.ext.ExternalModule().module,
                 ExternalModule().module,
-                ScopeModule().module
+                ScopeModule().module,
+                RootLevelModule().module
             )
         }
 
@@ -84,6 +86,7 @@ class CoffeeAppTest {
         assert(koin.get<PumpCounter>().count == 2)
 
         assert(koin.getOrNull<MyDetachCoffeeComponent>() != null)
+        assertNotNull(koin.getOrNull<RootLevelData>())
 
         stopKoin()
     }
