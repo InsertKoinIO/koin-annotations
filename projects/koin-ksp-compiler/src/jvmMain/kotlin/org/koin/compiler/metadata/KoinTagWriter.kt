@@ -190,8 +190,9 @@ class KoinTagWriter(
     // Compat with KSP1
     //TODO change for property once KSP2
     private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
+        val cleanedTag = tagName.replace("-", "_")//TODO Check for other rules if needed
         return if (asFunction){
-            "\npublic fun $TAG_PREFIX${tagName.replace("-","_")}() : Unit = Unit"
-        } else "\npublic class $TAG_PREFIX${tagName.replace("-","_")}"
+            "\npublic fun $TAG_PREFIX$cleanedTag() : Unit = Unit"
+        } else "\npublic class $TAG_PREFIX$cleanedTag"
     }
 }
