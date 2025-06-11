@@ -122,14 +122,20 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     internal fun detectDependencyCycles(definitions: List<DefinitionVerification>) {
         try {
             definitions.forEach { definition ->
-                if (definition.dependencies?.isNotEmpty() == true){
+                if (definition.dependencies?.isNotEmpty() == true) {
                     definition.dependencies.forEach { dep ->
-                        val tag = cleanUpTag(dep)
-                        val found = findDefinitionFromTag(definitions, tag)
-                        found?.let {
-                            if (!found.dependencies.isNullOrEmpty()) {
-                                lookupCycle(definitions,definition,tag,Stack<DefinitionVerification>().also { it.add(found) })
+                        try {
+                            val tag = cleanUpTag(dep)
+                            val found = findDefinitionFromTag(definitions, tag)
+                            found?.let {
+                                if (!found.dependencies.isNullOrEmpty()) {
+                                    val visited = mutableSetOf<String>()
+                                    visited.add(definition.value)
+                                    lookupCycle(definitions, definition, tag, visited)
+                                }
                             }
+                        } catch (e: Exception) {
+                            logger.error("Error processing dependency '$dep' in '${definition.value}': ${e.message}")
                         }
                     }
                 }
@@ -139,7 +145,17 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         }
     }
 
-    private fun cleanUpTag(dep: String): String = dep.split(":")[1].split("_")[0]
+    private fun cleanUpTag(dep: String): String {
+        return try {
+            val parts = dep.split(":")
+            if (parts.size < 2) {
+                throw IllegalArgumentException("Invalid dependency format: $dep")
+            }
+            parts[1].split("_")[0]
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Failed to parse dependency: $dep", e)
+        }
+    }
 
     private fun findDefinitionFromTag(
         definitions: List<DefinitionVerification>,
@@ -149,28 +165,39 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     private fun lookupCycle(
         allDefinitions: List<DefinitionVerification>,
         originDefinition: DefinitionVerification,
-        originTag: String,
-        stack: Stack<DefinitionVerification>,
+        currentTag: String,
+        visited: MutableSet<String>
     ) {
-        val found = stack.peek()
-        found.dependencies?.forEach { dep ->
-            val tag = cleanUpTag(dep)
-            val cycle = tag == originTag
-            val foundDefinition = findDefinitionFromTag(allDefinitions, tag)
-            if (cycle) {
-                if (stack.size >= 2){
-                    stack.pop()
-                    val before = stack.peek()
-                    logger.error("---> Cycle detected between '${found.value}($dep)' and '${before.value}(${before.dependencies})'")
-                }
+        // Prevent infinite recursion
+        if (visited.size > allDefinitions.size) {
+            logger.error("---> Maximum recursion depth reached while checking dependencies for '${originDefinition.value}'")
+            return
+        }
+
+        val currentDefinition = allDefinitions.firstOrNull { it.value == currentTag } ?: return
+        
+        // If we've seen this node before, we have a cycle
+        if (currentDefinition.value in visited) {
+            // Only report if it's a cycle back to the origin
+            if (currentDefinition.value == originDefinition.value) {
+                val cyclePath = visited.joinToString(" -> ") + " -> " + currentDefinition.value
+                logger.error("---> Cycle detected: $cyclePath")
             }
-            foundDefinition?.let {
-                if (!foundDefinition.dependencies.isNullOrEmpty() && !cycle) {
-                    stack.add(foundDefinition)
-                    lookupCycle(allDefinitions, originDefinition, originTag, stack)
-                }
+            return
+        }
+        
+        visited.add(currentDefinition.value)
+        
+        currentDefinition.dependencies?.forEach { dep ->
+            try {
+                val nextTag = cleanUpTag(dep)
+                lookupCycle(allDefinitions, originDefinition, nextTag, visited)
+            } catch (e: Exception) {
+                logger.error("Error processing dependency '$dep' in '${currentDefinition.value}': ${e.message}")
             }
         }
+        
+        visited.remove(currentDefinition.value)
     }
 }
 

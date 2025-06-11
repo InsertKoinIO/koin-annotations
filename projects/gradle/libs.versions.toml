@@ -4,7 +4,7 @@
 
 # Core
 kotlin = "2.0.21"
-koin = "4.0.2"
+koin = "4.0.4"
 ksp = "2.0.21-1.0.28"
 publish = "2.0.0"
 dokka = "1.9.10"

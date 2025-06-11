@@ -125,9 +125,7 @@ abstract class ModuleWriter(
     }
 
     open fun writeExternalDefinitions() {
-        //Reduce external defs to ClassDefinition for now
-        val standardDefinitions = module.definitions.filter { it.isNotScoped() }
-        standardDefinitions.forEach { definitionFactory.writeDefinition(it, module, isExternal = true) }
+        module.definitions.forEach { definitionFactory.writeDefinition(it, module, isExternal = true) }
     }
 
     open fun writeModuleFunction() {
