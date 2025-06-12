@@ -11,6 +11,7 @@ dokka = "1.9.10"
 
 [libraries]
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-core-annotations = { module = "io.insert-koin:koin-core-annotations", version.ref = "koin" }
 ksp-api = {module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp"}
 
 [plugins]

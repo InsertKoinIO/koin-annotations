@@ -133,18 +133,19 @@ annotation class Named(val value: String = "", val type: KClass<*> = Unit::class
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 annotation class Qualifier(val value: KClass<*> = Unit::class, val name: String = "")
 
-/**
- * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
- *
- * example:
- *
- * @Factory
- * class MyClass(@InjectedParam val d : MyDependency)
- *
- * will result in `factory { params -> MyClass(params.get()) }`
- */
-@Target(AnnotationTarget.VALUE_PARAMETER)
-annotation class InjectedParam
+// In Koin core Annotations 4.1
+///**
+// * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
+// *
+// * example:
+// *
+// * @Factory
+// * class MyClass(@InjectedParam val d : MyDependency)
+// *
+// * will result in `factory { params -> MyClass(params.get()) }`
+// */
+//@Target(AnnotationTarget.VALUE_PARAMETER)
+//annotation class InjectedParam
 
 /**
  * Annotate a constructor parameter or function parameter, to resolve as Koin property
@@ -239,8 +240,9 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(vararg val value: String = [])
 
-/**
- * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
- */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
-annotation class Provided
+// In Koin core Annotations 4.1
+///**
+// * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
+// */
+//@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+//annotation class Provided
