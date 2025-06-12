@@ -1,6 +1,5 @@
 package com.jetbrains.kmpapp.data
 
-import com.jetbrains.kmpapp.native.PlatformComponentA
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
@@ -11,13 +10,11 @@ import org.koin.core.annotation.Single
 class MuseumRepository(
     private val museumApi: MuseumApi,
     private val museumStorage: MuseumStorage,
-    private val component : PlatformComponentA
 ) {
     private val scope = CoroutineScope(SupervisorJob())
 
     init {
         initialize()
-        component.sayHello()
     }
 
     fun initialize() {
