@@ -1,15 +1,18 @@
 [versions]
-agp = "8.2.2"
-androidx-activityCompose = "1.9.3"
-androidx-ui-tooling = "1.7.8"
-compose-plugin = "1.7.3"
+agp = "8.6.1"
+androidx-activityCompose = "1.10.1"
+androidx-ui-tooling = "1.8.2"
+compose-plugin = "1.8.1"
 kamel = "0.9.4"
-koin = "4.0.4"
-koin-annotations = "2.0.1"
-kotlin = "2.0.21"
-ktor = "2.3.12"
-navigationCompose = "2.8.0-alpha10"
-ksp = "2.0.21-1.0.28"
+koin = "4.1.0"
+koin-annotations = "2.1.0"
+kotlin = "2.1.20"
+ktor = "3.1.3"
+materialIconsCore = "1.7.3"
+navigationCompose = "2.9.0-beta01"
+lifecycleCompose = "2.9.0-beta01"
+ksp = "2.1.20-1.0.32"
+coil = "3.2.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -18,15 +21,20 @@ androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling
 kamel = { module = "media.kamel:kamel-image", version.ref = "kamel" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 koin-annotations = {module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations"}
 koin-ksp-compiler = {module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations"}
+
+lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleCompose" }
+material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

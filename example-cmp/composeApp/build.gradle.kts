@@ -47,16 +47,22 @@ kotlin {
             api(project(":data"))
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
+            implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+
+            implementation(libs.navigation.compose)
+            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.material.icons.core)
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
-            implementation(libs.kamel)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
+
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.annotations)
@@ -93,7 +99,7 @@ ksp {
 
 android {
     namespace = "com.jetbrains.kmpapp"
-    compileSdk = 34
+    compileSdk = 35
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -102,7 +108,7 @@ android {
     defaultConfig {
         applicationId = "com.jetbrains.kmpapp"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }

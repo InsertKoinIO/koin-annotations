@@ -4,49 +4,44 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.jetbrains.kmpapp.data.MuseumObject
 import com.jetbrains.kmpapp.screens.EmptyScreenContent
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
 @Composable
 fun ListScreen(
-    navController: NavController,
+    navigateToDetails: (objectId: Int) -> Unit
 ) {
     val viewModel = koinViewModel<ListViewModel>()
-    val objects by viewModel.objects.collectAsState()
+    val objects by viewModel.objects.collectAsStateWithLifecycle()
 
     AnimatedContent(objects.isNotEmpty()) { objectsAvailable ->
         if (objectsAvailable) {
             ObjectGrid(
                 objects = objects,
-                onObjectClick = { objectId ->
-                    navController.navigate("detail/$objectId")
-                }
+                onObjectClick = navigateToDetails,
             )
         } else {
             EmptyScreenContent(Modifier.fillMaxSize())
@@ -60,11 +55,10 @@ private fun ObjectGrid(
     onObjectClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyRow() { }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(180.dp),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp)
+        contentPadding = WindowInsets.safeDrawing.asPaddingValues(),
     ) {
         items(objects, key = { it.objectID }) { obj ->
             ObjectFrame(
@@ -86,8 +80,8 @@ private fun ObjectFrame(
             .padding(8.dp)
             .clickable { onClick() }
     ) {
-        KamelImage(
-            resource = asyncPainterResource(data = obj.primaryImageSmall),
+        AsyncImage(
+            model = obj.primaryImageSmall,
             contentDescription = obj.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -98,8 +92,8 @@ private fun ObjectFrame(
 
         Spacer(Modifier.height(2.dp))
 
-        Text(obj.title, style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold))
-        Text(obj.artistDisplayName, style = MaterialTheme.typography.body2)
-        Text(obj.objectDate, style = MaterialTheme.typography.caption)
+        Text(obj.title, style = MaterialTheme.typography.titleMedium)
+        Text(obj.artistDisplayName, style = MaterialTheme.typography.bodyMedium)
+        Text(obj.objectDate, style = MaterialTheme.typography.bodySmall)
     }
 }

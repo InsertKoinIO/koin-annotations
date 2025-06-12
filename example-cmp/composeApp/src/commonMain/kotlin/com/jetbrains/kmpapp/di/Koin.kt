@@ -10,8 +10,11 @@ import org.koin.mp.KoinPlatform
 
 fun initKoin(config : KoinAppDeclaration ?= null) {
     startKoin {
-        printLogger()
-        includes(config)
+        if (config != null){
+            includes(config)
+        } else {
+            printLogger()
+        }
         modules(
             AppModule().module,
         )
