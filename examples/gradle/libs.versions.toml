@@ -3,15 +3,15 @@
 # /!\ Koin in gradle.properties /!\
 
 # Core
-kotlin = "2.0.21"
-koin = "4.0.4"
-koinAnnotations = "2.0.1"
-ksp = "2.0.21-1.0.28"
+kotlin = "2.1.20"
+koin = "4.1.0"
+koinAnnotations = "2.1.0"
+ksp = "2.1.20-1.0.32"
 junit = "4.13.2"
 # Android
 agp = "8.3.2"
-androidCompat = "1.7.0"
-ktor = "2.3.12"
+androidCompat = "1.7.1"
+ktor = "3.1.3"
 
 [libraries]
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
