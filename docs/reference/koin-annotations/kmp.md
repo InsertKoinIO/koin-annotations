@@ -53,7 +53,11 @@ You can share a definition with expect/actual implementation, or a module with e
 
 Please look at [Multiplatform Expect & Actual Rules](https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-expect-actual.html) documentation for general Kotlin guidance.
 
-### Sharing Definitions for native implementations (Common Module + Expect/Actual Class Definition)
+### Sharing Definitions for native implementations
+
+:::info
+We target sharing with a Common Module + Expect/Actual Class Definition
+:::
 
 For this first classic pattern, you can use both definitions scanning with `@ComponentScan` or declare a definition as a module class function.
 
@@ -130,7 +134,11 @@ actual class PlatformComponentB {
 }
 ```
 
-### Sharing Definitions with different native implementations (Expect/Actual common Module + common Interface + native implementations)
+### Sharing Definitions with different native contracts
+
+:::info
+We target Expect/Actual common Module + common Interface + native implementations
+:::
 
 In some cases, you need different constructor arguments on each native implementation. Then Expect/Actual class is not your solution. 
 You need to go with an `interface` to implement on each platform, and a Expect/Actual class module to allow a module to define your right platform implementation:
@@ -182,6 +190,10 @@ Each time you use manual access to Koin scope, you are doing dynamic wiring. Com
 :::
 
 ### Safely Sharing across platforms with Platform Wrapper
+
+:::info
+Wrap a specific platform component, as a "platform wrapper"
+:::
 
 You can wrap a specific platform component, as a "platform wrapper", to help you minimize dynamic injection.
 
@@ -266,6 +278,10 @@ actual class PlatformComponentA actual constructor(val ctx : ContextWrapper) {
 ```
 
 ### Sharing Expect/Actual Module - rely on Native Module Scanning
+
+:::info
+Relay on a native module from a common module 
+:::
 
 In some cases, you don't want to have constraints, and scan for components on each native side. Define an empty module class in the common source set, and define your implementation on each platform.
 
