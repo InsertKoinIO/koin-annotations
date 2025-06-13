@@ -6,12 +6,13 @@ import com.jetbrains.kmpapp.screens.ViewModelModule
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 import org.koin.core.scope.Scope
 
 @Module(includes = [DataModule::class,ViewModelModule::class, NativeModuleA::class, NativeModuleB::class, NativeModuleC::class, NativeModuleD::class])
 class AppModule
 
-@Module
+@Module(includes = [ContextModule::class])
 @ComponentScan("com.jetbrains.kmpapp.native")
 class NativeModuleA()
 // Def is Tagged in CommonMain
@@ -26,11 +27,20 @@ class NativeModuleB() {
 
 @Module
 expect class NativeModuleC()
-// No def in commonMain - let scan in native
+// No def in commonMain - def are in natives (no constraints)
+
+expect class ContextWrapper
 
 @Module
-class NativeModuleD() {
+expect class ContextModule() {
+
+    @Single
+    fun providesContextWrapper(scope : Scope) : ContextWrapper
+}
+
+@Module(includes = [ContextModule::class])
+expect class NativeModuleD() {
 
     @Factory //dynamically passing scope to let resolve side components
-    fun providesPlatformComponentD(scope: Scope) : PlatformComponentD = PlatformComponentD(scope)
+    fun providesPlatformComponentD(ctx : ContextWrapper) : PlatformComponentD
 }

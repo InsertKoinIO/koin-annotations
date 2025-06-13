@@ -1,5 +1,6 @@
 package com.jetbrains.kmpapp.native
 
+import com.jetbrains.kmpapp.di.ContextWrapper
 import org.koin.core.annotation.Factory
 import org.koin.core.scope.Scope
 
@@ -12,6 +13,11 @@ expect class PlatformComponentB() {
     fun sayHello() : String
 }
 
-expect class PlatformComponentD(scope: Scope) {
+interface PlatformComponentD {
+    fun sayHello() : String
+}
+
+@Factory
+expect class PlatformComponentD2(ctx : ContextWrapper) {
     fun sayHello() : String
 }

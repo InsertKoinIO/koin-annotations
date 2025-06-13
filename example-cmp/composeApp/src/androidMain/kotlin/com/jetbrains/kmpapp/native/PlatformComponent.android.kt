@@ -1,21 +1,23 @@
 package com.jetbrains.kmpapp.native
 
-import android.content.Context
+import com.jetbrains.kmpapp.di.ContextWrapper
 import org.koin.core.annotation.Factory
-import org.koin.core.scope.Scope
 
 @Factory
-actual class PlatformComponentA actual constructor() {
+actual class PlatformComponentA {
     actual fun sayHello() : String = "I'm Android - A"
 }
 
-actual class PlatformComponentB actual constructor() {
+actual class PlatformComponentB {
 
     actual fun sayHello() : String = "I'm Android - B"
 }
 
-actual class PlatformComponentD actual constructor(scope: Scope) {
-    
-    val context : Context = scope.get<Context>()
-    actual fun sayHello() : String = "I'm Android - D - with $context"
+class PlatformComponentDAndroid(val ctx : ContextWrapper) : PlatformComponentD{
+    override fun sayHello() : String = "I'm Android - D - with ${ctx.context}"
+}
+
+@Factory
+actual class PlatformComponentD2 actual constructor(val ctx : ContextWrapper) {
+    actual fun sayHello() : String = "I'm Android - D2 - ${ctx.context}"
 }

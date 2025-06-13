@@ -22,7 +22,6 @@ class MainActivity : ComponentActivity() {
         }
 
         println("platformComponentC: ${platformComponentC.sayHello()}")
-
         println("platformComponentD: ${getKoin().get<PlatformComponentD>().sayHello()}")
     }
 }
