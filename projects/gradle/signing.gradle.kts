@@ -10,6 +10,15 @@ fun getSigningPassword(): String =
     findProperty("SIGNING_PASSWORD")?.toString() ?: System.getenv("SIGNING_PASSWORD") ?: ""
 
 if (isReleaseBuild()) {
+
+    tasks.withType<PublishToMavenLocal>().configureEach {
+        dependsOn(tasks.withType<Sign>())
+    }
+
+    tasks.matching { it.name.endsWith("ToNmcpRepository") }.configureEach {
+        dependsOn(tasks.withType<Sign>())
+    }
+
     configure<SigningExtension> {
         useInMemoryPgpKeys(
             getSigningKeyId(),
