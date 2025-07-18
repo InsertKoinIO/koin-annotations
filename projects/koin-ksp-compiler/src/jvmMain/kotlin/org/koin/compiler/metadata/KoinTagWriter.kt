@@ -11,14 +11,10 @@ import org.koin.compiler.resolver.tagPropAlreadyExists
 import org.koin.compiler.type.fullWhiteList
 import org.koin.compiler.verify.*
 import java.io.OutputStream
-import java.nio.file.Files
-import java.security.DigestOutputStream
 import java.security.MessageDigest
-import kotlin.io.path.createTempFile
-import kotlin.io.path.outputStream
 
 const val TAG_PREFIX = "_KSP_"
-// Avoid looooong name with full SHA as file name. Let's take 8 first digits
+// Avoid looooong name with full SHA as file name. Let's take first digits
 private const val TAG_FILE_HASH_LIMIT = 8
 
 class KoinTagWriter(
@@ -55,20 +51,27 @@ class KoinTagWriter(
         moduleList: List<KoinMetaData.Module>,
         default: KoinMetaData.Module,
     ) {
-        val allDefinitions = (moduleList + default).flatMap { it.definitions }
-        val tempFile = createTempFile("KoinMeta", ".kt")
-        val sha256 = MessageDigest.getInstance("SHA-256");
-        DigestOutputStream(tempFile.outputStream(), sha256).buffered().use {
+        val allModules = moduleList.sortedBy { "${it.packageName}.${it.name}" }
+        val allDefinitions = (allModules + default).flatMap { it.definitions }.sortedBy { it.label }
+        
+        // Generate deterministic hash from sorted content
+        val content = (allModules.map { "${it.packageName}.${it.name}" } + allDefinitions.map { it.label })
+            .joinToString(KOIN_TAG_SEPARATOR)
+
+        val sha1 = MessageDigest.getInstance("SHA1")
+        val hash = sha1.digest(content.toByteArray(Charsets.UTF_8))
+        val hashString = hash.joinToString("") { "%02x".format(it) }
+            .take(TAG_FILE_HASH_LIMIT)
+
+        val tagFileName = "KoinMeta-$hashString"
+        writeTagFile(tagFileName).buffered().use {
             _tagFileStream = it
             if (isConfigCheckActive){
                 writeImports()
             }
-            writeModuleTags(moduleList)
+            writeModuleTags(allModules)
             writeDefinitionsTags(allDefinitions)
         }
-
-        val tagFileName = "KoinMeta-${sha256.digest().toHexString(HexFormat.Default).take(TAG_FILE_HASH_LIMIT)}"
-        writeTagFile(tagFileName).buffered().use { Files.copy(tempFile, it) }
     }
 
     private fun writeModuleTags(

@@ -39,7 +39,7 @@ class KoinCodeGenerator(
         defaultModule: KoinMetaData.Module,
         generateDefaultModule : Boolean
     ) {
-        logger.logging("generate ${moduleList.size} modules ...")
+        logger.info("generate ${moduleList.size} modules ...")
         moduleList.forEach {
             val isActualWithLocalDefinitions = it.isActual && it.definitions.all { it.isActual.not() }
             val isNotActual = it.isActual.not()
@@ -55,7 +55,7 @@ class KoinCodeGenerator(
         defaultModule: KoinMetaData.Module,
         generateDefaultModule: Boolean
     ) {
-        logger.logging("generate default file ...")
+        logger.info("generate default file ...")
 
         checkAlreadyGenerated(defaultModule)
         val hasDefaultDefinitions = defaultModule.definitions.any { resolver.getResolution(it) == null }
