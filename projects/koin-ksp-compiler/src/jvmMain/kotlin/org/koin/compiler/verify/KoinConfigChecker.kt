@@ -178,11 +178,10 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         
         // If we've seen this node before, we have a cycle
         if (currentDefinition.value in visited) {
-            // Only report if it's a cycle back to the origin
-            if (currentDefinition.value == originDefinition.value) {
-                val cyclePath = visited.joinToString(" -> ") + " -> " + currentDefinition.value
-                logger.error("---> Cycle detected: $cyclePath")
-            }
+            // Report any cycle, not just back to origin
+            val cycleStart = visited.toList().indexOf(currentDefinition.value)
+            val cyclePath = visited.toList().subList(cycleStart, visited.size).joinToString(" -> ") + " -> " + currentDefinition.value
+            logger.error("---> Cycle detected: $cyclePath")
             return
         }
         
@@ -201,4 +200,4 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 }
 
-internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.capitalize() }
+internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.replaceFirstChar { it.uppercase() } }
