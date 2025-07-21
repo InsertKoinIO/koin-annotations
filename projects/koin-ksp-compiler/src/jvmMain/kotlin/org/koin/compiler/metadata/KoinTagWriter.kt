@@ -51,17 +51,15 @@ class KoinTagWriter(
         moduleList: List<KoinMetaData.Module>,
         default: KoinMetaData.Module,
     ) {
-        val allModules = moduleList.sortedBy { "${it.packageName}.${it.name}" }
+        val allModules = moduleList.sortedBy { it.name }
         val allDefinitions = (allModules + default).flatMap { it.definitions }.sortedBy { it.label }
         
         // Generate deterministic hash from sorted content
-        val content = (allModules.map { "${it.packageName}.${it.name}" } + allDefinitions.map { it.label })
-            .joinToString(KOIN_TAG_SEPARATOR)
+        val contentBuilder = StringBuilder()
+        allModules.forEach { contentBuilder.append(it.name) }
+        allDefinitions.forEach { contentBuilder.append(it.label) }
 
-        val sha1 = MessageDigest.getInstance("SHA1")
-        val hash = sha1.digest(content.toByteArray(Charsets.UTF_8))
-        val hashString = hash.joinToString("") { "%02x".format(it) }
-            .take(TAG_FILE_HASH_LIMIT)
+        val hashString = hashContent(contentBuilder.toString())
 
         val tagFileName = "KoinMeta-$hashString"
         writeTagFile(tagFileName).buffered().use {
@@ -197,5 +195,15 @@ class KoinTagWriter(
         return if (asFunction){
             "\npublic fun $TAG_PREFIX$cleanedTag() : Unit = Unit"
         } else "\npublic class $TAG_PREFIX$cleanedTag"
+    }
+
+    companion object {
+        val sha1 = MessageDigest.getInstance("SHA1")
+        fun hashContent(content : String): String {
+            val hash = sha1.digest(content.toByteArray(Charsets.UTF_8))
+            val hashString = hash.joinToString("") { "%02x".format(it) }
+                .take(TAG_FILE_HASH_LIMIT)
+            return hashString
+        }
     }
 }
