@@ -17,6 +17,7 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.*
 
@@ -52,7 +53,8 @@ class ClassComponentScanner(
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-        val allBindings: List<KSDeclaration> = if (declaredBindings?.hasDefaultUnitValue() == false) declaredBindings else defaultBindings
+        val forceDeclaredBindings = declaredBindings?.hasDefaultUnitValue() == false && declaredBindings.isNotEmpty()
+        val allBindings: List<KSDeclaration> = if (forceDeclaredBindings) declaredBindings else defaultBindings
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
 
         val isExpect = ksClassDeclaration.isExpect
@@ -68,8 +70,8 @@ class ClassComponentScanner(
             FACTORY.annotationName -> {
                 createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
-            KOIN_VIEWMODEL_ANDROID.annotationName -> {
-                createClassDefinition(KOIN_VIEWMODEL_ANDROID,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
+            KOIN_VIEWMODEL.annotationName -> {
+                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_WORKER.annotationName -> {
                 createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
