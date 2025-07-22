@@ -37,6 +37,7 @@ import org.koin.example.supertype.D
 import org.koin.example.supertype.SuperTypesModule
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -131,7 +132,8 @@ class TestModule {
 
 
     private fun randomGetAnimal(koin: Koin): Animal {
-        val a = koin.get<Animal>()
+        val animals = koin.getAll<Animal>()
+        val a = animals[Random.nextInt(animals.size)]
         println("animal: $a")
         return a
     }
