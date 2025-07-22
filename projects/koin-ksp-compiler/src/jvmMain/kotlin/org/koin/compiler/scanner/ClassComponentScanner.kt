@@ -72,6 +72,9 @@ class ClassComponentScanner(
             FACTORY.annotationName -> {
                 createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
+            INJECT.annotationName -> {
+                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
+            }
             KOIN_VIEWMODEL.annotationName -> {
                 createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
