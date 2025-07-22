@@ -1,5 +1,6 @@
 package org.koin.example.test.ext
 
+import jakarta.inject.Singleton
 import org.koin.core.annotation.*
 import org.koin.example.test.include.IncludedModule
 

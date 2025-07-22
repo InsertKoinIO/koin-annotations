@@ -1,6 +1,6 @@
 package org.koin.example.coffee
 
-import org.koin.core.annotation.Singleton
+import jakarta.inject.Singleton
 import org.koin.example.coffee.pump.Pump
 
 @Singleton
