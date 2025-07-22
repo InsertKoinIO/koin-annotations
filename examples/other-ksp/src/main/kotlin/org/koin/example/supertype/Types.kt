@@ -16,3 +16,10 @@ public interface D
 
 @Single
 public class C : B(),D
+
+
+class MyType {
+
+    @Single
+    class MyChildType
+}
