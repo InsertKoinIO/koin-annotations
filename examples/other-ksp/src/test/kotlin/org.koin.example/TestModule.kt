@@ -34,6 +34,7 @@ import org.koin.example.supertype.A
 import org.koin.example.supertype.B
 import org.koin.example.supertype.C
 import org.koin.example.supertype.D
+import org.koin.example.supertype.MyType
 import org.koin.example.supertype.SuperTypesModule
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
@@ -126,6 +127,8 @@ class TestModule {
 
         assertEquals(2,koin.get<StuffList>(named("another-counter")).list.size)
         assertEquals("another-counter",koin.get<StuffCounter>().name)
+
+        assertNotNull(koin.getOrNull<MyType.MyChildType>())
     }
 
 
