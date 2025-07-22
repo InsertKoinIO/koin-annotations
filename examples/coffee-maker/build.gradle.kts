@@ -18,7 +18,6 @@ repositories {
 dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.annotations)
-    implementation(libs.koin.jsr330)
     ksp(libs.koin.ksp)
     implementation(project(":coffee-maker-module"))
 

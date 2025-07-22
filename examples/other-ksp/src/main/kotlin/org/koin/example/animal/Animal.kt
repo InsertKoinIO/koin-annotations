@@ -1,5 +1,6 @@
 package org.koin.example.animal
 
+import jakarta.inject.Qualifier
 import org.koin.core.annotation.*
 import kotlin.random.Random
 

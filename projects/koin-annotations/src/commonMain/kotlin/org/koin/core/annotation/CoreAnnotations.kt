@@ -46,6 +46,7 @@ annotation class Single(val binds: Array<KClass<*>> = [Unit::class], val created
  * same as @Single
  * @see Single
  */
+//TODO to be removed in favor of jsr330
 @Deprecated("in favor of koin-jsr330 - @Singleton", level = DeprecationLevel.ERROR)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class Singleton(val binds: Array<KClass<*>> = [Unit::class], val createdAtStart: Boolean = false)
