@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 
 include(
     // Core
+    ":koin-jsr330",
     ":koin-annotations",
     ":koin-ksp-compiler",
     ":koin-annotations-bom",
