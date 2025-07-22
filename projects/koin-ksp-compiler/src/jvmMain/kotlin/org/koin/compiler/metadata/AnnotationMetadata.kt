@@ -20,7 +20,6 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass
@@ -29,26 +28,27 @@ data class DefinitionAnnotation(
     val keyword: String,
     val import: String? = null,
     val annotationType: KClass<*>
+    //TODO make aliases
 ) {
     val annotationName = annotationType.simpleName
 }
 
 val SINGLE = DefinitionAnnotation("single", annotationType = Single::class)
+//TODO make aliases
 val SINGLETON = DefinitionAnnotation("single", annotationType = Singleton::class)
 val FACTORY = DefinitionAnnotation("factory", annotationType = Factory::class)
 val SCOPE = DefinitionAnnotation("scoped", annotationType = Scope::class)
 val SCOPED = DefinitionAnnotation("scoped", annotationType = Scoped::class)
-
 val KOIN_VIEWMODEL_ANDROID = DefinitionAnnotation("viewModel", "org.koin.androidx.viewmodel.dsl.viewModel", KoinViewModel::class)
-val KOIN_VIEWMODEL_MP = DefinitionAnnotation("viewModel", "org.koin.core.module.dsl.viewModel", KoinViewModel::class)
+val KOIN_VIEWMODEL = DefinitionAnnotation("viewModel", "org.koin.core.module.dsl.viewModel", KoinViewModel::class)
 
 val KOIN_WORKER = DefinitionAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
 
-val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, SCOPE, SCOPED,KOIN_VIEWMODEL_ANDROID, KOIN_WORKER)
+val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, SCOPE, SCOPED,KOIN_VIEWMODEL, KOIN_WORKER)
 val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationType }
 val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationName?.lowercase(Locale.getDefault()) }
 
-val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY, KOIN_VIEWMODEL_ANDROID, KOIN_WORKER)
+val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY, KOIN_VIEWMODEL, KOIN_WORKER)
 val SCOPE_DEFINITION_ANNOTATION_LIST_NAMES = SCOPE_DEFINITION_ANNOTATION_LIST.map { it.annotationName?.lowercase(Locale.getDefault()) }
 
 
@@ -61,7 +61,7 @@ fun getExtraScopeAnnotation(annotations: Map<String, KSAnnotation>): DefinitionA
     val definitionAnnotation = when (key) {
         SCOPED.annotationName -> SCOPED
         FACTORY.annotationName -> FACTORY
-        KOIN_VIEWMODEL_ANDROID.annotationName -> KOIN_VIEWMODEL_ANDROID
+        KOIN_VIEWMODEL.annotationName -> KOIN_VIEWMODEL
         KOIN_WORKER.annotationName -> KOIN_WORKER
         else -> null
     }

@@ -19,6 +19,7 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinCodeGenerator
+import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
@@ -117,6 +118,9 @@ class BuilderProcessor(
     // Allow to disable usage of ViewModel MP API and
     private fun isKoinViewModelMPActive(): Boolean {
         val option = options.getOrDefault(KOIN_USE_COMPOSE_VIEWMODEL.name, "true") == true.toString()
+        if (!option) {
+            logger.warn("[Deprecation] 'KOIN_USE_COMPOSE_VIEWMODEL' is now enabled by default. Please use 'KOIN_USE_COMPOSE_VIEWMODEL' = true, to activate latest ViewModel API with '${KOIN_VIEWMODEL.import}'")
+        }
         return option
     }
 

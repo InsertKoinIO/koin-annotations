@@ -20,12 +20,13 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.generator.ext.getNewFile
-import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
-import org.koin.compiler.metadata.KOIN_VIEWMODEL_MP
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
+import org.koin.compiler.metadata.KOIN_VIEWMODEL
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
 import org.koin.compiler.type.clearPackageSymbols
 import java.io.OutputStream
 
@@ -119,8 +120,9 @@ abstract class ModuleWriter(
         return definitions.map { definition -> definition.keyword }
             .toSet()
             .mapNotNull { keyword ->
-                if (isViewModelMPActive && keyword == KOIN_VIEWMODEL_ANDROID) {
-                    KOIN_VIEWMODEL_MP.import.let { "import $it" }
+                if (!isViewModelMPActive && keyword == KOIN_VIEWMODEL) {
+                    LOGGER.warn("[Warning] KOIN_USE_COMPOSE_VIEWMODEL is deprecated and will be used by default. Please use 'KOIN_USE_COMPOSE_VIEWMODEL' = true, with '${KOIN_VIEWMODEL.import}'")
+                    keyword.import?.let { "import ${KOIN_VIEWMODEL_ANDROID.import}" }
                 } else {
                     keyword.import?.let { "import $it" }
                 }
