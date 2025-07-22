@@ -81,7 +81,12 @@ fun List<KSValueArgument>.getQualifier(): KoinMetaData.Qualifier {
             ?: error("Qualifier annotation needs parameters: either type value or name")
 }
 
-private val qualifierAnnotations = listOf(Named::class.simpleName, Qualifier::class.simpleName)
+private val qualifierAnnotations = listOf(
+    Named::class.simpleName,
+    Qualifier::class.simpleName,
+    jakarta.inject.Qualifier::class.simpleName,
+    jakarta.inject.Named::class.simpleName
+)
 
 fun KSAnnotation.hasQualifier(): Boolean {
     val annotationName = shortName.asString()
@@ -92,6 +97,7 @@ fun KSAnnotation.getQualifier(): String? {
     return when(shortName.asString()){
         "${Named::class.simpleName}" -> arguments.getNamed().getValue()
         "${Qualifier::class.simpleName}" -> arguments.getQualifier().getValue()
+        "${jakarta.inject.Named::class.simpleName}" -> arguments.getNamed().getValue()
         else -> annotationType.resolve().declaration.qualifiedName?.asString()
     }
 }
