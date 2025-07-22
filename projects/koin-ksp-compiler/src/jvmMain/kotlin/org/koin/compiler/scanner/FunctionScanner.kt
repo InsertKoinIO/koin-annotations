@@ -57,8 +57,8 @@ abstract class FunctionScanner(
             FACTORY.annotationName -> {
                 createDefinition(FACTORY,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
             }
-            KOIN_VIEWMODEL_ANDROID.annotationName -> {
-                createDefinition(KOIN_VIEWMODEL_ANDROID,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
+            KOIN_VIEWMODEL.annotationName -> {
+                createDefinition(KOIN_VIEWMODEL,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_WORKER.annotationName -> {
                 createDefinition(KOIN_WORKER,packageName,qualifier,functionName,functionParameters,allBindings, isExpect = isExpect, isActual = isActual)
