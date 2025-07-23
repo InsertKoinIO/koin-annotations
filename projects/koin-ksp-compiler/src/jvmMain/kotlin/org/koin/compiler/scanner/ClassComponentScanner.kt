@@ -17,7 +17,6 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.*
 
@@ -35,16 +34,15 @@ class ClassComponentScanner(
         val scopeAnnotation = annotations.getScopeAnnotation()
 
         return if (scopeAnnotation != null){
-            createClassDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
+            createClassDefinition(scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
         } else {
             annotations.firstNotNullOf { (annotationName, annotation) ->
-                createClassDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
+                createClassDefinition(annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
             }
         }
     }
 
     private fun createClassDefinition(
-        element: KSAnnotated,
         annotation: KSAnnotation,
         ksClassDeclaration: KSClassDeclaration,
         annotationName: String,
