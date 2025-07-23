@@ -29,7 +29,8 @@ import kotlin.reflect.KClass
 data class DefinitionAnnotation(
     val keyword: String,
     val import: String? = null,
-    val annotationType: KClass<*>
+    val annotationType: KClass<*>,
+    val parentKeyword: DefinitionAnnotation? = null,
 ) {
     val annotationName = annotationType.simpleName
 }

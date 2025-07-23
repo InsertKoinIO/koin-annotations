@@ -72,8 +72,6 @@ class ClassComponentScanner(
             val scopeData = scopeValues?.scopeData
             val extraAnnotationDefinition = scopeValues?.extraAnnotationDefinition
 
-            if (foundAnnotation == SCOPE) logger.warn("${foundAnnotation.annotationName} -> $className : sv: $scopeValues")
-
             KoinMetaData.Definition.ClassDefinition(
                 packageName = packageName,
                 qualifier = qualifier,

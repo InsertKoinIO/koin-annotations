@@ -55,7 +55,7 @@ fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, K
     val annotationName = annotation.shortName.asString()
     return if (annotationName in SCOPE_ARCHETYPES_LIST_NAMES) {
         val annotation = SCOPE_ARCHETYPES_MAP[annotationName] ?: error("can't find $annotationName in Scope Archetypes Annotations")
-        ScopeDataValues(KoinMetaData.Scope.ArchetypeScope(annotation.keyword), SCOPED)
+        ScopeDataValues(KoinMetaData.Scope.ArchetypeScope(annotation.keyword), SCOPED.copy(parentKeyword = annotation))
     } else {
         val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
         val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)

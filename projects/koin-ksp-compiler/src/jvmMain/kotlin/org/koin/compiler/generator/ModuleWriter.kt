@@ -117,14 +117,14 @@ abstract class ModuleWriter(
         definitions: List<KoinMetaData.Definition>,
         isViewModelMPActive: Boolean
     ): String {
-        return definitions.map { definition -> definition.keyword }
+        return definitions.flatMap { definition -> listOf(definition.keyword, definition.keyword.parentKeyword) }
             .toSet()
             .mapNotNull { keyword ->
                 if (!isViewModelMPActive && keyword == KOIN_VIEWMODEL) {
                     LOGGER.warn("[Warning] KOIN_USE_COMPOSE_VIEWMODEL is deprecated and will be used by default. Please use 'KOIN_USE_COMPOSE_VIEWMODEL' = true, with '${KOIN_VIEWMODEL.import}'")
                     keyword.import?.let { "import ${KOIN_VIEWMODEL_ANDROID.import}" }
                 } else {
-                    keyword.import?.let { "import $it" }
+                    keyword?.import?.let { "import $it" }
                 }
             }
             .joinToString(separator = "\n")
