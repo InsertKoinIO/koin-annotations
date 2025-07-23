@@ -48,17 +48,19 @@ fun List<KSValueArgument>.getScope(): KoinMetaData.Scope {
 
 data class ScopeDataValues(
     val scopeData: KoinMetaData.Scope,
-    val extraScopeBindings: List<KSDeclaration>,
     val extraAnnotationDefinition: DefinitionAnnotation?
 )
 
-fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>, allBindings : List<KSDeclaration>): ScopeDataValues {
-    val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
-    val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
-    val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
-    val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
-    val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
-    return ScopeDataValues(scopeData, extraScopeBindings, extraAnnotationDefinition)
+fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>): ScopeDataValues {
+    val annotationName = annotation.shortName.asString()
+    return if (annotationName in SCOPE_ARCHETYPES_LIST_NAMES) {
+        val annotation = SCOPE_ARCHETYPES_MAP[annotationName] ?: error("can't find $annotationName in Scope Archetypes Annotations")
+        ScopeDataValues(KoinMetaData.Scope.ArchetypeScope(annotation.keyword), SCOPED)
+    } else {
+        val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
+        val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
+        ScopeDataValues(scopeData, extraAnnotationDefinition)
+    }
 }
 
 fun List<KSValueArgument>.getNamed(): KoinMetaData.Named {

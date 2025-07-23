@@ -205,6 +205,11 @@ abstract class ModuleWriter(
                 "${TAB}scope<$packageName.$className> {"
             }
 
+            is KoinMetaData.Scope.ArchetypeScope -> {
+                val archetype = scope.name
+                "${TAB}$archetype {"
+            }
+
             is KoinMetaData.Scope.StringScope -> "${TAB}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {"
         }
     }

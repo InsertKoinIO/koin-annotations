@@ -56,7 +56,7 @@ abstract class FunctionScanner(
             // single case
             val createdAtStart: Boolean? = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
             // scope case
-            val scopeValues = if (foundAnnotation == SCOPE) getAnnotationScopeData(annotation, annotations, allBindings) else null
+            val scopeValues = if (foundAnnotation == SCOPE) getAnnotationScopeData(annotation, annotations) else null
             val scopeData = scopeValues?.scopeData
             val extraAnnotationDefinition = scopeValues?.extraAnnotationDefinition
 

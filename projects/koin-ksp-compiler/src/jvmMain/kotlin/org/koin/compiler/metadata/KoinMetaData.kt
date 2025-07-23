@@ -95,6 +95,7 @@ sealed class KoinMetaData {
     }
 
     sealed class Scope {
+        data class ArchetypeScope(val name: String) : Scope()
         data class ClassScope(val type: KSDeclaration) : Scope()
         data class StringScope(val name: String) : Scope()
 
@@ -102,6 +103,7 @@ sealed class KoinMetaData {
             return when (this) {
                 is StringScope -> name
                 is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ArchetypeScope -> name
             }
         }
 
@@ -109,6 +111,7 @@ sealed class KoinMetaData {
             return when (this) {
                 is StringScope -> name
                 is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ArchetypeScope -> name
             }
         }
     }

@@ -68,9 +68,11 @@ class ClassComponentScanner(
             // single case
             val createdAtStart: Boolean? = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
             // scope case
-            val scopeValues = if (foundAnnotation == SCOPE) getAnnotationScopeData(annotation, annotations, allBindings) else null
+            val scopeValues = if (foundAnnotation == SCOPE || foundAnnotation in SCOPE_ARCHETYPES_LIST) getAnnotationScopeData(annotation, annotations) else null
             val scopeData = scopeValues?.scopeData
             val extraAnnotationDefinition = scopeValues?.extraAnnotationDefinition
+
+            if (foundAnnotation == SCOPE) logger.warn("${foundAnnotation.annotationName} -> $className : sv: $scopeValues")
 
             KoinMetaData.Definition.ClassDefinition(
                 packageName = packageName,
