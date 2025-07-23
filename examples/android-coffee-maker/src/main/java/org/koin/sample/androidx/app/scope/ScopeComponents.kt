@@ -4,15 +4,20 @@ import androidx.lifecycle.ViewModel
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
 import org.koin.core.annotation.Scoped
+import org.koin.core.annotation.ViewModelScope
 import org.koin.sample.androidx.MainActivity
 import java.util.UUID
 
-@Scoped
-@Scope(MainActivity::class)
+@ViewModelScope
 class ScopedData {
     val id = UUID.randomUUID().toString()
 }
 
+@ViewModelScope
+class ScopedOtherData {
+    val id = UUID.randomUUID().toString()
+}
+
+
 @KoinViewModel
-@Scope(MainActivity::class)
-class ScopeViewModel(val data : ScopedData) : ViewModel()
+class ScopeViewModel(val sd : ScopedData, val sod : ScopedOtherData) : ViewModel()

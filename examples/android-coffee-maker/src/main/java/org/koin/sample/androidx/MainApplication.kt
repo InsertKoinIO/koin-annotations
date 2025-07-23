@@ -5,6 +5,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
+import org.koin.core.option.viewModelScopeFactory
 import org.koin.ksp.generated.module
 import org.koin.sample.androidx.di.AppModule
 
@@ -19,6 +20,9 @@ class MainApplication : Application() {
             modules(
 //                defaultModule,
                 AppModule().module,
+            )
+            options(
+                viewModelScopeFactory()
             )
         }
     }

@@ -61,7 +61,8 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         val scope = getKoin().createScope<MyScope>()
         scope.get<ScopedStuff>()
 
-        println("VM scope data: ${scopeVM.data.id}")
+        println("VM scope data: ${scopeVM.sd.id}")
+        println("VM scope other data: ${scopeVM.sod.id}")
 
         assert(fooB.text != fooA.text)
         assert(fooB.textBase == fooA.textBase)
