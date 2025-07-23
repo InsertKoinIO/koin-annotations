@@ -46,13 +46,19 @@ fun List<KSValueArgument>.getScope(): KoinMetaData.Scope {
         ?: error("Scope annotation needs parameters: either type value or name")
 }
 
-fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>, allBindings : List<KSDeclaration>): Triple<KoinMetaData.Scope, List<KSDeclaration>, DefinitionAnnotation?> {
+data class ScopeDataValues(
+    val scopeData: KoinMetaData.Scope,
+    val extraScopeBindings: List<KSDeclaration>,
+    val extraAnnotationDefinition: DefinitionAnnotation?
+)
+
+fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>, allBindings : List<KSDeclaration>): ScopeDataValues {
     val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
     val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
     val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
     val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
     val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
-    return Triple(scopeData, extraScopeBindings, extraAnnotationDefinition)
+    return ScopeDataValues(scopeData, extraScopeBindings, extraAnnotationDefinition)
 }
 
 fun List<KSValueArgument>.getNamed(): KoinMetaData.Named {
