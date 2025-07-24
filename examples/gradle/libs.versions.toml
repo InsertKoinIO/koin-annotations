@@ -5,7 +5,7 @@
 # Core
 kotlin = "2.1.21"
 koin = "4.1.0"
-koinAnnotations = "2.2.0-Alpha2"
+koinAnnotations = "2.2.0-Alpha3"
 ksp = "2.1.21-2.0.2"
 junit = "4.13.2"
 # Android
