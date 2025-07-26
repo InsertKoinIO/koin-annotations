@@ -19,27 +19,33 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.scanner.ext.getArray
+import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.util.anyMatch
+import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.PropertyValue
 import org.koin.meta.annotations.ExternalDefinition
+import org.koin.meta.annotations.MetaModule
 
 class KoinMetaDataScanner(
     private val logger: KSPLogger
 ) {
 
+    private val applicationMetadataScanner = ApplicationScanner(logger)
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ClassComponentScanner(logger)
     private val functionMetadataScanner = FunctionComponentScanner(logger)
 
     fun findInvalidSymbols(resolver: Resolver): List<KSAnnotated> {
-        val invalidModuleSymbols = resolver.getInvalidModuleSymbols()
+        val invalidModuleSymbols = resolver.getInvalidSymbols<Module>()
         val invalidDefinitionSymbols = resolver.getInvalidDefinitionSymbols()
 
         val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
@@ -50,6 +56,44 @@ class KoinMetaDataScanner(
         }
 
         return emptyList()
+    }
+
+    fun scanApplications(
+        resolver: Resolver,
+        moduleList: List<KoinMetaData.Module>,
+    ): List<KoinMetaData.Application> {
+        val applications = scanClassApplications(resolver)
+        if (applications.isNotEmpty()){
+            logger.warn("[DEBUG] found applications: $applications")
+
+            // Check for default config or @ConfigScan
+            val runningConfigurations = applications.flatMap { it.configurations }.toSet()
+
+            val configurationModules = runningConfigurations.associate { config ->
+                // Module to see any @Config
+                config to moduleList.filter { if (it.configurations?.isNotEmpty() == true) config in it.configurations else false  }
+            }
+
+            //TODO check in meta
+            val metaModules = resolver.getExternalMetaModulesSymbols().mapNotNull {
+                val a = it.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
+                a?.let {
+                    MetaModule(
+                        value = a.arguments.getValueArgument() ?: "",
+                        includes = a.arguments.getArray("includes") ?: emptyArray(),
+                        configurations = a.arguments.getArray("configurations") ?: emptyArray()
+                    )
+                }
+            }
+
+            logger.warn("[DEBUG] found metaModules: $metaModules")
+
+            logger.warn("[DEBUG] scanned configurations: $configurationModules")
+
+            //TODO Generate config list
+        }
+
+        return applications
     }
 
     fun scanKoinModules(
@@ -69,7 +113,7 @@ class KoinMetaDataScanner(
         index: List<KoinMetaData.Module>,
         resolver: Resolver
     ) {
-        val propertyValues: List<KoinMetaData.PropertyValue> = resolver.getValidPropertySymbols()
+        val propertyValues: List<KoinMetaData.PropertyValue> = resolver.getValidSymbols<PropertyValue>()
             .mapNotNull { def ->
             def.annotations
                 .first { it.shortName.asString() == PropertyValue::class.simpleName }
@@ -113,9 +157,17 @@ class KoinMetaDataScanner(
             }
     }
 
+    private fun scanClassApplications(resolver: Resolver): List<KoinMetaData.Application> {
+        logger.logging("scan applications ...")
+        return resolver.getValidSymbols<KoinApplication>()
+            .filterIsInstance<KSClassDeclaration>()
+            .map { applicationMetadataScanner.createClassApplication(it) }
+            .toList()
+    }
+
     private fun scanClassModules(resolver: Resolver): List<KoinMetaData.Module> {
         logger.logging("scan modules ...")
-        return resolver.getValidModuleSymbols()
+        return resolver.getValidSymbols<Module>()
             .filterIsInstance<KSClassDeclaration>()
             .map { moduleMetadataScanner.createClassModule(it) }
             .toList()
@@ -194,23 +246,11 @@ class KoinMetaDataScanner(
         classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
     }
 
-    private fun Resolver.getInvalidModuleSymbols(): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
-            .filter { !it.validate() }
-            .toList()
-    }
-
     private fun Resolver.getInvalidDefinitionSymbols(): List<KSAnnotated> {
         return DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
             this.getSymbolsWithAnnotation(annotation.qualifiedName!!)
                 .filter { !it.validate() }
         }
-    }
-
-    private fun Resolver.getValidModuleSymbols(): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
-            .filter { it.validate() }
-            .toList()
     }
 
     private fun Resolver.getValidDefinitionSymbols(): List<KSAnnotated> {
@@ -220,9 +260,22 @@ class KoinMetaDataScanner(
         }
     }
 
-    private fun Resolver.getValidPropertySymbols(): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!)
+    private inline fun <reified T> Resolver.getValidSymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(T::class.qualifiedName!!)
             .filter { it.validate() }
+            .toList()
+    }
+
+    private inline fun <reified T> Resolver.getInvalidSymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(T::class.qualifiedName!!)
+            .filter { !it.validate() }
+            .toList()
+    }
+
+    @OptIn(KspExperimental::class)
+    fun Resolver.getExternalMetaModulesSymbols(): List<KSDeclaration> {
+        return this.getDeclarationsFromPackage("org.koin.ksp.generated")
+            .filter { a -> a.annotations.any { it.shortName.asString() == MetaModule::class.java.simpleName!! } }
             .toList()
     }
 

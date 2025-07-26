@@ -60,6 +60,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         }
     }
 
+    //TODO update extarction of MetaModules
     private fun extractMetaModuleValues(a: KSAnnotation): Pair<String, ArrayList<String>?>? {
         val value = a.arguments.getValueArgument()
         val includes = if (value != null) a.arguments.getArray("includes") else null

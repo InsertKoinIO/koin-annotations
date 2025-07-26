@@ -250,6 +250,8 @@ annotation class ComponentScan(vararg val value: String = [])
  *
  * MetaModule tag -> add "configuration" list values
  *
+ * Default configuration is "default" named
+ *
  * //TODO Complete example
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)

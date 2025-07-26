@@ -22,10 +22,12 @@ import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinTagWriter
-import org.koin.compiler.metadata.defaultConfiguration
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
+import org.koin.compiler.scanner.ext.getArray
+import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.verify.KoinConfigChecker
+import org.koin.meta.annotations.MetaModule
 import kotlin.time.TimeSource.Monotonic.markNow
 
 class BuilderProcessor(
@@ -37,6 +39,7 @@ class BuilderProcessor(
     private val isViewModelMPActive = isKoinViewModelMPActive()
     private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
+    private val metaTagScanner = KoinTagMetaDataScanner(logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         initComponents(resolver)
@@ -52,12 +55,10 @@ class BuilderProcessor(
             return invalidSymbols
         }
 
-        // TODO defaultModule in default Configuration?
         val defaultModule = KoinMetaData.Module(
             packageName = "",
             name = "defaultModule",
             isDefault = true,
-            configurations = if (isDefaultModuleActive()) defaultConfiguration() else null
         )
 
         logger.logging("Build metadata ...")
@@ -66,6 +67,11 @@ class BuilderProcessor(
             resolver
         )
 
+        //TODO Generate Entry points + Configuration scan
+        val applications = koinMetaDataScanner.scanApplications(
+            resolver,
+            moduleList
+        )
 
 
         logger.logging("Generate code ...")
@@ -84,16 +90,15 @@ class BuilderProcessor(
 
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
 
-//        if(isDefaultModuleActive() && !isAlreadyGenerated) {
-//            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP argument arg(\"KOIN_DEFAULT_MODULE\",\"true\") to activate default module generation.")
-//        }
+        if(isDefaultModuleActive() && !isAlreadyGenerated) {
+            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP argument arg(\"KOIN_DEFAULT_MODULE\",\"true\") to activate default module generation.")
+        }
 
         //TODO Configuration check is associated to a configuration & modules
         if (isConfigCheckActive && isAlreadyGenerated) {
             logger.warn("Koin Configuration Check ...")
             val checkTime = if (doLogTimes) markNow() else null
 
-            val metaTagScanner = KoinTagMetaDataScanner(logger, resolver)
             val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
             if (invalidsMetaSymbols.isNotEmpty()) {
                 logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
@@ -101,6 +106,8 @@ class BuilderProcessor(
             }
 
             val checker = KoinConfigChecker(logger, resolver)
+
+            //TODO remove usage of findMetaModules? (if needed in second round)
             checker.verifyMetaModules(metaTagScanner.findMetaModules())
             checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
 
@@ -114,6 +121,7 @@ class BuilderProcessor(
 
     private fun initComponents(resolver: Resolver) {
         koinCodeGenerator.resolver = resolver
+        metaTagScanner.resolver = resolver
     }
 
     private fun isConfigCheckActive(): Boolean {

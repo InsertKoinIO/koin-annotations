@@ -89,7 +89,7 @@ class ModuleScanner(
 
     private fun getConfigurations(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Configuration>? {
         val configuration = annotations.firstOrNull { it.shortName.asString() == Configuration::class.simpleName!! }
-        if (configuration == null) return emptySet()
+        if (configuration == null) return null
         return configuration.let(::configurationValue)
     }
 

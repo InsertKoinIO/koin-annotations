@@ -7,7 +7,6 @@ import org.koin.core.annotation.Module
 import org.koin.example.multi.FooBase
 
 @Module
-@Configuration
 @ComponentScan
 class LibFooDModule
 

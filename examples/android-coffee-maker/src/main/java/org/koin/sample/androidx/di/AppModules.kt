@@ -4,6 +4,7 @@ import android.content.Context
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Configuration
 import org.koin.core.annotation.Factory
+import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
 import org.koin.core.scope.Scope
 import org.koin.sample.android.library.CommonModule
@@ -15,8 +16,11 @@ import org.koin.sample.multi.LibFooAModule
 
 class UseContext(val context: Context)
 
+@KoinApplication
+object MyKoinApp
+
 @Configuration
-@Module(includes = [DataModule::class, LibFooAModule::class, LibFooBModule::class, LibFooDModule::class])
+@Module(includes = [DataModule::class, LibFooDModule::class, LibFooAModule::class, LibFooBModule::class])
 @ComponentScan("org.koin.sample.androidx.app")
 class AppModule {
 

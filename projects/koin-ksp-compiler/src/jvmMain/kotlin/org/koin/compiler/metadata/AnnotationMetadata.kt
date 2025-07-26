@@ -22,6 +22,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData.Configuration.Companion.DEFAULT
 import org.koin.core.annotation.*
 import java.util.*
@@ -89,20 +90,20 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
 }
 
 fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.ComponentScan> {
-    val values = extractValueStringList(annotation,"") ?: return emptySet()
+    val values = extractValueStringList(annotation) ?: return emptySet()
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
 }
 
-fun configurationValue(annotation: KSAnnotation): Set<KoinMetaData.Configuration>? {
-    val values = extractValueStringList(annotation,DEFAULT.name)
-    return values?.map { KoinMetaData.Configuration(it.trim()) }?.toSet()
+fun configurationValue(annotation: KSAnnotation): Set<KoinMetaData.Configuration> {
+    val values = extractValueStringList(annotation, DEFAULT.name)
+    return if (values?.isEmpty() == true) defaultConfiguration() else values!!.map { KoinMetaData.Configuration(it.trim()) }.toSet()
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun extractValueStringList(annotation: KSAnnotation, defaultValue : String): List<String>? {
+private fun extractValueStringList(annotation: KSAnnotation, defaultValue : String = ""): List<String>? {
     val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
     val csValueList = csValue as? List<String>
-    val values = if (csValueList?.isEmpty() == true) listOf(defaultValue) else csValueList ?: listOf(defaultValue)
+    val values = if (csValueList?.isEmpty() == true) listOf(defaultValue) else csValueList
     return values
 }
 

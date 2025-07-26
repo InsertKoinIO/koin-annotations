@@ -20,13 +20,14 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.validate
+import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
 
 class KoinTagMetaDataScanner(
     private val logger: KSPLogger,
-    private val resolver: Resolver
 ) {
+    internal lateinit var resolver: Resolver
 
     fun findInvalidSymbols(): List<KSAnnotated> {
         val invalidModuleSymbols = resolver.getMetaModuleSymbols(isValid = false)
