@@ -22,6 +22,7 @@ import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinTagWriter
+import org.koin.compiler.metadata.defaultConfiguration
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
@@ -51,10 +52,12 @@ class BuilderProcessor(
             return invalidSymbols
         }
 
+        // TODO defaultModule in default Configuration?
         val defaultModule = KoinMetaData.Module(
             packageName = "",
             name = "defaultModule",
             isDefault = true,
+            configurations = if (isDefaultModuleActive()) defaultConfiguration() else null
         )
 
         logger.logging("Build metadata ...")
@@ -62,6 +65,8 @@ class BuilderProcessor(
             defaultModule,
             resolver
         )
+
+
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
@@ -79,11 +84,11 @@ class BuilderProcessor(
 
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
 
-        //TODO Deprecation Warning
-        if(isDefaultModuleActive() && !isAlreadyGenerated) {
-            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP argument arg(\"KOIN_DEFAULT_MODULE\",\"true\") to activate default module generation.")
-        }
+//        if(isDefaultModuleActive() && !isAlreadyGenerated) {
+//            logger.warn("[Deprecation] 'defaultModule' generation is deprecated. Use KSP argument arg(\"KOIN_DEFAULT_MODULE\",\"true\") to activate default module generation.")
+//        }
 
+        //TODO Configuration check is associated to a configuration & modules
         if (isConfigCheckActive && isAlreadyGenerated) {
             logger.warn("Koin Configuration Check ...")
             val checkTime = if (doLogTimes) markNow() else null
@@ -124,7 +129,6 @@ class BuilderProcessor(
         return option
     }
 
-    //TODO Deprecate KOIN_DEFAULT_MODULE to false by default - After 2.0
     private fun isDefaultModuleActive(): Boolean {
         return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
     }

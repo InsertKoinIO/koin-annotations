@@ -18,15 +18,23 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
+import org.koin.compiler.metadata.KoinMetaData.Configuration.Companion.DEFAULT
 import org.koin.compiler.util.matchesGlob
 import java.util.*
 
 typealias PackageName = String
 fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
 
+fun defaultConfiguration(): Set<KoinMetaData.Configuration> = setOf(DEFAULT)
+
 sealed class KoinMetaData {
 
-    data class Configuration(val name : String)
+    data class Application(
+        val packageName: PackageName,
+        val name: String,
+        val configurations: Set<Configuration> = defaultConfiguration(),
+        val type: ModuleType = ModuleType.FIELD,
+    )
 
     data class Module(
         val packageName: PackageName,
@@ -83,6 +91,12 @@ sealed class KoinMetaData {
         }
     }
 
+    data class Configuration(val name : String){
+        companion object {
+            val DEFAULT = Configuration("default")
+        }
+    }
+    
     data class ModuleInclude(
         val packageName: PackageName,
         val className : String,
