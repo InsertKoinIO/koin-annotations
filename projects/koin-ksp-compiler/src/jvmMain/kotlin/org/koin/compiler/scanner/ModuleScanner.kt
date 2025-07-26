@@ -20,6 +20,9 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.*
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
+import org.koin.core.annotation.Module
 
 class ModuleScanner(
     val logger: KSPLogger
@@ -32,6 +35,7 @@ class ModuleScanner(
         val includes = getIncludedModules(annotations)
         val isCreatedAtStart = getIsCreatedAtStart(annotations)
         val componentsScan = getComponentsScan(annotations)
+        val configurations = getConfigurations(annotations)
         val isExpect = declaration.isExpect
         val isActual = declaration.isActual
 
@@ -47,6 +51,7 @@ class ModuleScanner(
             name = name,
             type = type,
             componentsScan = componentsScan,
+            configurations = configurations,
             includes = includes.toModuleIncludes(),
             isCreatedAtStart = isCreatedAtStart,
             visibility = declaration.getVisibility(),
@@ -67,19 +72,25 @@ class ModuleScanner(
     }
 
     private fun getIncludedModules(annotations: Sequence<KSAnnotation>) : List<KSDeclaration>? {
-        val module = annotations.firstOrNull { it.shortName.asString() == "Module" }
+        val module = annotations.firstOrNull { it.shortName.asString() == Module::class.simpleName!! }
         return module?.let { includedModules(it) }
     }
 
     private fun getIsCreatedAtStart(annotations: Sequence<KSAnnotation>) : Boolean? {
-        val module = annotations.firstOrNull { it.shortName.asString() == "Module" }
+        val module = annotations.firstOrNull { it.shortName.asString() == Module::class.simpleName!! }
         return module?.let { isCreatedAtStart(it) }
     }
 
     private fun getComponentsScan(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Module.ComponentScan> {
-        val componentScan = annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
+        val componentScan = annotations.firstOrNull { it.shortName.asString() == ComponentScan::class.simpleName!! }
         if (componentScan == null) return emptySet()
         return componentScan.let(::componentsScanValue)
+    }
+
+    private fun getConfigurations(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Configuration> {
+        val configuration = annotations.firstOrNull { it.shortName.asString() == Configuration::class.simpleName!! }
+        if (configuration == null) return emptySet()
+        return configuration.let(::configurationValue)
     }
 
     private fun addFunctionDefinition(element: KSAnnotated): KoinMetaData.Definition? {

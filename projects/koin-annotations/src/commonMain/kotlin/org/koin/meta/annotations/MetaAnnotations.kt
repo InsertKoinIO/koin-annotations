@@ -45,4 +45,4 @@ annotation class MetaDefinition(val value: String = "", val dependencies: Array<
  * @param includes - Includes Module Tags to check
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaModule(val value: String = "", val includes: Array<String> = [])
+annotation class MetaModule(val value: String = "", val includes: Array<String> = [], val configurations: Array<String> = [])

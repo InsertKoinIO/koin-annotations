@@ -88,10 +88,21 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
 }
 
 fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.ComponentScan> {
-    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
-    val declaredBindingsTypes = csValue as? List<String>
-    val values = if (declaredBindingsTypes?.isEmpty() == true) listOf("") else declaredBindingsTypes ?: listOf("")
+    val values = extractValueStringList(annotation)
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
+}
+
+fun configurationValue(annotation: KSAnnotation): Set<KoinMetaData.Configuration> {
+    val values = extractValueStringList(annotation)
+    return values.map { KoinMetaData.Configuration(it.trim()) }.toSet()
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun extractValueStringList(annotation: KSAnnotation): List<String> {
+    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
+    val csValueList = csValue as? List<String>
+    val values = if (csValueList?.isEmpty() == true) listOf("") else csValueList ?: listOf("")
+    return values
 }
 
 fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {

@@ -242,6 +242,37 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(vararg val value: String = [])
 
+/**
+ * To be applied on @Module class to be associated to a Configuration
+ * - can have several "tags"/flavour
+ *
+ * associate Module to a configuration, to be scanned later from entry points
+ *
+ * MetaModule tag -> add "configuration" list values
+ *
+ * //TODO Complete example
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
+annotation class Configuration(vararg val value: String = [])
+
+/**
+ * To be applied on a @KoinApplication entry point class
+ * Scan Configuration modules to be included in the current Module
+ *
+ * //TODO Complete example
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
+annotation class ConfigurationScan(vararg val value: String = [])
+
+/**
+ * Tag en entry point class, to help generate start/boostrap Koin application
+ * trigger default configuration scan
+ *
+ * //TODO Complete example
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
+annotation class KoinApplication(vararg val value: String = [])
+
 // In Koin core Annotations 4.1
 ///**
 // * Tag a dependency as already provided by Koin (like DSL declaration, or internals)

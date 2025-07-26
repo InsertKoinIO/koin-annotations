@@ -26,6 +26,8 @@ fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
 
 sealed class KoinMetaData {
 
+    data class Configuration(val name : String)
+
     data class Module(
         val packageName: PackageName,
         val name: String,
@@ -34,6 +36,7 @@ sealed class KoinMetaData {
         val type: ModuleType = ModuleType.FIELD,
         val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
+        val configurations: Set<Configuration>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,

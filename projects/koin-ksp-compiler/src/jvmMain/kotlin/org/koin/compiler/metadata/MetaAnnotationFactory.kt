@@ -15,10 +15,16 @@ object MetaAnnotationFactory {
         val includesTags = if (module.includes?.isNotEmpty() == true) {
             module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
         } else null
+
+        val configurationsTag = if (module.configurations?.isNotEmpty() == true) {
+            module.configurations.joinToString(",", prefix = "\"", postfix = "\""){ it.name }
+        } else null
+
         val includesString = includesTags?.let { ", includes=[$it]" } ?: ""
+        val configurationsString = configurationsTag?.let { ", configurations=[$it]" } ?: ""
 
         return """
-            @$metaModule("$fullpath"$includesString)
+            @$metaModule("$fullpath"$includesString$configurationsString)
         """.trimIndent()
     }
 
