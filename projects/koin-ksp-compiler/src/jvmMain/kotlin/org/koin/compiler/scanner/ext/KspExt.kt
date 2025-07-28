@@ -19,6 +19,7 @@ import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
 import org.koin.compiler.type.forbiddenKeywords
 import org.koin.core.annotation.*
+import java.util.ArrayList
 
 fun KSAnnotated.getKoinAnnotations(): Map<String, KSAnnotation> {
     return annotations
@@ -166,8 +167,8 @@ internal fun List<KSValueArgument>.getValueArgument(): String? {
     return firstOrNull { a -> a.name?.asString() == "value" }?.value as? String?
 }
 
-internal fun List<KSValueArgument>.getArray(fieldName : String): Array<String>? {
-    return firstOrNull { a -> a.name?.asString() == fieldName }?.value as? Array<String>?
+internal fun List<KSValueArgument>.getArray(fieldName : String): ArrayList<String>? {
+    return firstOrNull { a -> a.name?.asString() == fieldName }?.value as? ArrayList<String>?
 }
 
 internal fun List<KSValueArgument>.getScopeArgument(): String? {

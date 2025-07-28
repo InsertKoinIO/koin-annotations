@@ -69,7 +69,7 @@ class KoinMetaDataScanner(
             // Check for default config or @ConfigScan
             val runningConfigurations = applications.flatMap { it.configurations }.toSet()
 
-            val configurationModules = runningConfigurations.associate { config ->
+            val configurationModules: Map<KoinMetaData.Configuration, List<KoinMetaData.Module>> = runningConfigurations.associate { config ->
                 // Module to see any @Config
                 config to moduleList.filter { if (it.configurations?.isNotEmpty() == true) config in it.configurations else false  }
             }
@@ -78,17 +78,16 @@ class KoinMetaDataScanner(
             val metaModules = resolver.getExternalMetaModulesSymbols().mapNotNull {
                 val a = it.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
                 a?.let {
-                    MetaModule(
-                        value = a.arguments.getValueArgument() ?: "",
-                        includes = a.arguments.getArray("includes") ?: emptyArray(),
-                        configurations = a.arguments.getArray("configurations") ?: emptyArray()
+                    Pair<String, ArrayList<String>>(
+                        a.arguments.getValueArgument() ?: "",
+                        a.arguments.first { it.name?.asString() == "configurations" }.value as ArrayList<String>
                     )
                 }
-            }
+            }.toList()
 
-            logger.warn("[DEBUG] found metaModules: $metaModules")
+            logger.warn("[DEBUG] found metaModules: ${metaModules.filter { it.second.isNotEmpty() } .map { it.first+" -> "+it.second }}")
 
-            logger.warn("[DEBUG] scanned configurations: $configurationModules")
+            logger.warn("[DEBUG] scanned configurations: ${configurationModules.map { it.key.toString()+" -> "+it.value.joinToString(",") { it.name } }}")
 
             //TODO Generate config list
         }
