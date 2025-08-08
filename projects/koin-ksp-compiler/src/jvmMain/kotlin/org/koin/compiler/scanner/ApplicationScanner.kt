@@ -37,16 +37,18 @@ class ApplicationScanner(
             KoinMetaData.ModuleType.CLASS
         }
 
+        //TODO includes modules
+
         val applicationMetadata = KoinMetaData.Application(
             packageName = modulePackage,
             name = name,
             type = type,
-            configurations = configurations ?: defaultConfiguration(),
+            configurationTags = configurations ?: defaultConfiguration(),
         )
         return applicationMetadata
     }
 
-    private fun getConfigurationScans(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Configuration>? {
+    private fun getConfigurationScans(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.ConfigurationTag>? {
         val configuration = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
         if (configuration == null) return defaultConfiguration()
         return configurationValue(configuration,"configurations")

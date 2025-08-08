@@ -25,6 +25,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.KoinMetaData.ModuleInclude
 import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.util.anyMatch
 import org.koin.core.annotation.KoinApplication
@@ -63,27 +64,25 @@ class KoinMetaDataScanner(
         moduleList: List<KoinMetaData.Module>,
     ): List<KoinMetaData.Application> {
         val applications = scanClassApplications(resolver)
-        if (applications.isNotEmpty()){
+        return if (applications.isNotEmpty()){
+
             logger.warn("[DEBUG] found applications: $applications")
 
             // Check for default config or @ConfigScan
-            val runningConfigurations = applications.flatMap { it.configurations }.toSet()
-            logger.warn("[DEBUG] found configurations: $runningConfigurations")
+            val activeConfigurations = applications.flatMap { it.configurationTags }.toSet()
+            logger.warn("[DEBUG] found configurations: $activeConfigurations")
 
-            val configurationModules = runningConfigurations.associateWith { config -> // Module to see any @Config
-                moduleList.filter { if (it.configurations?.isNotEmpty() == true) config in it.configurations else false  }
-            }.toMutableMap()
+            val configurations = extractAndBuildConfigurations(activeConfigurations, moduleList, resolver)
 
-            //check in meta modules
-            val metaConfigurations = extractMetaModulesInConfigurations(resolver)
+            logger.warn("[DEBUG] configurations: ${configurations.map { it.name+" -> "+it.modules.joinToString(", ") { it.packageName+"."+it.className } }}")
 
-            // now associate all configs
-            associateConfigurations(metaConfigurations, configurationModules)
-
-            logger.warn("[DEBUG] configurations: ${configurationModules.map { (k,v) -> k.name+" -> "+v.map { it.name } }}")
-
-            //TODO Associate Application <-> Configuration <-> Modules
-
+            // add configs content
+            applications.map { application ->
+                val configKeys = application.configurationTags
+                application.copy(
+                    configurations = configKeys.map { config -> configurations.first { it.name == config.name } }
+                )
+            }
             /*
 
             @Module
@@ -107,8 +106,33 @@ class KoinMetaDataScanner(
             -> Generate config map static ?
                 MyApp.configurationsMap => Map<String, List<Module>>
              */
+        } else emptyList()
+    }
+
+    private fun extractAndBuildConfigurations(
+        runningConfigurations: Set<KoinMetaData.ConfigurationTag>,
+        moduleList: List<KoinMetaData.Module>,
+        resolver: Resolver
+    ): List<KoinMetaData.Configuration> {
+        val localConfigurations = runningConfigurations.associateWith { config -> // Module to see any @Config
+            moduleList.filter { if (it.configurationTags?.isNotEmpty() == true) config in it.configurationTags else false }
+        }.toMutableMap()
+
+        //check in meta modules
+        val metaConfigurations = extractMetaModulesInConfigurations(resolver)
+
+        // now associate all configs
+        associateConfigurations(metaConfigurations, localConfigurations)
+
+        return localConfigurations.mapToConfiguration()
+    }
+
+    private fun MutableMap<KoinMetaData.ConfigurationTag, List<KoinMetaData.Module>>.mapToConfiguration() : List<KoinMetaData.Configuration> {
+        return map { (k,v) ->
+            KoinMetaData.Configuration(
+                k.name,v.map { ModuleInclude(packageName = it.packageName, className = it.name, isExpect = false, isActual = false) }
+            )
         }
-        return applications
     }
 
     private fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<String>> {
@@ -123,10 +147,10 @@ class KoinMetaDataScanner(
 
     private fun associateConfigurations(
         metaConfigurations: Map<String, List<String>>,
-        configurations: MutableMap<KoinMetaData.Configuration, List<KoinMetaData.Module>>
+        configurations: MutableMap<KoinMetaData.ConfigurationTag, List<KoinMetaData.Module>>
     ) {
         metaConfigurations.forEach { (configName, modulesName) ->
-            val foundConfig = configurations[KoinMetaData.Configuration(configName)]
+            val foundConfig = configurations[KoinMetaData.ConfigurationTag(configName)]
             if (foundConfig == null){
                 logger.warn("[DEBUG] skip configuration '$configName' with $modulesName")
             }
@@ -140,7 +164,7 @@ class KoinMetaDataScanner(
                     }
                     KoinMetaData.Module(packageName, moduleNameOnly)
                 }
-                configurations[KoinMetaData.Configuration(configName)] = foundConfig + newList
+                configurations[KoinMetaData.ConfigurationTag(configName)] = foundConfig + newList
             }
         }
     }
@@ -359,3 +383,4 @@ class KoinMetaDataScanner(
         private val DEFINITION_ANNOTATION = ExternalDefinition::class.simpleName
     }
 }
+

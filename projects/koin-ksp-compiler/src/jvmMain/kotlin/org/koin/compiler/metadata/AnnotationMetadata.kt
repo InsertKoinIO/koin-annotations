@@ -22,8 +22,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
-import org.koin.compiler.metadata.KoinMetaData.Configuration.Companion.DEFAULT
+import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass
@@ -94,9 +93,9 @@ fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.Compo
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
 }
 
-fun configurationValue(annotation: KSAnnotation, field : String =  "value"): Set<KoinMetaData.Configuration> {
+fun configurationValue(annotation: KSAnnotation, field : String =  "value"): Set<KoinMetaData.ConfigurationTag> {
     val values = extractValueStringList(annotation, DEFAULT.name, field)
-    return if (values?.isEmpty() == true) defaultConfiguration() else values!!.map { KoinMetaData.Configuration(it.trim()) }.toSet()
+    return if (values?.isEmpty() == true) defaultConfiguration() else values!!.map { KoinMetaData.ConfigurationTag(it.trim()) }.toSet()
 }
 
 @Suppress("UNCHECKED_CAST")

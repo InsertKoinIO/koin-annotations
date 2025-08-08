@@ -16,8 +16,8 @@ object MetaAnnotationFactory {
             module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
         } else null
 
-        val configurationsTag = if (module.configurations?.isNotEmpty() == true) {
-            module.configurations.joinToString("\",\"", prefix = "\"", postfix = "\""){ it.name }
+        val configurationsTag = if (module.configurationTags?.isNotEmpty() == true) {
+            module.configurationTags.joinToString("\",\"", prefix = "\"", postfix = "\""){ it.name }
         } else null
 
         val includesString = includesTags?.let { ", includes=[$it]" } ?: ""

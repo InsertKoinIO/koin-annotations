@@ -51,7 +51,7 @@ class ModuleScanner(
             name = name,
             type = type,
             componentsScan = componentsScan,
-            configurations = configurations,
+            configurationTags = configurations,
             includes = includes.toModuleIncludes(),
             isCreatedAtStart = isCreatedAtStart,
             visibility = declaration.getVisibility(),
@@ -87,7 +87,7 @@ class ModuleScanner(
         return componentScan.let(::componentsScanValue)
     }
 
-    private fun getConfigurations(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Configuration>? {
+    private fun getConfigurations(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.ConfigurationTag>? {
         val configuration = annotations.firstOrNull { it.shortName.asString() == Configuration::class.simpleName!! }
         if (configuration == null) return null
         return configuration.let(::configurationValue)

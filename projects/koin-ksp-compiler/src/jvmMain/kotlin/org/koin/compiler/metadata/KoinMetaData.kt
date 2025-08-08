@@ -18,22 +18,26 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
-import org.koin.compiler.metadata.KoinMetaData.Configuration.Companion.DEFAULT
+import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.compiler.util.matchesGlob
 import java.util.*
 
 typealias PackageName = String
 fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
 
-fun defaultConfiguration(): Set<KoinMetaData.Configuration> = setOf(DEFAULT)
+fun defaultConfiguration(): Set<KoinMetaData.ConfigurationTag> = setOf(DEFAULT)
 
 sealed class KoinMetaData {
+
+    data class Configuration(val name : String, val modules : List<ModuleInclude>)
 
     data class Application(
         val packageName: PackageName,
         val name: String,
-        val configurations: Set<Configuration> = defaultConfiguration(),
+        val configurationTags: Set<ConfigurationTag> = defaultConfiguration(),
         val type: ModuleType = ModuleType.FIELD,
+        val configurations : List<Configuration>? = null,
+        val modules: List<ModuleInclude>? = null
     )
 
     data class Module(
@@ -44,7 +48,7 @@ sealed class KoinMetaData {
         val type: ModuleType = ModuleType.FIELD,
         val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
-        val configurations: Set<Configuration>? = null,
+        val configurationTags: Set<ConfigurationTag>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,
@@ -91,9 +95,9 @@ sealed class KoinMetaData {
         }
     }
 
-    data class Configuration(val name : String){
+    data class ConfigurationTag(val name : String){
         companion object {
-            val DEFAULT = Configuration("default")
+            val DEFAULT = ConfigurationTag("default")
         }
     }
     

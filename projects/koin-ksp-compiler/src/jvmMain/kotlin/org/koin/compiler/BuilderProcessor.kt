@@ -69,7 +69,9 @@ class BuilderProcessor(
             moduleList
         )
         //TODO Generate entry point
-        //TODO Generate modules load per config
+        //TODO Generate modules load per config (Application.configurations)
+        //TODO Generate modules load per config (Application.modules)
+
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
