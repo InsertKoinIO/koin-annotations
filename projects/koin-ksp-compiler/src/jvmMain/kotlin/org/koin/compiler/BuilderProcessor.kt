@@ -73,7 +73,6 @@ class BuilderProcessor(
             moduleList
         )
 
-
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
 
