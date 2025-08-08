@@ -19,7 +19,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.*
-import org.koin.core.annotation.ConfigurationScan
+import org.koin.core.annotation.KoinApplication
 
 class ApplicationScanner(
     val logger: KSPLogger
@@ -47,9 +47,9 @@ class ApplicationScanner(
     }
 
     private fun getConfigurationScans(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.Configuration>? {
-        val configuration = annotations.firstOrNull { it.shortName.asString() == ConfigurationScan::class.simpleName!! }
+        val configuration = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
         if (configuration == null) return defaultConfiguration()
-        return configuration.let(::configurationValue)
+        return configurationValue(configuration,"configurations")
     }
 }
 

@@ -258,22 +258,14 @@ annotation class ComponentScan(vararg val value: String = [])
 annotation class Configuration(vararg val value: String = [])
 
 /**
- * To be applied on a @KoinApplication entry point class
- * Scan Configuration modules to be included in the current Module
- *
- * //TODO Complete example
- */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
-annotation class ConfigurationScan(vararg val value: String = [])
-
-/**
  * Tag en entry point class, to help generate start/boostrap Koin application
  * trigger default configuration scan
  *
  * //TODO Complete example
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
-annotation class KoinApplication(vararg val value: String = [])
+//TODO uses modules to be included directly
+annotation class KoinApplication(val configurations: Array<String> = [], val modules : Array<KClass<*>> = [Unit::class])
 
 // In Koin core Annotations 4.1
 ///**

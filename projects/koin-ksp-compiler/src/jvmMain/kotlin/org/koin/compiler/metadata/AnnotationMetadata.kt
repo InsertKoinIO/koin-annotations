@@ -94,14 +94,14 @@ fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.Compo
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
 }
 
-fun configurationValue(annotation: KSAnnotation): Set<KoinMetaData.Configuration> {
-    val values = extractValueStringList(annotation, DEFAULT.name)
+fun configurationValue(annotation: KSAnnotation, field : String =  "value"): Set<KoinMetaData.Configuration> {
+    val values = extractValueStringList(annotation, DEFAULT.name, field)
     return if (values?.isEmpty() == true) defaultConfiguration() else values!!.map { KoinMetaData.Configuration(it.trim()) }.toSet()
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun extractValueStringList(annotation: KSAnnotation, defaultValue : String = ""): List<String>? {
-    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
+private fun extractValueStringList(annotation: KSAnnotation, defaultValue : String = "", fieldName : String = "value"): List<String>? {
+    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == fieldName }?.value
     val csValueList = csValue as? List<String>
     val values = if (csValueList?.isEmpty() == true) listOf(defaultValue) else csValueList
     return values

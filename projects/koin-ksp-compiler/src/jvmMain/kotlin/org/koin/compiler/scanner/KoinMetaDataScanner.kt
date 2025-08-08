@@ -32,6 +32,8 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.PropertyValue
 import org.koin.meta.annotations.ExternalDefinition
 import org.koin.meta.annotations.MetaModule
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 class KoinMetaDataScanner(
     private val logger: KSPLogger
@@ -56,7 +58,7 @@ class KoinMetaDataScanner(
         return emptyList()
     }
 
-    fun scanApplications(
+    fun scanApplicationsAndConfigurations(
         resolver: Resolver,
         moduleList: List<KoinMetaData.Module>,
     ): List<KoinMetaData.Application> {
@@ -73,54 +75,97 @@ class KoinMetaDataScanner(
             }.toMutableMap()
 
             //check in meta modules
-            val metaModulesWithConfig = resolver.getExternalMetaModulesSymbols().mapNotNull { metaModule ->
-                val annotation = metaModule.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
-                val value = annotation?.arguments?.getValueArgument()
-                value?.let {
-                    val configList = annotation.arguments.first { it.name?.asString() == "configurations" }.value as? ArrayList<String> ?: emptyList()
-                    // keep only modules with config
-                    if (configList.isNotEmpty()) {
-                        Pair(
-                            value,
-                            configList
-                        )
-                    } else null
-                }
-            }.toMap()
-
-            val allMetaConfigs = metaModulesWithConfig.values.flatMap { it }
-            val metaConfigToModules = allMetaConfigs.associateWith { config ->
-                metaModulesWithConfig.mapNotNull { (module, list) -> if (config in list) module else null }
-            }
+            val metaConfigurations = extractMetaModulesInConfigurations(resolver)
 
             // now associate all configs
-            metaConfigToModules.forEach { (configName, modulesName) ->
-                var foundConfig = configurationModules[KoinMetaData.Configuration(configName)]?.toMutableList()
-                if (foundConfig == null){
-                    foundConfig = arrayListOf()
-                }
-                foundConfig.addAll(modulesName.toSet().map { moduleName ->
+            associateConfigurations(metaConfigurations, configurationModules)
+
+            logger.warn("[DEBUG] configurations: ${configurationModules.map { (k,v) -> k.name+" -> "+v.map { it.name } }}")
+
+            //TODO Associate Application <-> Configuration <-> Modules
+
+            /*
+
+            @Module
+            @Configuration
+            MyModule
+
+            @KoinApplication
+            MyApp
+            - or -
+            @KoinApplication(configurations = ["default", "test"], modules = [...])
+            MyApp
+
+            -> MyApp.startKoin(% lambda config %) = startKoin(lambda + MyApp.koinConfiguration)
+            -> MyApp.koinApplication(% lambda config %) = koinApplication(lambda + MyApp.koinConfiguration)
+            -> MyApp.koinConfiguration = {
+                => config as module list - active modules config only
+                configs(...)
+                => list of modules
+                modules(...)
+            }
+            -> Generate config map static ?
+                MyApp.configurationsMap => Map<String, List<Module>>
+             */
+        }
+        return applications
+    }
+
+    private fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<String>> {
+        val metaModulesWithConfig = extractMetaModulesForConfig(resolver)
+
+        val allMetaConfigs = metaModulesWithConfig.values.flatMap { it }
+        val metaConfigurations = allMetaConfigs.associateWith { config ->
+            metaModulesWithConfig.mapNotNull { (module, list) -> if (config in list) module else null }
+        }
+        return metaConfigurations
+    }
+
+    private fun associateConfigurations(
+        metaConfigurations: Map<String, List<String>>,
+        configurations: MutableMap<KoinMetaData.Configuration, List<KoinMetaData.Module>>
+    ) {
+        metaConfigurations.forEach { (configName, modulesName) ->
+            val foundConfig = configurations[KoinMetaData.Configuration(configName)]
+            if (foundConfig == null){
+                logger.warn("[DEBUG] skip configuration '$configName' with $modulesName")
+            }
+            foundConfig?.let {
+                val newList = modulesName.toSet().map { moduleName ->
                     val lastDotIndex = moduleName.lastIndexOf('.')
                     val (packageName, moduleNameOnly) = if (lastDotIndex >= 0) {
                         moduleName.substring(0, lastDotIndex) to moduleName.substring(lastDotIndex + 1)
                     } else {
                         "" to moduleName
                     }
-                    KoinMetaData.Module(packageName,moduleNameOnly)
-                })
-                configurationModules[KoinMetaData.Configuration(configName)] = foundConfig
+                    KoinMetaData.Module(packageName, moduleNameOnly)
+                }
+                configurations[KoinMetaData.Configuration(configName)] = foundConfig + newList
             }
-
-            logger.warn("[DEBUG] configurations: ${configurationModules.map { (k,v) -> k.name+" -> "+v.map { it.name } }}")
-
-            //TODO Generate entry point
-            //TODO Generate modules load per config
         }
-
-        return applications
     }
 
-    fun scanKoinModules(
+    // return Module <-> List<Config>
+    private fun extractMetaModulesForConfig(resolver: Resolver): Map<String, List<String>> =
+        resolver.getExternalMetaModulesSymbols().mapNotNull { metaModule ->
+            val annotation =
+                metaModule.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
+            val value = annotation?.arguments?.getValueArgument()
+            value?.let {
+                val configList =
+                    annotation.arguments.first { it.name?.asString() == "configurations" }.value as? ArrayList<String>
+                        ?: emptyList()
+                // keep only modules with config
+                if (configList.isNotEmpty()) {
+                    Pair(
+                        value,
+                        configList
+                    )
+                } else null
+            }
+        }.toMap()
+
+    fun scanKoinModulesAndDefinitions(
         defaultModule: KoinMetaData.Module,
         resolver: Resolver
     ): List<KoinMetaData.Module> {

@@ -24,10 +24,7 @@ import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
-import org.koin.compiler.scanner.ext.getArray
-import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.verify.KoinConfigChecker
-import org.koin.meta.annotations.MetaModule
 import kotlin.time.TimeSource.Monotonic.markNow
 
 class BuilderProcessor(
@@ -62,16 +59,17 @@ class BuilderProcessor(
         )
 
         logger.logging("Build metadata ...")
-        val moduleList = koinMetaDataScanner.scanKoinModules(
+        val moduleList = koinMetaDataScanner.scanKoinModulesAndDefinitions(
             defaultModule,
             resolver
         )
 
-        //TODO Generate Entry points + Configuration scan
-        val applications = koinMetaDataScanner.scanApplications(
+        val applications = koinMetaDataScanner.scanApplicationsAndConfigurations(
             resolver,
             moduleList
         )
+        //TODO Generate entry point
+        //TODO Generate modules load per config
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
