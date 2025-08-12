@@ -48,7 +48,7 @@ class DefinitionWriterFactory(
                 }
             }
             // Class
-            is KoinMetaData.Definition.ClassDefinition -> writer.writeDefinition(definition, prefix = "${definition.packageNamePrefix}${definition.className}", isExternalDefinition = isExternal ?: false)
+            is KoinMetaData.Definition.ClassDefinition -> writer.writeDefinition(definition, prefix = definition.qualifiedName, isExternalDefinition = isExternal ?: false)
         }
     }
 
