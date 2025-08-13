@@ -129,7 +129,8 @@ class TestModule {
         assertEquals(2,koin.get<StuffList>(named("another-counter")).list.size)
         assertEquals("another-counter",koin.get<StuffCounter>().name)
 
-        assertNotNull(koin.getOrNull<MyType.MyChildType>())
+        assertNotNull(koin.getOrNull<MyType.MyChild>())
+        assertNotNull(koin.getOrNull<MyType.MyChild.MyGrandChildType>())
     }
 
 

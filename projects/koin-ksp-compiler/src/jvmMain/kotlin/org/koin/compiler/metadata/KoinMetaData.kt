@@ -203,14 +203,14 @@ sealed class KoinMetaData {
             qualifier: String?,
             isCreatedAtStart: Boolean? = null,
             keyword: DefinitionAnnotation,
-            val className: String,
+            val qualifiedName: String,
             val constructorParameters: List<DefinitionParameter> = emptyList(),
             bindings: List<KSDeclaration>,
             scope: Scope? = null,
             isExpect : Boolean,
             isActual : Boolean
         ) : Definition(
-            className,
+            qualifiedName,
             constructorParameters,
             packageName,
             qualifier,

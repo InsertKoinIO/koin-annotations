@@ -27,18 +27,16 @@ class ClassComponentScanner(
 
     fun createClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
         val ksClassDeclaration = (element as KSClassDeclaration)
-        val parent = ksClassDeclaration.parentDeclaration?.simpleName?.asString()
-        val packageName = (ksClassDeclaration.getPackageName() + (parent?.let { ".$it" } ?: "")).filterForbiddenKeywords()
-        val className = ksClassDeclaration.simpleName.asString()
-
+        val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
+        val qualifiedName = ksClassDeclaration.qualifiedName?.asString() ?: ""
         val qualifier = ksClassDeclaration.getQualifier()
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
         return if (scopeAnnotation != null){
-            createClassDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
+            createClassDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, qualifiedName, annotations)
         } else {
             annotations.firstNotNullOf { (annotationName, annotation) ->
-                createClassDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
+                createClassDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, qualifiedName, annotations)
             }
         }
     }
@@ -50,7 +48,7 @@ class ClassComponentScanner(
         annotationName: String,
         packageName: String,
         qualifier: String?,
-        className: String,
+        qualifiedName: String,
         annotations: Map<String, KSAnnotation> = emptyMap()
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
@@ -64,23 +62,26 @@ class ClassComponentScanner(
 
         return when (annotationName) {
             SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect, isActual = isActual)
+                createSingleDefinition(annotation, packageName, qualifier, qualifiedName, ctorParams, allBindings, isExpect, isActual = isActual)
             }
+
             SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect, isActual = isActual)
+                createSingleDefinition(annotation, packageName, qualifier, qualifiedName, ctorParams, allBindings, isExpect, isActual = isActual)
             }
+
             FACTORY.annotationName -> {
-                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
+                createClassDefinition(FACTORY,packageName, qualifier, qualifiedName, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
+
             KOIN_VIEWMODEL.annotationName -> {
-                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
+                createClassDefinition(KOIN_VIEWMODEL,packageName, qualifier, qualifiedName, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             KOIN_WORKER.annotationName -> {
-                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
+                createClassDefinition(KOIN_WORKER,packageName, qualifier, qualifiedName, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
             }
             SCOPE.annotationName -> {
                 val (scopeData, extraScopeBindings, extraAnnotationDefinition) = getAnnotationScopeData(annotation, annotations, allBindings)
-                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
+                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, qualifiedName, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
             }
             else -> error("Unknown annotation type: $annotationName")
         }
@@ -90,7 +91,7 @@ class ClassComponentScanner(
         annotation: KSAnnotation,
         packageName: String,
         qualifier: String?,
-        className: String,
+        qualifiedName: String,
         ctorParams: List<KoinMetaData.DefinitionParameter>?,
         allBindings: List<KSDeclaration>,
         isExpect : Boolean,
@@ -98,14 +99,14 @@ class ClassComponentScanner(
     ): KoinMetaData.Definition.ClassDefinition {
         val createdAtStart: Boolean =
             annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
-        return createClassDefinition(SINGLE, packageName, qualifier, className, ctorParams, allBindings, isCreatedAtStart = createdAtStart, isExpect= isExpect, isActual = isActual)
+        return createClassDefinition(SINGLE, packageName, qualifier, qualifiedName, ctorParams, allBindings, isCreatedAtStart = createdAtStart, isExpect= isExpect, isActual = isActual)
     }
 
     private fun createClassDefinition(
         keyword : DefinitionAnnotation,
         packageName: String,
         qualifier: String?,
-        className: String,
+        qualifiedName: String,
         ctorParams: List<KoinMetaData.DefinitionParameter>?,
         allBindings: List<KSDeclaration>,
         isCreatedAtStart : Boolean? = null,
@@ -117,7 +118,7 @@ class ClassComponentScanner(
             packageName = packageName,
             qualifier = qualifier,
             isCreatedAtStart = isCreatedAtStart,
-            className = className,
+            qualifiedName = qualifiedName,
             constructorParameters = ctorParams ?: emptyList(),
             bindings = allBindings,
             keyword = keyword,

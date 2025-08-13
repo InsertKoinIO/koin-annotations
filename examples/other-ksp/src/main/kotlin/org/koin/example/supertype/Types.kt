@@ -21,5 +21,9 @@ public class C : B(),D
 class MyType {
 
     @Single
-    class MyChildType
+    class MyChildType {
+        @Single
+        class MyGrandChildType
+    }
+
 }
