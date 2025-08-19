@@ -10,30 +10,6 @@ class ApplicationClassWriter(
     val application: KoinMetaData.Application,
 ) : AbstractFileWriter(codeGenerator) {
 
-    /*
-        @Module
-        @Configuration
-        MyModule
-
-        @KoinApplication
-        MyApp
-        - or -
-        @KoinApplication(configurations = ["default", "test"], modules = [...])
-        MyApp
-
-        -> MyApp.startKoin(% lambda config %) = startKoin(lambda + MyApp.koinConfiguration)
-        -> MyApp.koinApplication(% lambda config %) = koinApplication(lambda + MyApp.koinConfiguration)
-
-        -> MyApp.koinConfiguration = {
-            => config as module list - active modules config only
-            configs(<use modules of configs>)
-            => list of modules
-            modules(...)
-        }
-        -> Generate config map static ?
-            val MyApp.configurationsMap = hashMapOf<String, List<Module>>(...)
-     */
-
     override val fileName : String = generateApplicationFileName(application)
     private fun generateApplicationFileName(m: KoinMetaData.Application): String {
         val extensionName = m.packageName("$")
@@ -85,7 +61,7 @@ class ApplicationClassWriter(
     private fun writeKoinApplicationFunction() {
         writeln("""
             @KoinApplicationDslMarker
-            fun org.koin.sample.androidx.di.MyKoinApp.application(ext : KoinAppDeclaration?=null) : KoinApplication {
+            fun org.koin.sample.androidx.di.MyKoinApp.koinApplication(ext : KoinAppDeclaration?=null) : KoinApplication {
                 return koinApplication(koinConfiguration(ext))
             }
         """.trimIndent())
