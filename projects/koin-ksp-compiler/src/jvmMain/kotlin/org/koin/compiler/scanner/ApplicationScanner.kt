@@ -18,6 +18,7 @@ package org.koin.compiler.scanner
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
+import org.koin.compiler.scanner.ModuleScanner.Companion.toModuleIncludes
 import org.koin.compiler.scanner.ext.*
 import org.koin.core.annotation.KoinApplication
 
@@ -28,8 +29,11 @@ class ApplicationScanner(
     fun createClassApplication(element: KSAnnotated): KoinMetaData.Application {
         val declaration = (element as KSClassDeclaration)
         val modulePackage = declaration.getPackageName().filterForbiddenKeywords()
+
         val annotations = declaration.annotations
         val configurations = getConfigurationScans(annotations)
+        val includes = getIncludes(annotations)
+
         val name = "$element"
         val type = if (declaration.classKind == ClassKind.OBJECT) {
             KoinMetaData.ModuleType.OBJECT
@@ -37,21 +41,27 @@ class ApplicationScanner(
             KoinMetaData.ModuleType.CLASS
         }
 
-        //TODO includes modules
-
         val applicationMetadata = KoinMetaData.Application(
             packageName = modulePackage,
             name = name,
             type = type,
             configurationTags = configurations ?: defaultConfiguration(),
+            moduleIncludes = includes
         )
         return applicationMetadata
     }
 
     private fun getConfigurationScans(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.ConfigurationTag>? {
-        val configuration = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
-        if (configuration == null) return defaultConfiguration()
-        return configurationValue(configuration,"configurations")
+        val annotation = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
+        if (annotation == null) return defaultConfiguration()
+        return configurationValue(annotation,"configurations")
+    }
+
+    private fun getIncludes(annotations: Sequence<KSAnnotation>): List<KoinMetaData.ModuleInclude>? {
+        val annotation = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
+        return annotation?.let {
+            includedModules(annotation).toModuleIncludes()
+        }
     }
 }
 

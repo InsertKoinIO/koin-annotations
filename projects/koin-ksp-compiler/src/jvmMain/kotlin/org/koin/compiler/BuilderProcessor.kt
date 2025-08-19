@@ -68,13 +68,36 @@ class BuilderProcessor(
             resolver,
             moduleList
         )
-        //TODO Generate entry point
-        //TODO Generate modules load per config (Application.configurations)
-        //TODO Generate modules load per config (Application.modules)
-
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
+
+
+        /*
+            @Module
+            @Configuration
+            MyModule
+
+            @KoinApplication
+            MyApp
+            - or -
+            @KoinApplication(configurations = ["default", "test"], modules = [...])
+            MyApp
+
+            -> MyApp.startKoin(% lambda config %) = startKoin(lambda + MyApp.koinConfiguration)
+            -> MyApp.koinApplication(% lambda config %) = koinApplication(lambda + MyApp.koinConfiguration)
+            -> MyApp.koinConfiguration = {
+                => config as module list - active modules config only
+                configs(...)
+                => list of modules
+                modules(...)
+            }
+            -> Generate config map static ?
+                val MyApp.configurationsMap = hashMapOf<String, List<Module>>(...)
+             */
+        //TODO Generate entry point
+        //TODO Generate modules load per config (Application.configurations)
+        //TODO Generate modules load per config (Application.modules)
 
         val isConfigCheckActive = isConfigCheckActive()
 

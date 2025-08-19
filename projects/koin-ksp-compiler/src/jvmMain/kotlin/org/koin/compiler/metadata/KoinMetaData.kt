@@ -37,7 +37,7 @@ sealed class KoinMetaData {
         val configurationTags: Set<ConfigurationTag> = defaultConfiguration(),
         val type: ModuleType = ModuleType.FIELD,
         val configurations : List<Configuration>? = null,
-        val modules: List<ModuleInclude>? = null
+        val moduleIncludes: List<ModuleInclude>? = null
     )
 
     data class Module(

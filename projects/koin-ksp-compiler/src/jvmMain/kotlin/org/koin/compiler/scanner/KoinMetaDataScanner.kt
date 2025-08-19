@@ -66,6 +66,7 @@ class KoinMetaDataScanner(
         val applications = scanClassApplications(resolver)
         return if (applications.isNotEmpty()){
 
+            //TODO Remove debug
             logger.warn("[DEBUG] found applications: $applications")
 
             // Check for default config or @ConfigScan
@@ -83,29 +84,6 @@ class KoinMetaDataScanner(
                     configurations = configKeys.map { config -> configurations.first { it.name == config.name } }
                 )
             }
-            /*
-
-            @Module
-            @Configuration
-            MyModule
-
-            @KoinApplication
-            MyApp
-            - or -
-            @KoinApplication(configurations = ["default", "test"], modules = [...])
-            MyApp
-
-            -> MyApp.startKoin(% lambda config %) = startKoin(lambda + MyApp.koinConfiguration)
-            -> MyApp.koinApplication(% lambda config %) = koinApplication(lambda + MyApp.koinConfiguration)
-            -> MyApp.koinConfiguration = {
-                => config as module list - active modules config only
-                configs(...)
-                => list of modules
-                modules(...)
-            }
-            -> Generate config map static ?
-                MyApp.configurationsMap => Map<String, List<Module>>
-             */
         } else emptyList()
     }
 

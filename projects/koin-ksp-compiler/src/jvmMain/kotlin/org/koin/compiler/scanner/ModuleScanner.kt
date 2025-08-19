@@ -114,16 +114,19 @@ class ModuleScanner(
         }
     }
 
-    private fun List<KSDeclaration>?.toModuleIncludes(): List<KoinMetaData.ModuleInclude>? {
-        return this?.map {
-            it.mapModuleInclude()
-        }
-    }
+    companion object {
 
-    private fun KSDeclaration.mapModuleInclude(): KoinMetaData.ModuleInclude {
-        val packageName: String = packageName.asString()
-        val className = simpleName.asString()
-        return KoinMetaData.ModuleInclude(packageName, className, isExpect, isActual)
+        fun List<KSDeclaration>?.toModuleIncludes(): List<KoinMetaData.ModuleInclude>? {
+            return this?.map {
+                it.mapModuleInclude()
+            }
+        }
+
+        private fun KSDeclaration.mapModuleInclude(): KoinMetaData.ModuleInclude {
+            val packageName: String = packageName.asString()
+            val className = simpleName.asString()
+            return KoinMetaData.ModuleInclude(packageName, className, isExpect, isActual)
+        }
     }
 }
 
