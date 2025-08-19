@@ -10,6 +10,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.koinApplication
 import org.koin.ksp.generated.defaultModule
 import org.koin.ksp.generated.module
+import org.koin.ksp.generated.startKoin
 import org.koin.sample.android.library.CommonRepository
 import org.koin.sample.android.library.MyScope
 import org.koin.sample.androidx.app.ScopedStuff
@@ -18,6 +19,7 @@ import org.koin.sample.androidx.data.MyDataConsumer
 import org.koin.sample.androidx.data.MyDataScope
 import org.koin.sample.androidx.data.ScopeData
 import org.koin.sample.androidx.di.AppModule
+import org.koin.sample.androidx.di.MyKoinApp
 import org.koin.sample.androidx.multi.FooB
 import org.koin.sample.androidx.multi.FooC
 import org.koin.sample.androidx.multi.FooD
@@ -37,14 +39,7 @@ class AndroidModuleTest {
 
     @Test
     fun run_all_modules() {
-        val koin = startKoin {
-            modules(
-//                defaultModule,
-                //DataModule().module,
-                RepositoryModule().module,
-                AppModule().module,
-            )
-        }.koin
+        val koin = MyKoinApp.startKoin().koin
 
         val commonRepository = koin.get<CommonRepository>()
         assert(!commonRepository.lazyParam.isInitialized())
@@ -75,12 +70,7 @@ class AndroidModuleTest {
 
     @Test
     fun run_all_modules_common() {
-        val koin = startKoin {
-            modules(
-//                defaultModule,
-                AppModule().module,
-            )
-        }.koin
+        val koin = MyKoinApp.startKoin().koin
 
         val commonRepository = koin.get<CommonRepository>()
         assert(!commonRepository.lazyParam.isInitialized())

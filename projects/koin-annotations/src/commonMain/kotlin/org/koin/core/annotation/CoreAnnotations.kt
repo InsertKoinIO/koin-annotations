@@ -263,7 +263,7 @@ annotation class Configuration(vararg val value: String = [])
  *
  * //TODO Complete example
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
+@Target(AnnotationTarget.CLASS)
 //TODO uses modules to be included directly
 annotation class KoinApplication(val configurations: Array<String> = [], val modules : Array<KClass<*>> = [Unit::class])
 

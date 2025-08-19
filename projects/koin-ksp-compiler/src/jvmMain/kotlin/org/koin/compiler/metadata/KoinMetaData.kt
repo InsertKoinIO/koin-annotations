@@ -38,7 +38,11 @@ sealed class KoinMetaData {
         val type: ModuleType = ModuleType.FIELD,
         val configurations : List<Configuration>? = null,
         val moduleIncludes: List<ModuleInclude>? = null
-    )
+    ) {
+        fun packageName(separator: String): String {
+            return splitPackage(packageName, separator)
+        }
+    }
 
     data class Module(
         val packageName: PackageName,

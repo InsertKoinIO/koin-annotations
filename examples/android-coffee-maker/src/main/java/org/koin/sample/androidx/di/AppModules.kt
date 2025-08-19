@@ -19,6 +19,7 @@ class UseContext(val context: Context)
 //@KoinApplication(
 //    configurations = ["default","lib"]
 //)
+
 @KoinApplication
 object MyKoinApp
 

@@ -106,6 +106,15 @@ class KoinCodeGenerator(
         }
     }
 
+    fun generateApplications(applications: List<KoinMetaData.Application>) {
+
+        logger.warn("[DEBUG] generating applications ${applications.size} ...")
+
+        applications.forEach { application ->
+            ApplicationClassWriter(codeGenerator,resolver,application).writeApplication()
+        }
+    }
+
     companion object {
         lateinit var LOGGER: KSPLogger
             private set

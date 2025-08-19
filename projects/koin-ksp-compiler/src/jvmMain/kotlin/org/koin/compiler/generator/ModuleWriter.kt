@@ -15,38 +15,27 @@
  */
 package org.koin.compiler.generator
 
-import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
-import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
 import org.koin.compiler.type.clearPackageSymbols
-import java.io.OutputStream
 
 abstract class ModuleWriter(
-    val codeGenerator: CodeGenerator,
+    codeGenerator: CodeGenerator,
     val resolver: Resolver,
     val module: KoinMetaData.Module,
-) {
-    abstract val fileName: String
+) : AbstractFileWriter(codeGenerator) {
 
     open val hasExternalDefinitions: Boolean = false
     open val generateModuleBody: Boolean = true
-
-    private fun createFileStream(): OutputStream = codeGenerator.getNewFile(fileName = fileName)
-    private var fileStream: OutputStream? = null
-    protected fun write(s: String) { fileStream?.appendText(s) }
-    protected fun writeln(s: String) = write("$s\n")
-    protected fun writeEmptyLine() = writeln("")
     private lateinit var definitionFactory : DefinitionWriterFactory
-
     private val modulePath = if (module.packageName.isEmpty()) module.name else "${module.packageName}.${module.name}"
     private val generatedField = "${module.packageName("_").clearPackageSymbols()}_${module.name}"
 
@@ -164,14 +153,7 @@ abstract class ModuleWriter(
 
     open fun writeModuleIncludes() {
         if (module.includes?.isNotEmpty() == true){
-            generateIncludes()?.let { writeln("${TAB}includes($it)") }
-        }
-    }
-
-    private fun generateIncludes(): String? {
-        return module.includes?.joinToString(separator = ",") {
-            if (it.packageName.isEmpty()) "${it.className}().module"
-            else "${it.packageName}.${it.className}().module"
+            writeln("${TAB}includes(${generateIncludes(module.includes)})")
         }
     }
 

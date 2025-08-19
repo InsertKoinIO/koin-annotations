@@ -7,23 +7,33 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.option.viewModelScopeFactory
 import org.koin.ksp.generated.module
+import org.koin.ksp.generated.startKoin
 import org.koin.sample.androidx.di.AppModule
+import org.koin.sample.androidx.di.MyKoinApp
 
 class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
-        startKoin {
+        MyKoinApp.startKoin {
             androidLogger(Level.DEBUG)
             androidContext(this@MainApplication)
-            modules(
-//                defaultModule,
-                AppModule().module,
-            )
             options(
                 viewModelScopeFactory()
             )
         }
+
+//        startKoin {
+//            androidLogger(Level.DEBUG)
+//            androidContext(this@MainApplication)
+//            modules(
+////                defaultModule,
+//                AppModule().module,
+//            )
+//            options(
+//                viewModelScopeFactory()
+//            )
+//        }
     }
 }
