@@ -3,12 +3,9 @@ package org.koin.sample.androidx
 import android.app.Application
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.option.viewModelScopeFactory
-import org.koin.ksp.generated.module
 import org.koin.ksp.generated.startKoin
-import org.koin.sample.androidx.di.AppModule
 import org.koin.sample.androidx.di.MyKoinApp
 
 class MainApplication : Application() {
