@@ -108,8 +108,7 @@ class KoinCodeGenerator(
 
     fun generateApplications(applications: List<KoinMetaData.Application>) {
 
-        logger.warn("[DEBUG] generating applications ${applications.size} ...")
-
+//        logger.logging("generating applications ${applications.size} ...")
         applications.forEach { application ->
             ApplicationClassWriter(codeGenerator,resolver,application).writeApplication()
         }

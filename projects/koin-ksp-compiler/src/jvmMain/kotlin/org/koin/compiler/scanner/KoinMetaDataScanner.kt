@@ -66,16 +66,12 @@ class KoinMetaDataScanner(
         val applications = scanClassApplications(resolver)
         return if (applications.isNotEmpty()){
 
-            //TODO Remove debug
-            logger.warn("[DEBUG] found applications: $applications")
-
+//            logger.warn("found applications: $applications")
             // Check for default config or @ConfigScan
             val activeConfigurations = applications.flatMap { it.configurationTags }.toSet()
-            logger.warn("[DEBUG] found configurations: $activeConfigurations")
-
+//            logger.warn("found configurations: $activeConfigurations")
             val configurations = extractAndBuildConfigurations(activeConfigurations, moduleList, resolver)
-
-            logger.warn("[DEBUG] configurations: ${configurations.map { it.name+" -> "+it.modules.joinToString(", ") { it.packageName+"."+it.className } }}")
+//            logger.logging("configurations: ${configurations.map { it.name+" -> "+it.modules.joinToString(", ") { it.packageName+"."+it.className } }}")
 
             // add configs content
             applications.map { application ->
@@ -130,7 +126,7 @@ class KoinMetaDataScanner(
         metaConfigurations.forEach { (configName, modulesName) ->
             val foundConfig = configurations[KoinMetaData.ConfigurationTag(configName)]
             if (foundConfig == null){
-                logger.warn("[DEBUG] skip configuration '$configName' with $modulesName")
+                logger.info("skip configuration '$configName' with $modulesName")
             }
             foundConfig?.let {
                 val newList = modulesName.toSet().map { moduleName ->

@@ -52,7 +52,7 @@ class ApplicationClassWriter(
     private fun writeStartKoinFunction() {
         writeln("""
             @KoinApplicationDslMarker
-            fun org.koin.sample.androidx.di.MyKoinApp.startKoin(ext : KoinAppDeclaration?=null) : KoinApplication {
+            fun $extensionBase.startKoin(ext : KoinAppDeclaration?=null) : KoinApplication {
                 return GlobalContext.startKoin(koinConfiguration(ext))
             }
         """.trimIndent())
@@ -61,8 +61,8 @@ class ApplicationClassWriter(
     private fun writeKoinApplicationFunction() {
         writeln("""
             @KoinApplicationDslMarker
-            fun org.koin.sample.androidx.di.MyKoinApp.koinApplication(ext : KoinAppDeclaration?=null) : KoinApplication {
-                return koinApplication(koinConfiguration(ext))
+            fun $extensionBase.koinApplication(ext : KoinAppDeclaration?=null) : KoinApplication {
+                return org.koin.dsl.koinApplication(koinConfiguration(ext))
             }
         """.trimIndent())
     }
