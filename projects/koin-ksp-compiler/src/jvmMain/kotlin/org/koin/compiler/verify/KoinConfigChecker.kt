@@ -33,6 +33,7 @@ import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.type.fullWhiteList
+import org.koin.meta.annotations.MetaDefinition
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
@@ -47,9 +48,15 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) {
         val metaModules = foundMetaModules.mapNotNull(::extractMetaModuleValues)
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
-        val scopes = definitions.mapNotNull { it.scope }
-        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { if (it.qualifier == null) it.binds!! else it.binds!!.mapNotNull { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${it.qualifier}" }}
-        val availableTypes = (scopes + binds + definitions.map { it.value }).toSet()
+
+        val definitionTypes = definitions.associateBy { it.value }
+        val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
+        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
+            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
+            t.map { it to def }
+        }.toMap()
+
+        val availableTypes = (definitionTypes + scopes + binds)
 
         definitions.forEach { def -> verifyMetaDefinition(def, availableTypes)}
         detectDependencyCycles(definitions)
@@ -95,18 +102,26 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 //        detectDependencyCycles(definitions)
 //    }
 
-    private fun verifyMetaDefinition(def: MetaDefinitionData, availableTypes: Set<String>) {
+    private fun verifyMetaDefinition(def: MetaDefinitionData, availableTypes: Map<String, MetaDefinitionData>) {
         def.dependencies?.forEach { i ->
             val tagData = i.split(":")
             val parameterName = tagData[0]
             val parameterType = tagData[1].clearPackageSymbols()
             val tag = parameterType.camelCase()
-            val foundInTypes = (parameterType in fullWhiteList || (parameterType in availableTypes))
-
+            val foundInTypes = (parameterType in fullWhiteList || (parameterType in availableTypes.keys))
+            if (foundInTypes) {
+                availableTypes[parameterType]?.let { found ->
+                    println("[DEBUG] foundInTypes - $found. Module id? ")
+                }
+            }
             if (!foundInTypes) {
 
-                val foundTag = if (def.scope == null){ tagAlreadyExists(tag) } else { tagAlreadyExists(tag) || tagAlreadyExists(TagFactory.updateTagWithScope(tag,def)) }
-                if (!foundTag){
+                val foundResolution = if (def.scope == null){ getTagResolution(tag) } else { getTagResolution(tag) ?: getTagResolution(TagFactory.updateTagWithScope(tag,def)) }
+                val foudMetaDef = foundResolution?.annotations?.firstOrNull { it.shortName.asString() == MetaDefinition::class.simpleName!! }
+                if (foudMetaDef != null){
+                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - Module id? ")
+                }
+                if (foundResolution == null){
                     logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
                 }
             }
