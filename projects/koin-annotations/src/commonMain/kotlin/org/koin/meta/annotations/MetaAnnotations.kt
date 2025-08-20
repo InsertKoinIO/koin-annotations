@@ -37,7 +37,7 @@ annotation class ExternalDefinition(val value: String = "")
  * @param binds - Bound types
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaDefinition(val value: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
+annotation class MetaDefinition(val value: String = "",val moduleId: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
 
 /**
  * Meta Definition annotation to help represents
@@ -45,4 +45,4 @@ annotation class MetaDefinition(val value: String = "", val dependencies: Array<
  * @param includes - Includes Module Tags to check
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaModule(val value: String = "", val includes: Array<String> = [], val configurations: Array<String> = [])
+annotation class MetaModule(val value: String = "", val id: String = "", val includes: Array<String> = [], val configurations: Array<String> = [])

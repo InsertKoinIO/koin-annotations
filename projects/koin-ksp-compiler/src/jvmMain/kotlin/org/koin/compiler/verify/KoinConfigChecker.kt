@@ -24,6 +24,8 @@ import org.koin.compiler.metadata.KOIN_TAG_SEPARATOR
 import org.koin.compiler.metadata.QUALIFIER_SYMBOL
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
+import org.koin.compiler.resolver.getResolutionForTag
+import org.koin.compiler.resolver.getResolutionForTagProp
 import org.koin.compiler.resolver.tagAlreadyExists
 import org.koin.compiler.resolver.tagPropAlreadyExists
 import org.koin.compiler.scanner.ext.getArgument
@@ -31,88 +33,108 @@ import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.type.fullWhiteList
-import java.util.Stack
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
-data class DefinitionVerification(val value: String, val dependencies: ArrayList<String>?, val scope: String? ,val binds: ArrayList<String>?, val qualifier: String?)
+data class MetaDefinitionData(val value: String, val moduleId : String,val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
+data class MetaModuleData(val value: String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
 
 /**
  * Koin Configuration Checker
  */
 class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
+    fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) {
+        val metaModules = foundMetaModules.mapNotNull(::extractMetaModuleValues)
+        val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
+        val scopes = definitions.mapNotNull { it.scope }
+        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { if (it.qualifier == null) it.binds!! else it.binds!!.mapNotNull { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${it.qualifier}" }}
+        val availableTypes = (scopes + binds + definitions.map { it.value }).toSet()
 
-    fun verifyMetaModules(metaModules: List<KSAnnotation>) {
-        metaModules
-            .mapNotNull(::extractMetaModuleValues)
-            .forEach { (value,includes) ->
-                if (!includes.isNullOrEmpty()) verifyMetaModule(value,includes)
-            }
-    }
-
-    private fun verifyMetaModule(value: String, includes: ArrayList<String>) {
-        includes.forEach { i ->
-            val exists = resolver.tagAlreadyExists(i.camelCase())
-            if (!exists) {
-                logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
-            }
-        }
-    }
-
-    //TODO update extarction of MetaModules
-    private fun extractMetaModuleValues(a: KSAnnotation): Pair<String, ArrayList<String>?>? {
-        val value = a.arguments.getValueArgument()
-        val includes = if (value != null) a.arguments.getArray("includes") else null
-        return value?.let { it to includes }
-    }
-
-    fun verifyMetaDefinitions(metaDefinitions: List<KSAnnotation>) {
-        // First extract all the definitions from annotations.
-        val definitions = metaDefinitions.mapNotNull(::extractMetaDefinitionValues)
-        val allScopes = definitions.mapNotNull { it.scope }
-        val allBinds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { if (it.qualifier == null) it.binds!! else it.binds!!.mapNotNull { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${it.qualifier}" }}
-        val availableTypes = (allScopes + allBinds + definitions.map { it.value }).toSet().toList()
-
-        // Verify that each dependency is defined.
-        definitions.forEach {
-            if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it, availableTypes)
-        }
-        // Now run cycle detection on the dependency graph.
+        definitions.forEach { def -> verifyMetaDefinition(def, availableTypes)}
         detectDependencyCycles(definitions)
     }
 
-    private fun verifyMetaDefinition(dv: DefinitionVerification, availableTypes: List<String>) {
-        dv.dependencies?.forEach { i ->
+//    fun verifyMetaModules(metaModulesAnnotations: List<KSAnnotation>) {
+//        metaModulesAnnotations
+//            .mapNotNull(::extractMetaModuleValues)
+//            .forEach { (value,includes) ->
+//                if (!includes.isNullOrEmpty()) verifyMetaModule(value,includes)
+//            }
+//    }
+//
+//    private fun verifyMetaModule(value: String, includes: ArrayList<String>) {
+//        includes.forEach { i ->
+//            val exists = resolver.tagAlreadyExists(i.camelCase())
+//            if (!exists) {
+//                logger.error("--> Missing Module Definition :'${i}' included in '$value'. Fix your configuration: add @Module annotation on the class.")
+//            }
+//        }
+//    }
+
+    private fun extractMetaModuleValues(a: KSAnnotation): MetaModuleData? {
+        val value = a.arguments.getValueArgument()
+        val id = a.arguments.getArgument("id") ?: ""
+        val includes = if (value != null) a.arguments.getArray("includes") else null
+        val configs = if (value != null) a.arguments.getArray("configurations") else null
+        return value?.let { MetaModuleData(value,id,includes,configs) }
+    }
+
+//    fun verifyMetaDefinitions(metaDefinitions: List<KSAnnotation>) {
+//        // First extract all the definitions from annotations.
+//        val definitions = metaDefinitions.mapNotNull(::extractMetaDefinitionValues)
+//        val allScopes = definitions.mapNotNull { it.scope }
+//        val allBinds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { if (it.qualifier == null) it.binds!! else it.binds!!.mapNotNull { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${it.qualifier}" }}
+//        val availableTypes = (allScopes + allBinds + definitions.map { it.value }).toSet().toList()
+//
+//        // Verify that each dependency is defined.
+//        definitions.forEach {
+//            if (!it.dependencies.isNullOrEmpty()) verifyMetaDefinition(it, availableTypes)
+//        }
+//        // Now run cycle detection on the dependency graph.
+//        detectDependencyCycles(definitions)
+//    }
+
+    private fun verifyMetaDefinition(def: MetaDefinitionData, availableTypes: Set<String>) {
+        def.dependencies?.forEach { i ->
             val tagData = i.split(":")
-            val name = tagData[0]
-            val type = tagData[1].clearPackageSymbols()
-            val tag = type.camelCase()
-            val exists = if (dv.scope == null){ tagAlreadyExists(tag) } else { tagAlreadyExists(tag) || tagAlreadyExists(TagFactory.updateTagWithScope(tag,dv)) }
-            if (!exists && type !in fullWhiteList && (type !in availableTypes)) {
-                logger.error("--> Missing Definition for property '$name : $type' in '${dv.value}'. Fix your configuration: add definition annotation on the class.")
+            val parameterName = tagData[0]
+            val parameterType = tagData[1].clearPackageSymbols()
+            val tag = parameterType.camelCase()
+            val foundInTypes = (parameterType in fullWhiteList || (parameterType in availableTypes))
+
+            if (!foundInTypes) {
+
+                val foundTag = if (def.scope == null){ tagAlreadyExists(tag) } else { tagAlreadyExists(tag) || tagAlreadyExists(TagFactory.updateTagWithScope(tag,def)) }
+                if (!foundTag){
+                    logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
+                }
             }
         }
+    }
+
+    private fun getTagResolution(tag : String) : KSDeclaration?{
+        return resolver.getResolutionForTag(tag) ?: resolver.getResolutionForTagProp(tag).firstOrNull()
     }
 
     private fun tagAlreadyExists(tag : String) : Boolean{
         return resolver.tagAlreadyExists(tag) || resolver.tagPropAlreadyExists(tag)
     }
 
-    private fun extractMetaDefinitionValues(a: KSAnnotation): DefinitionVerification? {
+    private fun extractMetaDefinitionValues(a: KSAnnotation): MetaDefinitionData? {
         val value = a.arguments.getValueArgument()
+        val moduleId = a.arguments.getArgument("moduleId") ?: error("can't find module id in MetaDefinitionData in $a")
         val includes = if (value != null) a.arguments.getArray("dependencies") else null
         val scope = if (value != null) a.arguments.getScopeArgument() else null
         val binds = if (value != null) a.arguments.getArray("binds") else null
         val qualifier = if (value != null) a.arguments.getArgument("qualifier") else null
-        return value?.let { DefinitionVerification(value,includes,scope,binds,qualifier) }
+        return value?.let { MetaDefinitionData(value,moduleId,includes,scope,binds,qualifier) }
     }
 
     private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {
         return firstOrNull { a -> a.name?.asString() == name }?.value as? ArrayList<String>?
     }
 
-    //TODO To be rewritten
     /**
      * Build a dependency graph from all definitions and then
      * perform a DFS to check for cycles.
@@ -120,7 +142,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
      * Nodes are identified by the normalized (camelCased) value of the definition,
      * and each edge comes from a dependency string like "name:Type" (where Type is normalized).
      */
-    internal fun detectDependencyCycles(definitions: List<DefinitionVerification>) {
+    internal fun detectDependencyCycles(definitions: List<MetaDefinitionData>) {
         try {
             definitions.forEach { definition ->
                 if (definition.dependencies?.isNotEmpty() == true) {
@@ -159,13 +181,13 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun findDefinitionFromTag(
-        definitions: List<DefinitionVerification>,
+        definitions: List<MetaDefinitionData>,
         tag: String
-    ): DefinitionVerification? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value.contains(tag) }
+    ): MetaDefinitionData? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value.contains(tag) }
 
     private fun lookupCycle(
-        allDefinitions: List<DefinitionVerification>,
-        originDefinition: DefinitionVerification,
+        allDefinitions: List<MetaDefinitionData>,
+        originDefinition: MetaDefinitionData,
         currentTag: String,
         visited: MutableSet<String>
     ) {

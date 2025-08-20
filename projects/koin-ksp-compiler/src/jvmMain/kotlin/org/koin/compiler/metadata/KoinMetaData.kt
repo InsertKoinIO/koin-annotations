@@ -21,6 +21,7 @@ import com.google.devtools.ksp.symbol.Visibility
 import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.compiler.util.matchesGlob
 import java.util.*
+import kotlin.math.absoluteValue
 
 typealias PackageName = String
 fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
@@ -60,6 +61,9 @@ sealed class KoinMetaData {
         val isActual : Boolean = false,
         val isSplit : Boolean = false,
     ) : KoinMetaData() {
+
+        val fullpath = "$packageName.$name"
+        val hashId = fullpath.hashCode().absoluteValue.toString(36)
 
         var alreadyGenerated : Boolean? = null
 

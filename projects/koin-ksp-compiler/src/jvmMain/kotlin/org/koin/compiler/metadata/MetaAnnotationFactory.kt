@@ -10,7 +10,8 @@ object MetaAnnotationFactory {
     private val metaDefinition = MetaDefinition::class.simpleName!!
 
     fun generate(module: KoinMetaData.Module): String {
-        val fullpath = module.packageName + "." + module.name
+        val fullpath = module.fullpath
+        val moduleId = module.hashId
 
         val includesTags = if (module.includes?.isNotEmpty() == true) {
             module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
@@ -24,11 +25,11 @@ object MetaAnnotationFactory {
         val configurationsString = configurationsTag?.let { ", configurations=[$it]" } ?: ""
 
         return """
-            @$metaModule("$fullpath"$includesString$configurationsString)
+            @$metaModule("$fullpath",id="$moduleId"$includesString$configurationsString)
         """.trimIndent()
     }
 
-    fun generate(def: KoinMetaData.Definition): String {
+    fun generate(def: KoinMetaData.Definition, moduleId : String): String {
         val fullpath = def.packageName + "." + def.label
         val dependencies = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
 
@@ -64,7 +65,7 @@ object MetaAnnotationFactory {
         val bindsString = boundTypes?.let { ", binds=[$it]" } ?: ""
         val qualifierString = qualifier?.let { ", qualifier=\"$it\"" } ?: ""
         return """
-            @$metaDefinition("$fullpath"$depsString$scopeString$bindsString$qualifierString)
+            @$metaDefinition("$fullpath",moduleId="$moduleId"$depsString$scopeString$bindsString$qualifierString)
         """.trimIndent()
     }
 

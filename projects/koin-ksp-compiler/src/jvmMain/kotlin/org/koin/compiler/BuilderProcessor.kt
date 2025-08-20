@@ -25,6 +25,8 @@ import org.koin.compiler.metadata.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
+import org.koin.core.annotation.Module
+import org.koin.meta.annotations.MetaModule
 import kotlin.time.TimeSource.Monotonic.markNow
 
 class BuilderProcessor(
@@ -63,7 +65,6 @@ class BuilderProcessor(
             defaultModule,
             resolver
         )
-
         val applications = koinMetaDataScanner.scanApplicationsAndConfigurations(
             resolver,
             moduleList
@@ -71,11 +72,9 @@ class BuilderProcessor(
 
         logger.logging("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
-
         koinCodeGenerator.generateApplications(applications)
 
         val isConfigCheckActive = isConfigCheckActive()
-
         // Tags are used to verify generated content (KMP)
         KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
             .writeAllTags(moduleList, defaultModule)
@@ -102,11 +101,11 @@ class BuilderProcessor(
                 return invalidSymbols
             }
 
-            val checker = KoinConfigChecker(logger, resolver)
-
-            //TODO remove usage of findMetaModules? (if needed in second round)
-            checker.verifyMetaModules(metaTagScanner.findMetaModules())
-            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
+            KoinConfigChecker(logger, resolver).apply {
+                extractData(metaTagScanner.findMetaModules(), metaTagScanner.findMetaDefinitions())
+            }
+//            checker.verifyMetaModules(metaTagScanner.findMetaModules())
+//            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
 
             if (doLogTimes && checkTime != null) {
                 checkTime.elapsedNow()

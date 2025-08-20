@@ -45,7 +45,9 @@ class KoinTagWriter(
      * By this method, we can compute the digest of tag file and use it to name it.
      *
      * @author Kengo TODA
+     * @author Arnaud Giuliani
      */
+    //TODO Check KoinMeta is constant/reproducible build
     @OptIn(ExperimentalStdlibApi::class)
     private fun createTagsForModules(
         moduleList: List<KoinMetaData.Module>,
@@ -58,30 +60,27 @@ class KoinTagWriter(
         val contentBuilder = StringBuilder()
         allModules.forEach { contentBuilder.append(it.name) }
         allDefinitions.forEach { contentBuilder.append(it.label) }
-
         val hashString = hashContent(contentBuilder.toString())
-
         val tagFileName = "KoinMeta-$hashString"
+
         writeTagFile(tagFileName).buffered().use {
             _tagFileStream = it
             if (isConfigCheckActive){
                 writeImports()
             }
-            writeModuleTags(allModules)
-            writeDefinitionsTags(allDefinitions)
+            allModules.forEach { module ->
+                writeModuleTag(module)
+                writeDefinitionsTags(module.definitions, module)
+            }
+            writeDefinitionsTags(default.definitions, default)
         }
-    }
-
-    private fun writeModuleTags(
-        allModules: List<KoinMetaData.Module>
-    ) {
-        allModules.forEach { m -> writeModuleTag(m) }
     }
 
     private fun writeDefinitionsTags(
         allDefinitions: List<KoinMetaData.Definition>,
+        module: KoinMetaData.Module,
     ) {
-        allDefinitions.forEach { def -> writeDefinitionAndBindingsTags(def) }
+        allDefinitions.forEach { def -> writeDefinitionAndBindingsTags(def, module) }
     }
 
     private fun writeTagFile(tagFileName: String): OutputStream {
@@ -111,8 +110,9 @@ class KoinTagWriter(
 
     private fun writeDefinitionAndBindingsTags(
         def: KoinMetaData.Definition,
+        module: KoinMetaData.Module,
     ) {
-        writeDefinitionTag(def)
+        writeDefinitionTag(def, module)
         def.bindings.forEach { writeBindingTag(def,it) }
         if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope){
             writeScopeTag(def.scope.type)
@@ -133,7 +133,8 @@ class KoinTagWriter(
     }
 
     private fun writeDefinitionTag(
-        definition: KoinMetaData.Definition
+        definition: KoinMetaData.Definition,
+        module: KoinMetaData.Module
     ) {
         if (definition.alreadyGenerated == null){
             definition.alreadyGenerated = resolver.tagAlreadyExists(definition)
@@ -143,7 +144,7 @@ class KoinTagWriter(
             val tag = TagFactory.getTagClass(definition)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
-                    val metaLine = MetaAnnotationFactory.generate(definition)
+                    val metaLine = MetaAnnotationFactory.generate(definition, module.hashId)
                     writeMeta(metaLine)
                 }
                 writeTag(tag)
