@@ -89,7 +89,7 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
 }
 
 fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.ComponentScan> {
-    val values = extractValueStringList(annotation) ?: return emptySet()
+    val values = extractValueStringList(annotation) ?: return setOf(KoinMetaData.Module.ComponentScan(""))
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
 }
 
