@@ -8,19 +8,9 @@ object AllCompApplication
 
 fun main() {
 
-//    generateTestFile()
-
-    AllCompApplication.startKoin()
-//    startKoin {
-//        printLogger()
-//        modules(
-////            defaultModule,
-//            MyModule().module,
-//            MyModule2().module,
-//            MyModule3().module,
-//            MyModule4().module
-//        )
-//    }
+    AllCompApplication.startKoin {
+        printLogger()
+    }
 
 }
 
