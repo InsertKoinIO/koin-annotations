@@ -8,7 +8,7 @@ import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
 import org.koin.core.scope.Scope
 import org.koin.sample.android.library.CommonModule
-import org.koin.sample.androidx.multi.LibFooDModule
+import org.koin.sample.androidx.multi.LibFooConsumerModule
 import org.koin.sample.androidx.repository.RepositoryModule
 import org.koin.sample.clients.ClientModule
 
@@ -22,7 +22,7 @@ class UseContext(val context: Context)
 object MyKoinApp
 
 @Configuration
-@Module(includes = [DataModule::class, LibFooDModule::class])
+@Module(includes = [DataModule::class, LibFooConsumerModule::class])
 @ComponentScan("org.koin.sample.androidx.app")
 class AppModule {
 
