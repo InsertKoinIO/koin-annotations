@@ -50,9 +50,12 @@ data class MetaModuleData(val value: String, val tag : String, val id : String, 
  */
 class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
+    private lateinit var modulesById : MutableMap<String, MetaModuleData>
+    private lateinit var allLocalDefinitions : MutableMap<String, MetaDefinitionData>
+
     fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) {
         val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
-        val modulesById = metaModuleByValue.values.map { module ->
+        modulesById = metaModuleByValue.values.map { module ->
             mapToModule(module)
         }.associateBy { it.id }.toMutableMap()
 
@@ -63,7 +66,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
                 val metaModule = metaModuleByValue[module.value]!!
                 val includes = metaModule.includes
                 // map includes
-                module.includes = includes?.mapNotNull { inc ->
+                module.includes = includes?.map { inc ->
                     //found in current modules?
                     var found = modulesById.values.firstOrNull { it.value == inc }
                     if (found == null){
@@ -71,17 +74,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
                         // find by current modules tag
                         found = modulesById.values.firstOrNull { it.tag == revertedTag }
                         if (found == null){
-                            // find external module by tag
-                            val declaration = resolveTagDeclarationForModule(revertedTag)
-                            // found external module
-                            declaration?.let { declaration ->
-                                // extract meta
-                                val metaModule = extractMetaModuleValues(declaration.annotations.first()) ?: error("can't find module metadata for $inc on ${declaration.qualifiedName?.asString()}")
-                                val newModule = mapToModule(metaModule)
-                                modulesById[newModule.id] = newModule
-                                found = newModule
-                                // add to modulesById
-                            } ?: error("can't find module metadata for $inc in current modules or any meta tags")
+                            found = findExternalModule(revertedTag, inc)
                         }
                     }
                     found
@@ -92,15 +85,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString(",\n") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
 
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
-            MetaDefinitionData(
-                metaDefinition.value,
-                //TODO External module to catch
-                modulesById[metaDefinition.moduleId] ?: error("module '${metaDefinition.moduleId}' not found"),
-                metaDefinition.dependencies,
-                metaDefinition.scope,
-                metaDefinition.binds,
-                metaDefinition.qualifier
-            )
+            mapToDefinition(metaDefinition)
         }
         val definitionTypes = definitions.associateBy { it.value }
         val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
@@ -108,13 +93,43 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
             t.map { it to def }
         }.toMap()
-        val allLocalDefinitions = (definitionTypes + scopes + binds)
+        allLocalDefinitions = ((definitionTypes + scopes + binds) as MutableMap<String, MetaDefinitionData>)
 
         logger.warn("[DEBUG] definitions:\n${allLocalDefinitions.map { (k,v) -> "$k -> ${v.value}" }.joinToString(",\n")}")
 
-        definitions.forEach { def -> verifyDefinition(def, allLocalDefinitions)}
+        definitions.forEach { def -> verifyDefinition(def)}
         detectDependencyCycles(definitions)
     }
+
+    private fun findExternalModule(
+        revertedTag: String,
+        inc: String
+    ): MetaModuleData {
+        // find external module by tag
+        val declaration = resolveTagDeclarationForModule(revertedTag)
+        // found external module
+        return declaration?.let { declaration ->
+            // extract meta
+            val metaModule = extractMetaModuleValues(declaration.annotations.first())
+                ?: error("can't find module metadata for $inc on ${declaration.qualifiedName?.asString()}")
+            val newModule = mapToModule(metaModule)
+            modulesById[newModule.id] = newModule
+            newModule
+            // add to modulesById
+        } ?: error("can't find module metadata for $inc in current modules or any meta tags")
+    }
+
+    private fun mapToDefinition(
+        metaDefinition: MetaDefinitionAnnotationData,
+    ): MetaDefinitionData = MetaDefinitionData(
+        metaDefinition.value,
+        //TODO External module to catch
+        modulesById[metaDefinition.moduleId] ?: error("module '${metaDefinition.moduleId}' not found"),
+        metaDefinition.dependencies,
+        metaDefinition.scope,
+        metaDefinition.binds,
+        metaDefinition.qualifier
+    )
 
     private fun mapToModule(module: MetaModuleAnnotationData): MetaModuleData = MetaModuleData(
         module.value,
@@ -136,19 +151,17 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun verifyDefinition(
-        def: MetaDefinitionData,
-        localDefinitions: Map<String, MetaDefinitionData>
+        def: MetaDefinitionData
     ) {
         if (def.dependencies?.isNotEmpty() == true){
             logger.warn("[DEBUG] verify - ${def.value}")
-            def.dependencies.forEach { dep -> verifyDefinition( def, dep, localDefinitions) }
+            def.dependencies.forEach { dep -> verifyDefinition( def, dep) }
         }
     }
 
     private fun verifyDefinition(
         def: MetaDefinitionData,
-        dependency: String,
-        localDefinitions: Map<String, MetaDefinitionData>
+        dependency: String
     ) {
         logger.warn("[DEBUG] dependency '$dependency'")
 
@@ -157,9 +170,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val parameterType = tagData[1].clearPackageSymbols()
         val tag = parameterType.camelCase()
 
-        val foundInLocalDefinitions = (parameterType in fullWhiteList || (parameterType in localDefinitions.keys))
+        val foundInLocalDefinitions = (parameterType in fullWhiteList || (parameterType in allLocalDefinitions.keys))
         if (foundInLocalDefinitions) {
-            localDefinitions[parameterType]?.let { found ->
+            allLocalDefinitions[parameterType]?.let { found ->
                 logger.warn("[DEBUG] found dependency definition - $found")
             }
         }
@@ -176,7 +189,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             }
             else {
                 val definition = extractMetaDefinitionValues(foundResolution.annotations.firstOrNull() ?: error("can't find definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}") )
+                    ?.let { mapToDefinition(it) }
                     ?: error("can't extract definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}")
+                //TODO definition is in right module scope (path)
 
     //            val foudMetaDef = foundResolution?.annotations?.firstOrNull { it.shortName.asString() == MetaDefinition::class.simpleName!! }
 
