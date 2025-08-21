@@ -20,6 +20,8 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
+import org.koin.compiler.metadata.KOIN_TAG_SEPARATOR
+import org.koin.compiler.metadata.QUALIFIER_SYMBOL
 import org.koin.compiler.metadata.TAG_PREFIX
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
@@ -33,13 +35,14 @@ import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.type.fullWhiteList
 import org.koin.meta.annotations.MetaDefinition
+import kotlin.error
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
 data class MetaDefinitionAnnotationData(val value: String, val moduleId : String, val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
-data class MetaModuleAnnotationData(val value: String, val tag : String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
-
 data class MetaDefinitionData(val value: String, val module : MetaModuleData, val dependencies: List<String>?, val scope: String?, val binds: List<String>?, val qualifier: String?)
+
+data class MetaModuleAnnotationData(val value: String, val tag : String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
 data class MetaModuleData(val value: String, val tag : String, val id : String, var includes: List<MetaModuleData>?, val configurations: List<String>?)
 
 /**
@@ -86,21 +89,31 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             }
         }
 
-        logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString("\n,") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
+        logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString(",\n") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
 
-//        val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
-//
-//        val definitionTypes = definitions.associateBy { it.value }
-//        val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
-//        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
-//            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
-//            t.map { it to def }
-//        }.toMap()
-//
-//        val availableTypes = (definitionTypes + scopes + binds)
-//
-//        definitions.forEach { def -> verifyAllDefinitions(def, availableTypes,moduleGroups)}
-//        detectDependencyCycles(definitions)
+        val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
+            MetaDefinitionData(
+                metaDefinition.value,
+                //TODO External module to catch
+                modulesById[metaDefinition.moduleId] ?: error("module '${metaDefinition.moduleId}' not found"),
+                metaDefinition.dependencies,
+                metaDefinition.scope,
+                metaDefinition.binds,
+                metaDefinition.qualifier
+            )
+        }
+        val definitionTypes = definitions.associateBy { it.value }
+        val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
+        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
+            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
+            t.map { it to def }
+        }.toMap()
+        val allLocalDefinitions = (definitionTypes + scopes + binds)
+
+        logger.warn("[DEBUG] definitions:\n${allLocalDefinitions.map { (k,v) -> "$k -> ${v.value}" }.joinToString(",\n")}")
+
+        definitions.forEach { def -> verifyDefinition(def, allLocalDefinitions)}
+        detectDependencyCycles(definitions)
     }
 
     private fun mapToModule(module: MetaModuleAnnotationData): MetaModuleData = MetaModuleData(
@@ -122,56 +135,66 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         return value?.let { MetaModuleAnnotationData(value, parentTag, id,includes,configs) }
     }
 
-    private fun verifyAllDefinitions(
-        def: MetaDefinitionAnnotationData,
-        availableTypes: Map<String, MetaDefinitionAnnotationData>,
-        moduleGroups: List<Set<String>>
+    private fun verifyDefinition(
+        def: MetaDefinitionData,
+        localDefinitions: Map<String, MetaDefinitionData>
     ) {
-        def.dependencies?.forEach { dep ->
-            verifyDefinition(moduleGroups, def, dep, availableTypes)
+        if (def.dependencies?.isNotEmpty() == true){
+            logger.warn("[DEBUG] verify - ${def.value}")
+            def.dependencies.forEach { dep -> verifyDefinition( def, dep, localDefinitions) }
         }
     }
 
     private fun verifyDefinition(
-        moduleGroups: List<Set<String>>,
-        def: MetaDefinitionAnnotationData,
+        def: MetaDefinitionData,
         dependency: String,
-        availableTypes: Map<String, MetaDefinitionAnnotationData>
+        localDefinitions: Map<String, MetaDefinitionData>
     ) {
-        val defGroup = moduleGroups.firstOrNull { it.contains(def.moduleId) } ?: error("module '${def.moduleId}' not found in any group")
+        logger.warn("[DEBUG] dependency '$dependency'")
+
         val tagData = dependency.split(":")
         val parameterName = tagData[0]
         val parameterType = tagData[1].clearPackageSymbols()
         val tag = parameterType.camelCase()
-        val foundInTypes = (parameterType in fullWhiteList || (parameterType in availableTypes.keys))
-        if (foundInTypes) {
-            availableTypes[parameterType]?.let { found ->
-                val foundGroup = moduleGroups.firstOrNull { it.contains(found.moduleId) } ?: error("module '${found.moduleId}' not found in any group")
-                println("[DEBUG] foundInTypes - $found. Module id? ${foundGroup == defGroup}")
+
+        val foundInLocalDefinitions = (parameterType in fullWhiteList || (parameterType in localDefinitions.keys))
+        if (foundInLocalDefinitions) {
+            localDefinitions[parameterType]?.let { found ->
+                logger.warn("[DEBUG] found dependency definition - $found")
             }
         }
-        if (!foundInTypes) {
 
+        if (!foundInLocalDefinitions) {
             val foundResolution = if (def.scope == null) {
-                getTagResolution(tag)
+                resolveTagDeclarationForDefinition(tag)
             } else {
-                getTagResolution(tag) ?: getTagResolution(TagFactory.updateTagWithScope(tag, def))
+                resolveTagDeclarationForDefinition(tag) ?: resolveTagDeclarationForDefinition(TagFactory.updateTagWithScope(tag, def))
             }
-            val foudMetaDef =
-                foundResolution?.annotations?.firstOrNull { it.shortName.asString() == MetaDefinition::class.simpleName!! }
-            if (foudMetaDef != null) {
-                val foundModuleId = foudMetaDef.arguments.getArgument("moduleId")
-                println("[DEBUG] foundModuleId - ${foundResolution.qualifiedName?.asString()} - $foundModuleId}")
-
-                if (foundModuleId != null) {
-                    val foundGroup = moduleGroups.firstOrNull { it.contains(foundModuleId) } ?: error("module foundModuleId '$foundModuleId' not found in any group")
-                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - Module id? ${foundGroup == defGroup}")
-                } else {
-                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - no Module id")
-                }
-            }
-            if (foundResolution == null) {
+            logger.warn("[DEBUG] found resolution? ${foundResolution != null}")
+            if (foundResolution == null){
                 logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
+            }
+            else {
+                val definition = extractMetaDefinitionValues(foundResolution.annotations.firstOrNull() ?: error("can't find definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}") )
+                    ?: error("can't extract definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}")
+
+    //            val foudMetaDef = foundResolution?.annotations?.firstOrNull { it.shortName.asString() == MetaDefinition::class.simpleName!! }
+
+
+    //            if (foudMetaDef != null) {
+    //                val foundModuleId = foudMetaDef.arguments.getArgument("moduleId")
+    //                println("[DEBUG] foundModuleId - ${foundResolution.qualifiedName?.asString()} - $foundModuleId}")
+    //
+    //                if (foundModuleId != null) {
+    //                    val foundGroup = moduleGroups.firstOrNull { it.contains(foundModuleId) } ?: error("module foundModuleId '$foundModuleId' not found in any group")
+    //                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - Module id? ${foundGroup == defGroup}")
+    //                } else {
+    //                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - no Module id")
+    //                }
+    //            }
+    //            if (foundResolution == null) {
+    //                logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
+    //            }
             }
         }
     }
@@ -180,7 +203,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         return resolver.getResolutionForTag(tag, addTagPrefix = false)
     }
 
-    private fun getTagResolution(tag : String) : KSDeclaration?{
+    private fun resolveTagDeclarationForDefinition(tag : String) : KSDeclaration?{
         return resolver.getResolutionForTag(tag) ?: resolver.getResolutionForTagProp(tag).firstOrNull()
     }
 
@@ -209,7 +232,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
      * Nodes are identified by the normalized (camelCased) value of the definition,
      * and each edge comes from a dependency string like "name:Type" (where Type is normalized).
      */
-    internal fun detectDependencyCycles(definitions: List<MetaDefinitionAnnotationData>) {
+    internal fun detectDependencyCycles(definitions: List<MetaDefinitionData>) {
         try {
             definitions.forEach { definition ->
                 if (definition.dependencies?.isNotEmpty() == true) {
@@ -248,13 +271,13 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun findDefinitionFromTag(
-        definitions: List<MetaDefinitionAnnotationData>,
+        definitions: List<MetaDefinitionData>,
         tag: String
-    ): MetaDefinitionAnnotationData? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value.contains(tag) }
+    ): MetaDefinitionData? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value.contains(tag) }
 
     private fun lookupCycle(
-        allDefinitions: List<MetaDefinitionAnnotationData>,
-        originDefinition: MetaDefinitionAnnotationData,
+        allDefinitions: List<MetaDefinitionData>,
+        originDefinition: MetaDefinitionData,
         currentTag: String,
         visited: MutableSet<String>
     ) {

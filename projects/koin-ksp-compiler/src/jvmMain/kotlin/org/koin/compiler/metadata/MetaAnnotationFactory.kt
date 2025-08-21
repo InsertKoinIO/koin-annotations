@@ -33,7 +33,7 @@ object MetaAnnotationFactory {
         val fullpath = def.packageName + "." + def.label
         val dependencies = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
 
-        val bindings = def.bindings.map { it.qualifiedName?.asString() }.filter { it !in fullWhiteList }
+        val bindings = def.bindings.map { it.qualifiedName?.asString() to it }.filter { (v,_) -> v !in fullWhiteList }.map { (v, t) -> TagFactory.getMetaTagForBinding( v,t) }
         val boundTypes = if (bindings.isNotEmpty()) bindings.joinToString(
             "\",\"",
             prefix = "\"",

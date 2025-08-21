@@ -113,7 +113,7 @@ class KoinTagWriter(
         module: KoinMetaData.Module,
     ) {
         writeDefinitionTag(def, module)
-        def.bindings.forEach { writeBindingTag(def,it) }
+        def.bindings.forEach { writeBindingTag(def,module, it) }
         if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope){
             writeScopeTag(def.scope.type)
         }
@@ -154,6 +154,7 @@ class KoinTagWriter(
 
     private fun writeBindingTag(
         def: KoinMetaData.Definition,
+        module: KoinMetaData.Module,
         binding: KSDeclaration
     ) {
         val name = binding.qualifiedName?.asString()
@@ -161,6 +162,10 @@ class KoinTagWriter(
             val tag = TagFactory.getTagClass(def, binding)
             val alreadyGenerated = resolver.tagPropAlreadyExists(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
+                if (isConfigCheckActive){
+                    val metaLine = MetaAnnotationFactory.generate(def, module.hashId)
+                    writeMeta(metaLine)
+                }
                 writeTag(tag, asProperty = true)
             }
         }
