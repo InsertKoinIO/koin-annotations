@@ -20,8 +20,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
-import org.koin.compiler.metadata.KOIN_TAG_SEPARATOR
-import org.koin.compiler.metadata.QUALIFIER_SYMBOL
+import org.koin.compiler.metadata.TAG_PREFIX
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.resolver.getResolutionForTag
@@ -37,8 +36,11 @@ import org.koin.meta.annotations.MetaDefinition
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
-data class MetaDefinitionData(val value: String, val moduleId : String,val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
-data class MetaModuleData(val value: String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
+data class MetaDefinitionAnnotationData(val value: String, val moduleId : String, val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
+data class MetaModuleAnnotationData(val value: String, val tag : String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
+
+data class MetaDefinitionData(val value: String, val module : MetaModuleData, val dependencies: List<String>?, val scope: String?, val binds: List<String>?, val qualifier: String?)
+data class MetaModuleData(val value: String, val tag : String, val id : String, var includes: List<MetaModuleData>?, val configurations: List<String>?)
 
 /**
  * Koin Configuration Checker
@@ -46,44 +48,78 @@ data class MetaModuleData(val value: String, val id : String, val includes: Arra
 class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) {
-        val metaModules = foundMetaModules.mapNotNull(::extractMetaModuleValues)
-        val moduleGroups: List<Set<String>> = metaModules.map { module ->
-            buildSet {
-                add(module.id)
-                module.includes?.forEach { includeValue ->
-                    metaModules.find { it.value == includeValue }?.id?.let { add(it) }
+        val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
+        
+//        val extractedDefinitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
+
+        val modulesById = metaModuleByValue.values.map { module ->
+            MetaModuleData(
+                module.value,
+                module.tag,
+                module.id,
+                if (module.includes == null) null else emptyList(),
+                module.configurations
+            )
+        }.associateBy { it.id }
+
+        modulesById.forEach { (id,module) ->
+            if (module.includes != null){
+                val metaModule = metaModuleByValue[module.value]!!
+                val includes = metaModule.includes
+                module.includes = includes?.mapNotNull { inc ->
+                    val found = modulesById.values.firstOrNull { it.value == inc }
+                        ?: modulesById.values.firstOrNull { val reverTag = reverTag(inc)
+                            it.tag == reverTag
+                        }
+                    if (found == null) logger.warn("[DEBUG] '$inc' not found")
+                    found
                 }
             }
         }
-        println("[DEBUG] metaModules - $metaModules ")
-        println("[DEBUG] moduleGroups - $moduleGroups ")
 
-        val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
+        logger.warn("[DEBUG] modulesMapById:\n${modulesById.values.joinToString("\n,") { "${it.value} -> ${it.includes?.map { it.value }}" }}")
 
-        val definitionTypes = definitions.associateBy { it.value }
-        val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
-        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
-            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
-            t.map { it to def }
-        }.toMap()
-
-        val availableTypes = (definitionTypes + scopes + binds)
-
-        definitions.forEach { def -> verifyAllDefinitions(def, availableTypes,moduleGroups)}
-        detectDependencyCycles(definitions)
+//        val metaModules = foundMetaModules.mapNotNull(::extractMetaModuleValues)
+//        val moduleGroups: List<Set<String>> = metaModules.map { module ->
+//            buildSet {
+//                add(module.id)
+//                module.includes?.forEach { includeValue ->
+//                    metaModules.find { it.value == includeValue }?.id?.let { add(it) }
+//                }
+//            }
+//        }
+//        println("[DEBUG] metaModules - $metaModules ")
+//        println("[DEBUG] moduleGroups - $moduleGroups ")
+//
+//        val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
+//
+//        val definitionTypes = definitions.associateBy { it.value }
+//        val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
+//        val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
+//            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
+//            t.map { it to def }
+//        }.toMap()
+//
+//        val availableTypes = (definitionTypes + scopes + binds)
+//
+//        definitions.forEach { def -> verifyAllDefinitions(def, availableTypes,moduleGroups)}
+//        detectDependencyCycles(definitions)
     }
 
-    private fun extractMetaModuleValues(a: KSAnnotation): MetaModuleData? {
+    fun reverTag(t : String) = TAG_PREFIX+t.split(".").joinToString("") { it.capitalize() }
+
+    private fun extractMetaModuleValues(a: KSAnnotation): MetaModuleAnnotationData? {
+        val parentTag = (a.parent as? KSDeclaration)?.simpleName?.asString() ?: ""
         val value = a.arguments.getValueArgument()
         val id = a.arguments.getArgument("id") ?: ""
         val includes = if (value != null) a.arguments.getArray("includes") else null
         val configs = if (value != null) a.arguments.getArray("configurations") else null
-        return value?.let { MetaModuleData(value,id,includes,configs) }
+        return value?.let { MetaModuleAnnotationData(value, parentTag, id,includes,configs) }
     }
 
     private fun verifyAllDefinitions(
-        def: MetaDefinitionData,
-        availableTypes: Map<String, MetaDefinitionData>,
+        def: MetaDefinitionAnnotationData,
+        availableTypes: Map<String, MetaDefinitionAnnotationData>,
         moduleGroups: List<Set<String>>
     ) {
         def.dependencies?.forEach { dep ->
@@ -93,9 +129,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun verifyDefinition(
         moduleGroups: List<Set<String>>,
-        def: MetaDefinitionData,
+        def: MetaDefinitionAnnotationData,
         dependency: String,
-        availableTypes: Map<String, MetaDefinitionData>
+        availableTypes: Map<String, MetaDefinitionAnnotationData>
     ) {
         val defGroup = moduleGroups.firstOrNull { it.contains(def.moduleId) } ?: error("module '${def.moduleId}' not found in any group")
         val tagData = dependency.split(":")
@@ -143,14 +179,14 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         return resolver.tagAlreadyExists(tag) || resolver.tagPropAlreadyExists(tag)
     }
 
-    private fun extractMetaDefinitionValues(a: KSAnnotation): MetaDefinitionData? {
+    private fun extractMetaDefinitionValues(a: KSAnnotation): MetaDefinitionAnnotationData? {
         val value = a.arguments.getValueArgument()
         val moduleId = a.arguments.getArgument("moduleId") ?: error("can't find module id in MetaDefinitionData in $a")
         val includes = if (value != null) a.arguments.getArray("dependencies") else null
         val scope = if (value != null) a.arguments.getScopeArgument() else null
         val binds = if (value != null) a.arguments.getArray("binds") else null
         val qualifier = if (value != null) a.arguments.getArgument("qualifier") else null
-        return value?.let { MetaDefinitionData(value,moduleId,includes,scope,binds,qualifier) }
+        return value?.let { MetaDefinitionAnnotationData(value,moduleId,includes,scope,binds,qualifier) }
     }
 
     private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {
@@ -164,7 +200,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
      * Nodes are identified by the normalized (camelCased) value of the definition,
      * and each edge comes from a dependency string like "name:Type" (where Type is normalized).
      */
-    internal fun detectDependencyCycles(definitions: List<MetaDefinitionData>) {
+    internal fun detectDependencyCycles(definitions: List<MetaDefinitionAnnotationData>) {
         try {
             definitions.forEach { definition ->
                 if (definition.dependencies?.isNotEmpty() == true) {
@@ -203,13 +239,13 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun findDefinitionFromTag(
-        definitions: List<MetaDefinitionData>,
+        definitions: List<MetaDefinitionAnnotationData>,
         tag: String
-    ): MetaDefinitionData? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value.contains(tag) }
+    ): MetaDefinitionAnnotationData? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value.contains(tag) }
 
     private fun lookupCycle(
-        allDefinitions: List<MetaDefinitionData>,
-        originDefinition: MetaDefinitionData,
+        allDefinitions: List<MetaDefinitionAnnotationData>,
+        originDefinition: MetaDefinitionAnnotationData,
         currentTag: String,
         visited: MutableSet<String>
     ) {

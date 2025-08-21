@@ -2,7 +2,7 @@ package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.type.clearPackageSymbols
-import org.koin.compiler.verify.MetaDefinitionData
+import org.koin.compiler.verify.MetaDefinitionAnnotationData
 import org.koin.compiler.verify.qualifiedNameCamelCase
 
 const val KOIN_TAG_SEPARATOR = "_"
@@ -59,7 +59,7 @@ object TagFactory {
         }
     }
 
-    fun updateTagWithScope(classTag: String, dv: MetaDefinitionData) =  "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${dv.scope}"
+    fun updateTagWithScope(classTag: String, dv: MetaDefinitionAnnotationData) =  "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${dv.scope}"
     fun getTagClass(clazz: KSDeclaration): String = clazz.qualifiedNameCamelCase() ?: ""
 
     fun getTagClass(definition: KoinMetaData.Definition): String {
