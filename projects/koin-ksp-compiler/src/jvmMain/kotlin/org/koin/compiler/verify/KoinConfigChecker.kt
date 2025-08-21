@@ -49,40 +49,36 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) {
         val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
-
-//        val extractedDefinitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
-
         val modulesById = metaModuleByValue.values.map { module ->
             mapToModule(module)
         }.associateBy { it.id }.toMutableMap()
 
-        modulesById.values.forEach { module ->
+        val modulesToProcess = modulesById.values.toList()
+        modulesToProcess.forEach { module ->
+            // fill includes
             if (module.includes != null){
                 val metaModule = metaModuleByValue[module.value]!!
                 val includes = metaModule.includes
+                // map includes
                 module.includes = includes?.mapNotNull { inc ->
+                    //found in current modules?
                     var found = modulesById.values.firstOrNull { it.value == inc }
                     if (found == null){
                         val revertedTag = reverTag(inc)
+                        // find by current modules tag
                         found = modulesById.values.firstOrNull { it.tag == revertedTag }
                         if (found == null){
-                            logger.warn("[DEBUG] tag to find: '$revertedTag'")
+                            // find external module by tag
                             val declaration = resolveTagDeclarationForModule(revertedTag)
-                            logger.warn("[DEBUG] '$revertedTag' resolved? ${declaration != null}")
-
+                            // found external module
                             declaration?.let { declaration ->
                                 // extract meta
                                 val metaModule = extractMetaModuleValues(declaration.annotations.first()) ?: error("can't find module metadata for $inc on ${declaration.qualifiedName?.asString()}")
                                 val newModule = mapToModule(metaModule)
                                 modulesById[newModule.id] = newModule
-                                logger.warn("[DEBUG] added $newModule")
-                                modulesById
                                 found = newModule
                                 // add to modulesById
-                            } ?: run {
-                                logger.error("[DEBUG] '$inc' not found")
-                            }
-
+                            } ?: error("can't find module metadata for $inc in current modules or any meta tags")
                         }
                     }
                     found
@@ -90,20 +86,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             }
         }
 
-        logger.warn("[DEBUG] modulesMapById:\n${modulesById.values.joinToString("\n,") { "${it.value} -> ${it.includes?.map { it.value }}" }}")
+        logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString("\n,") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
 
-//        val metaModules = foundMetaModules.mapNotNull(::extractMetaModuleValues)
-//        val moduleGroups: List<Set<String>> = metaModules.map { module ->
-//            buildSet {
-//                add(module.id)
-//                module.includes?.forEach { includeValue ->
-//                    metaModules.find { it.value == includeValue }?.id?.let { add(it) }
-//                }
-//            }
-//        }
-//        println("[DEBUG] metaModules - $metaModules ")
-//        println("[DEBUG] moduleGroups - $moduleGroups ")
-//
 //        val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
 //
 //        val definitionTypes = definitions.associateBy { it.value }
@@ -127,7 +111,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         module.configurations
     )
 
-    fun reverTag(t : String) = TAG_PREFIX+t.split(".").joinToString("") { it.capitalize() }
+    fun reverTag(t : String) = TAG_PREFIX+t.split(".").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }
 
     private fun extractMetaModuleValues(a: KSAnnotation): MetaModuleAnnotationData? {
         val parentTag = (a.parent as? KSDeclaration)?.simpleName?.asString() ?: ""
@@ -306,4 +290,4 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 }
 
-internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { it.replaceFirstChar { it.uppercase() } }
+internal fun KSDeclaration.qualifiedNameCamelCase() = qualifiedName?.asString()?.split(".")?.joinToString(separator = "") { part -> part.replaceFirstChar { char -> char.uppercase() } }
