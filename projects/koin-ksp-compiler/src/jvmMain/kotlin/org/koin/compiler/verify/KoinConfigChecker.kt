@@ -49,29 +49,42 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) {
         val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
-        
+
 //        val extractedDefinitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues)
 
         val modulesById = metaModuleByValue.values.map { module ->
-            MetaModuleData(
-                module.value,
-                module.tag,
-                module.id,
-                if (module.includes == null) null else emptyList(),
-                module.configurations
-            )
-        }.associateBy { it.id }
+            mapToModule(module)
+        }.associateBy { it.id }.toMutableMap()
 
-        modulesById.forEach { (id,module) ->
+        modulesById.values.forEach { module ->
             if (module.includes != null){
                 val metaModule = metaModuleByValue[module.value]!!
                 val includes = metaModule.includes
                 module.includes = includes?.mapNotNull { inc ->
-                    val found = modulesById.values.firstOrNull { it.value == inc }
-                        ?: modulesById.values.firstOrNull { val reverTag = reverTag(inc)
-                            it.tag == reverTag
+                    var found = modulesById.values.firstOrNull { it.value == inc }
+                    if (found == null){
+                        val revertedTag = reverTag(inc)
+                        found = modulesById.values.firstOrNull { it.tag == revertedTag }
+                        if (found == null){
+                            logger.warn("[DEBUG] tag to find: '$revertedTag'")
+                            val declaration = resolveTagDeclarationForModule(revertedTag)
+                            logger.warn("[DEBUG] '$revertedTag' resolved? ${declaration != null}")
+
+                            declaration?.let { declaration ->
+                                // extract meta
+                                val metaModule = extractMetaModuleValues(declaration.annotations.first()) ?: error("can't find module metadata for $inc on ${declaration.qualifiedName?.asString()}")
+                                val newModule = mapToModule(metaModule)
+                                modulesById[newModule.id] = newModule
+                                logger.warn("[DEBUG] added $newModule")
+                                modulesById
+                                found = newModule
+                                // add to modulesById
+                            } ?: run {
+                                logger.error("[DEBUG] '$inc' not found")
+                            }
+
                         }
-                    if (found == null) logger.warn("[DEBUG] '$inc' not found")
+                    }
                     found
                 }
             }
@@ -105,6 +118,14 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 //        definitions.forEach { def -> verifyAllDefinitions(def, availableTypes,moduleGroups)}
 //        detectDependencyCycles(definitions)
     }
+
+    private fun mapToModule(module: MetaModuleAnnotationData): MetaModuleData = MetaModuleData(
+        module.value,
+        module.tag,
+        module.id,
+        if (module.includes == null) null else emptyList(),
+        module.configurations
+    )
 
     fun reverTag(t : String) = TAG_PREFIX+t.split(".").joinToString("") { it.capitalize() }
 
@@ -169,6 +190,10 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
                 logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
             }
         }
+    }
+
+    private fun resolveTagDeclarationForModule(tag : String) : KSDeclaration?{
+        return resolver.getResolutionForTag(tag, addTagPrefix = false)
     }
 
     private fun getTagResolution(tag : String) : KSDeclaration?{

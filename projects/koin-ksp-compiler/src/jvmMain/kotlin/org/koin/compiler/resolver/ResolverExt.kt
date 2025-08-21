@@ -3,7 +3,7 @@ package org.koin.compiler.resolver
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.TAG_PREFIX
@@ -33,8 +33,8 @@ fun Resolver.tagPropAlreadyExists(tag : String?) : Boolean {
     return getResolutionForTagProp(tag).any()
 }
 
-fun Resolver.getResolutionForTag(tag : String?) : KSDeclaration?{
-    return getResolutionForClass("$codeGenerationPackage.$TAG_PREFIX$tag")
+fun Resolver.getResolutionForTag(tag : String?, addTagPrefix : Boolean = true) : KSDeclaration?{
+    return getResolutionForClass(if (addTagPrefix) "$codeGenerationPackage.$TAG_PREFIX$tag" else "$codeGenerationPackage.$tag")
 }
 
 fun Resolver.getResolutionForTagProp(tag : String?) : Sequence<KSFunctionDeclaration> {
@@ -42,6 +42,7 @@ fun Resolver.getResolutionForTagProp(tag : String?) : Sequence<KSFunctionDeclara
 }
 
 fun Resolver.getResolutionForClass(name : String) : KSDeclaration?{
+//    LOGGER.warn("[DEBUG] Resolver.getResolutionForClass '$name'")
     return getClassDeclarationByName(getKSNameFromString(name))
 }
 // Compat with KSP1
