@@ -1,8 +1,9 @@
-package org.koin.compiler.metadata
+package org.koin.compiler.metadata.tag
 
 import com.google.devtools.ksp.symbol.KSDeclaration
+import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.type.clearPackageSymbols
-import org.koin.compiler.verify.MetaDefinitionAnnotationData
 import org.koin.compiler.verify.MetaDefinitionData
 import org.koin.compiler.verify.qualifiedNameCamelCase
 
@@ -11,6 +12,18 @@ internal const val QUALIFIER_SYMBOL = "Q_"
 internal const val SCOPE_SYMBOL = "S_"
 
 object TagFactory {
+
+    private fun getTag(app: KoinMetaData.Application): String {
+        return with(app) {
+            listOfNotNull(
+                packageName.clearPackageSymbols()+"." + name,
+            ).joinToString(separator = KOIN_TAG_SEPARATOR)
+        }
+    }
+
+    fun getTagClass(app: KoinMetaData.Application): String {
+        return getTag(app).camelCase()
+    }
 
     private fun getTag(module: KoinMetaData.Module): String {
         return with(module) {
@@ -48,7 +61,7 @@ object TagFactory {
         }
     }
 
-    fun getMetaTag(definition: KoinMetaData.Definition,dep: KoinMetaData.DefinitionParameter.Dependency ,clazz: KSDeclaration): String {
+    fun getMetaTag(definition: KoinMetaData.Definition, dep: KoinMetaData.DefinitionParameter.Dependency, clazz: KSDeclaration): String {
         return with(definition) {
             listOfNotNull(
                 clazz.qualifiedName?.asString() ?: "",

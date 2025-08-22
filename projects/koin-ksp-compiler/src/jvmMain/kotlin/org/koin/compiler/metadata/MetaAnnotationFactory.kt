@@ -1,13 +1,35 @@
 package org.koin.compiler.metadata
 
 import org.koin.compiler.metadata.KoinMetaData.DependencyKind
+import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.type.fullWhiteList
+import org.koin.meta.annotations.MetaApplication
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
 
 object MetaAnnotationFactory {
+    private val metaApplication = MetaApplication::class.simpleName!!
     private val metaModule = MetaModule::class.simpleName!!
     private val metaDefinition = MetaDefinition::class.simpleName!!
+
+    fun generate(application: KoinMetaData.Application): String {
+        val fullpath = application.fullpath
+
+        val includesTags = if (application.moduleIncludes?.isNotEmpty() == true) {
+            application.moduleIncludes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
+        } else null
+
+        val configurationsTag = if (application.configurationTags?.isNotEmpty() == true) {
+            application.configurationTags.joinToString("\",\"", prefix = "\"", postfix = "\""){ it.name }
+        } else null
+
+        val includesString = includesTags?.let { ", includes=[$it]" } ?: ""
+        val configurationsString = configurationsTag?.let { ", configurations=[$it]" } ?: ""
+
+        return """
+            @$metaApplication("$fullpath"$includesString$configurationsString)
+        """.trimIndent()
+    }
 
     fun generate(module: KoinMetaData.Module): String {
         val fullpath = module.fullpath

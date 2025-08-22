@@ -21,12 +21,10 @@ import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.metadata.KoinTagWriter
+import org.koin.compiler.metadata.tag.KoinTagWriter
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
-import org.koin.core.annotation.Module
-import org.koin.meta.annotations.MetaModule
 import kotlin.time.TimeSource.Monotonic.markNow
 
 class BuilderProcessor(
@@ -77,7 +75,7 @@ class BuilderProcessor(
         val isConfigCheckActive = isConfigCheckActive()
         // Tags are used to verify generated content (KMP)
         KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
-            .writeAllTags(moduleList, defaultModule)
+            .writeAllTags(moduleList, defaultModule, applications)
 
         if (doLogTimes && mainTime != null) {
             mainTime.elapsedNow()

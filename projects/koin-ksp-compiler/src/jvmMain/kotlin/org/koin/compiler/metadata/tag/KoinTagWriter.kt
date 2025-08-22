@@ -1,4 +1,4 @@
-package org.koin.compiler.metadata
+package org.koin.compiler.metadata.tag
 
 import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -6,6 +6,8 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
+import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.MetaAnnotationFactory
 import org.koin.compiler.resolver.tagAlreadyExists
 import org.koin.compiler.resolver.tagPropAlreadyExists
 import org.koin.compiler.type.fullWhiteList
@@ -30,12 +32,13 @@ class KoinTagWriter(
 
     fun writeAllTags(
         moduleList: List<KoinMetaData.Module>,
-        default: KoinMetaData.Module
+        default: KoinMetaData.Module,
+        applications: List<KoinMetaData.Application>
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (!isAlreadyGenerated) {
             logger.logging("Koin Tags Generation ...")
-            createTagsForModules(moduleList, default)
+            createMetaTags(moduleList, default, applications)
         }
     }
 
@@ -49,9 +52,10 @@ class KoinTagWriter(
      */
     //TODO Check KoinMeta is constant/reproducible build
     @OptIn(ExperimentalStdlibApi::class)
-    private fun createTagsForModules(
+    private fun createMetaTags(
         moduleList: List<KoinMetaData.Module>,
         default: KoinMetaData.Module,
+        applications: List<KoinMetaData.Application>,
     ) {
         val allModules = moduleList.sortedBy { it.name }
         val allDefinitions = (allModules + default).flatMap { it.definitions }.sortedBy { it.label }
@@ -60,7 +64,9 @@ class KoinTagWriter(
         val contentBuilder = StringBuilder()
         allModules.forEach { contentBuilder.append(it.name) }
         allDefinitions.forEach { contentBuilder.append(it.label) }
+        applications.forEach { contentBuilder.append(it.name) }
         val hashString = hashContent(contentBuilder.toString())
+
         val tagFileName = "KoinMeta-$hashString"
 
         writeTagFile(tagFileName).buffered().use {
@@ -73,6 +79,24 @@ class KoinTagWriter(
                 writeDefinitionsTags(module.definitions, module)
             }
             writeDefinitionsTags(default.definitions, default)
+            applications.forEach { application -> writeApplicationTag(application) }
+        }
+    }
+
+    private fun writeApplicationTag(application: KoinMetaData.Application) {
+        if (application.alreadyGenerated == null){
+            application.alreadyGenerated = resolver.tagAlreadyExists(application)
+        }
+
+        if (application.alreadyGenerated == false){
+            val tag = TagFactory.getTagClass(application)
+            if (tag !in alreadyDeclaredTags) {
+                if (isConfigCheckActive){
+                    val metaLine = MetaAnnotationFactory.generate(application)
+                    writeMeta(metaLine)
+                }
+                writeTag(tag)
+            }
         }
     }
 
@@ -189,8 +213,7 @@ class KoinTagWriter(
     private fun writeImports() {
         fileStream.appendText("""
             
-            import org.koin.meta.annotations.MetaDefinition
-            import org.koin.meta.annotations.MetaModule
+            import org.koin.meta.annotations.*
         """.trimIndent())
     }
 

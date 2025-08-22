@@ -20,10 +20,10 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
-import org.koin.compiler.metadata.KOIN_TAG_SEPARATOR
-import org.koin.compiler.metadata.QUALIFIER_SYMBOL
-import org.koin.compiler.metadata.TAG_PREFIX
-import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.tag.KOIN_TAG_SEPARATOR
+import org.koin.compiler.metadata.tag.QUALIFIER_SYMBOL
+import org.koin.compiler.metadata.tag.TAG_PREFIX
+import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.resolver.getResolutionForTag
 import org.koin.compiler.resolver.getResolutionForTagProp
@@ -179,7 +179,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     ) {
         if (def.dependencies?.isNotEmpty() == true){
 //            logger.warn("[DEBUG] verify - ${def.value}")
-            
+
             def.dependencies.forEach { dep -> verifyDefinition( def, dep) }
         }
     }

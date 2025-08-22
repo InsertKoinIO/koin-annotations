@@ -18,7 +18,7 @@ package org.koin.compiler.generator
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.metadata.KoinTagWriter
+import org.koin.compiler.metadata.tag.KoinTagWriter
 
 class DefaultModuleWriter(
     codeGenerator: CodeGenerator,

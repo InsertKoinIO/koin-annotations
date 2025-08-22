@@ -22,7 +22,7 @@ import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinMetaData.Module.Companion.DEFINE_PREFIX
 import org.koin.compiler.metadata.SINGLE
-import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.resolver.getResolution

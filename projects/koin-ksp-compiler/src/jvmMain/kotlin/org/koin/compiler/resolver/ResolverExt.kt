@@ -3,11 +3,18 @@ package org.koin.compiler.resolver
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.metadata.TagFactory
-import org.koin.compiler.metadata.TAG_PREFIX
+import org.koin.compiler.metadata.tag.TagFactory
+import org.koin.compiler.metadata.tag.TAG_PREFIX
 import org.koin.compiler.verify.codeGenerationPackage
+
+fun Resolver.tagAlreadyExists(app : KoinMetaData.Application) : Boolean {
+    return getResolution(app) != null
+}
+
+fun Resolver.getResolution(app : KoinMetaData.Application) : KSDeclaration?{
+    return getResolutionForTag(TagFactory.getTagClass(app))
+}
 
 fun Resolver.tagAlreadyExists(mod : KoinMetaData.Module) : Boolean {
     return getResolution(mod) != null

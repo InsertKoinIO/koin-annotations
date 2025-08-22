@@ -40,6 +40,11 @@ sealed class KoinMetaData {
         val configurations : List<Configuration>? = null,
         val moduleIncludes: List<ModuleInclude>? = null
     ) {
+        var alreadyGenerated : Boolean? = null
+
+        val fullpath = "$packageName.$name"
+        val hashId = fullpath.hashCode().absoluteValue.toString(36)
+
         fun packageName(separator: String): String {
             return splitPackage(packageName, separator)
         }
