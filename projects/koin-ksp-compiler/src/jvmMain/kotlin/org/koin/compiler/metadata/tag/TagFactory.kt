@@ -7,12 +7,12 @@ import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.verify.MetaDefinitionData
 import org.koin.compiler.verify.qualifiedNameCamelCase
 
-
 object TagFactory {
-
     private const val KOIN_TAG_SEPARATOR = "_"
     private const val QUALIFIER_SYMBOL = "Q_"
     private const val SCOPE_SYMBOL = "S_"
+    private const val TAG_PREFIX = "_KSP_"
+    const val DEFAULT_GEN_PACKAGE = "org.koin.ksp.generated"
 
     fun generateTag(app: KoinMetaData.Application): String {
         return with(app) {
@@ -108,6 +108,7 @@ object TagFactory {
 
     fun createTagForScope(classTag: String, def: MetaDefinitionData) = "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${def.scope}"
     fun createTagForQualifier(classTag: String, def: MetaDefinitionData) = "$classTag$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}"
+    fun prefixTag(classTag: String, withGenPackage : Boolean) = if (withGenPackage) "$DEFAULT_GEN_PACKAGE.$TAG_PREFIX$classTag" else "$TAG_PREFIX$classTag"
 
     private fun escapeTagClass(qualifier : String) : String {
         return if (!qualifier.contains(".")) qualifier

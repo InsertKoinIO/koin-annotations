@@ -19,7 +19,6 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
-import org.koin.compiler.metadata.tag.TAG_PREFIX
 import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.metadata.tag.TagResolver
@@ -29,8 +28,6 @@ import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.type.fullWhiteList
 import kotlin.error
-
-const val codeGenerationPackage = "org.koin.ksp.generated"
 
 data class MetaDefinitionAnnotationData(val value: String, val moduleTagId : String, val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
 data class MetaDefinitionData(val value: String, val module : MetaModuleData?, val dependencies: List<String>?, val scope: String?, val binds: List<String>?, val qualifier: String?)
@@ -139,7 +136,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         val (moduleId, moduleTag) = metaDefinition.moduleTagId.split(":").let { it[0] to it[1] }
         return MetaDefinitionData(
             metaDefinition.value,
-            modulesById[moduleId] ?: findExternalModule(TAG_PREFIX+moduleTag, metaDefinition.value)
+            modulesById[moduleId] ?: findExternalModule(moduleTag, metaDefinition.value)
                 ?.let {
                     resolveModuleIncludes(it.first, it.second)
                     it.first
@@ -159,7 +156,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         module.configurations
     )
 
-    fun reverTag(t : String) = TAG_PREFIX+t.split(".").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }
+    fun reverTag(t : String) = t.split(".").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }
 
     private fun extractMetaModuleValues(a: KSAnnotation): MetaModuleAnnotationData? {
         val parentTag = (a.parent as? KSDeclaration)?.simpleName?.asString() ?: ""
@@ -207,7 +204,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
 
             // found definition resolution
             if (foundResolution == null){
-                logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
+                logger.error("--> Missing definition '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation or check modules.")
             }
             else {
                 val definition = extractMetaDefinitionValues(foundResolution.annotations.firstOrNull() ?: error("can't find definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}") )
@@ -280,7 +277,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
     }
 
     private fun resolveTagDeclarationForModule(tag : String) : KSDeclaration?{
-        return tagResolver.resolveKSDeclaration(tag, addTagPrefix = false)
+        return tagResolver.resolveKSDeclaration(tag)
     }
 
     private fun resolveTagDeclarationForDefinition(tag : String) : KSDeclaration?{

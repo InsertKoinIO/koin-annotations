@@ -7,12 +7,11 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.MetaAnnotationFactory
+import org.koin.compiler.metadata.tag.TagFactory.DEFAULT_GEN_PACKAGE
 import org.koin.compiler.type.fullWhiteList
-import org.koin.compiler.verify.*
 import java.io.OutputStream
 import java.security.MessageDigest
 
-const val TAG_PREFIX = "_KSP_"
 // Avoid looooong name with full SHA as file name. Let's take first digits
 private const val TAG_FILE_HASH_LIMIT = 8
 
@@ -106,7 +105,7 @@ class KoinTagWriter(
 
     private fun writeTagFile(tagFileName: String): OutputStream {
         val fileStream = codeGenerator.getNewFile(fileName = tagFileName)
-        fileStream.appendText("package $codeGenerationPackage\n")
+        fileStream.appendText("package $DEFAULT_GEN_PACKAGE\n")
         return fileStream
     }
 
@@ -215,16 +214,16 @@ class KoinTagWriter(
     }
 
     private fun prepareTagLine(tagName: String, asProperty: Boolean) : String {
-        val cleanedTag = tagName.replace("-", "_")//TODO Check for other rules if needed
+        val cleanedTag = TagFactory.prefixTag(tagName.replace("-", "_"), withGenPackage = false)
         return if (asProperty){
-            "\npublic val $TAG_PREFIX$cleanedTag : Unit get() = Unit"
-        } else "\npublic class $TAG_PREFIX$cleanedTag"
+            "\npublic val $cleanedTag : Unit get() = Unit"
+        } else "\npublic class $cleanedTag"
     }
 
     // Compat with KSP1
     //TODO change for property once KSP2
 //    private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
-//        val cleanedTag = tagName.replace("-", "_")//TODO Check for other rules if needed
+//        val cleanedTag = tagName.replace("-", "_")
 //        return if (asFunction){
 //            "\npublic fun $TAG_PREFIX$cleanedTag() : Unit = Unit"
 //        } else "\npublic class $TAG_PREFIX$cleanedTag"

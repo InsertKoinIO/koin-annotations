@@ -3,8 +3,8 @@ package org.koin.compiler.metadata.tag
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.verify.codeGenerationPackage
 
 class TagResolver {
     lateinit var resolver: Resolver
@@ -21,16 +21,15 @@ class TagResolver {
         return resolveKSDeclaration(TagFactory.generateTag(def)) != null
     }
 
-    fun resolveKSDeclaration(tag : String?, addTagPrefix : Boolean = true) : KSDeclaration?{
-        return resolveKSDeclaration(if (addTagPrefix) "$codeGenerationPackage.$TAG_PREFIX$tag" else "$codeGenerationPackage.$tag")
-    }
-
     fun tagPropertyExists(tag : String) : Boolean {
-        return resolveKSPropertyDeclaration("$codeGenerationPackage.$TAG_PREFIX$tag") != null
+        return resolveKSPropertyDeclaration(tag) != null
     }
 
-    fun resolveKSDeclaration(name : String) : KSDeclaration?{
-        return resolver.getClassDeclarationByName(resolver.getKSNameFromString(name))
+    fun resolveKSDeclaration(tag : String) : KSDeclaration?{
+        val name = TagFactory.prefixTag(tag, withGenPackage = true)
+        val declaration = resolver.getClassDeclarationByName(resolver.getKSNameFromString(name))
+//        LOGGER.warn("[DEBUG] resolveKSDeclaration '$name' ? ${declaration != null}")
+        return declaration
     }
 
 //    // Compat with KSP1
@@ -40,7 +39,10 @@ class TagResolver {
 //        return resolver.getFunctionDeclarationsByName(resolver.getKSNameFromString(name),true)
 //    }
 
-    fun resolveKSPropertyDeclaration(name : String) : KSPropertyDeclaration? {
-        return resolver.getPropertyDeclarationByName(resolver.getKSNameFromString(name), true)
+    fun resolveKSPropertyDeclaration(tag : String) : KSPropertyDeclaration? {
+        val name = TagFactory.prefixTag(tag, withGenPackage = true)
+        val declaration = resolver.getPropertyDeclarationByName(resolver.getKSNameFromString(name), true)
+//        LOGGER.warn("[DEBUG] resolveKSPropertyDeclaration '$name' ? ${declaration != null}")
+        return declaration
     }
 }
