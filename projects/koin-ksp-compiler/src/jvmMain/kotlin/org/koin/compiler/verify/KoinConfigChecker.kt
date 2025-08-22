@@ -27,8 +27,6 @@ import org.koin.compiler.metadata.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.resolver.getResolutionForTag
 import org.koin.compiler.resolver.getResolutionForTagProp
-import org.koin.compiler.resolver.tagAlreadyExists
-import org.koin.compiler.resolver.tagPropAlreadyExists
 import org.koin.compiler.scanner.ext.getArgument
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
@@ -65,15 +63,15 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
                 val metaModule = metaModuleByValue[module.value]!!
                 val includes = metaModule.includes
                 // map includes
-                module.includes = includes?.map { inc ->
+                module.includes = includes?.map { includeSymbol ->
                     //found in current modules?
-                    var found = modulesById.values.firstOrNull { it.value == inc }
+                    var found = modulesById.values.firstOrNull { it.value == includeSymbol }
                     if (found == null){
-                        val revertedTag = reverTag(inc)
+                        val moduleTag = reverTag(includeSymbol)
                         // find by current modules tag
-                        found = modulesById.values.firstOrNull { it.tag == revertedTag }
+                        found = modulesById.values.firstOrNull { it.tag == moduleTag }
                         if (found == null){
-                            found = findExternalModule(revertedTag, inc)
+                            found = findExternalModule(moduleTag, includeSymbol)
                         }
                     }
                     found
@@ -86,6 +84,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
             mapToDefinition(metaDefinition)
         }
+
         val definitionTypes = definitions.associateBy { it.value }
         val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
         val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
@@ -175,10 +174,12 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         if (foundInLocalDefinitions) {
             allLocalDefinitions[parameterType]?.let { found ->
                 logger.warn("[DEBUG] found dependency definition - $found")
+                isDependencyDefined(def,found)
             }
         }
 
         if (!foundInLocalDefinitions) {
+            // resolve definition by tag
             val foundResolution = if (def.scope == null) {
                 resolveTagDeclarationForDefinition(tag)
             } else {
@@ -188,31 +189,32 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             if (foundResolution == null){
                 logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
             }
+            // found definition resolution
             else {
                 val definition = extractMetaDefinitionValues(foundResolution.annotations.firstOrNull() ?: error("can't find definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}") )
                     ?.let { mapToDefinition(it) }
                     ?: error("can't extract definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}")
-                //TODO definition is in right module scope (path)
 
-    //            val foudMetaDef = foundResolution?.annotations?.firstOrNull { it.shortName.asString() == MetaDefinition::class.simpleName!! }
-
-
-    //            if (foudMetaDef != null) {
-    //                val foundModuleId = foudMetaDef.arguments.getArgument("moduleId")
-    //                println("[DEBUG] foundModuleId - ${foundResolution.qualifiedName?.asString()} - $foundModuleId}")
-    //
-    //                if (foundModuleId != null) {
-    //                    val foundGroup = moduleGroups.firstOrNull { it.contains(foundModuleId) } ?: error("module foundModuleId '$foundModuleId' not found in any group")
-    //                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - Module id? ${foundGroup == defGroup}")
-    //                } else {
-    //                    println("[DEBUG] foundInTypes - ${foundResolution.qualifiedName?.asString()} - ${foudMetaDef.arguments} - no Module id")
-    //                }
-    //            }
-    //            if (foundResolution == null) {
-    //                logger.error("--> Missing Definition for property '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation on the class.")
-    //            }
+                addDefinitionToCurrentSymbols(definition)
+                isDependencyDefined(def,definition)
             }
         }
+    }
+
+    private fun addDefinitionToCurrentSymbols(definition: MetaDefinitionData) {
+        logger.warn("[DEBUG] add definition $definition")
+        val defByValue = definition.value to definition
+        val defByBindings = definition.binds?.map { it to definition } ?: emptyList()
+        val defByScope = definition.scope?.let { it to definition }
+        val allSymbols = listOfNotNull(defByBindings + defByValue + defByScope).flatten().filterNotNull().toMap()
+        allLocalDefinitions.putAll(allSymbols)
+    }
+
+    private fun isDependencyDefined(
+        initialDefinition: MetaDefinitionData,
+        dependency: MetaDefinitionData
+    ) {
+        
     }
 
     private fun resolveTagDeclarationForModule(tag : String) : KSDeclaration?{
@@ -221,10 +223,6 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun resolveTagDeclarationForDefinition(tag : String) : KSDeclaration?{
         return resolver.getResolutionForTag(tag) ?: resolver.getResolutionForTagProp(tag).firstOrNull()
-    }
-
-    private fun tagAlreadyExists(tag : String) : Boolean{
-        return resolver.tagAlreadyExists(tag) || resolver.tagPropAlreadyExists(tag)
     }
 
     private fun extractMetaDefinitionValues(a: KSAnnotation): MetaDefinitionAnnotationData? {
