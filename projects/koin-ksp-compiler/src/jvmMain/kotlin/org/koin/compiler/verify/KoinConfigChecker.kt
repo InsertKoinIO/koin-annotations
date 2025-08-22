@@ -38,7 +38,7 @@ data class MetaModuleData(val value: String, val tag : String, val id : String, 
 }
 
 data class MetaApplicationAnnotationData(val value: String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
-data class MetaApplicationData(val value: String, val includes: List<MetaModuleData>?, val configurations: List<String>)
+data class MetaApplicationData(val value: String, val includes: List<MetaModuleData>, val configurations: List<MetaModuleData>)
 
 /**
  * Koin Configuration Checker
@@ -47,7 +47,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
 
     private lateinit var modulesById : MutableMap<String, MetaModuleData>
     private lateinit var allLocalDefinitions : MutableMap<String, MetaDefinitionData>
-    private lateinit var activeConfigurations : List<String>
+    private lateinit var activeConfiguration : List<MetaModuleData>
 
     fun extractData(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>, foundMetaApplications: List<KSAnnotation>) {
         val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
@@ -66,9 +66,9 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
 
         val applications = foundMetaApplications.mapNotNull(::extractMetaApplicationValues).map(::mapToApplicationData)
         //TODO process included modules
-        activeConfigurations = applications.flatMap { it.configurations }
+        activeConfiguration = applications.flatMap { it.includes + it.configurations }
 
-        logger.warn("[DEBUG] applications:\n${applications.joinToString(",\n") { "$it" }}")
+        logger.warn("[DEBUG] activeConfiguration:\n${activeConfiguration.joinToString(",\n") { it.value }}")
 
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
             mapToDefinition(metaDefinition)
@@ -194,8 +194,8 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
     private fun mapToApplicationData(a: MetaApplicationAnnotationData): MetaApplicationData {
         return MetaApplicationData(
             a.value,
-            a.includes?.mapNotNull { findModuleForSymbol(it) },
-            a.configurations ?: emptyList()
+            a.includes?.mapNotNull { findModuleForSymbol(it) } ?: emptyList(),
+            a.configurations?.mapNotNull { findModuleForSymbol(it) } ?: emptyList()
         )
     }
 
@@ -269,7 +269,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         val initialModule = initialDefinition.module
         val targetModule = dependencyDefinition.module
         if (targetModule != null){
-            val isAccessible = isModuleAccessible(initialModule,targetModule) || isModuleAccessibleFromParent(initialModule,targetModule) //|| isModuleAccessibleInConfiguration(initialModule,targetModule)
+            val isAccessible = isModuleAccessible(initialModule,targetModule) || isModuleAccessibleFromParent(initialModule,targetModule) || isModuleAccessibleInConfiguration(initialModule,targetModule)
 
 //            logger.warn("[DEBUG] ${initialModule?.value} -> ${targetModule.value} ? $isAccessible")
 
@@ -279,23 +279,19 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         }
     }
 
-//    private fun isModuleAccessibleInConfiguration(
-//        initialModule: MetaModuleData?,
-//        targetModule: MetaModuleData
-//    ) : Boolean {
-//        return if (initialModule?.configurations.isNullOrEmpty()) false
-//        else {
-//            val foundInConfig = modulesById.values
-//                .filter { it.configurations.any { it in activeConfigurations } }
-//                .filter { it.value != initialModule.value && it.value != initialModule.parentModule?.value }
-//                .firstOrNull { module ->
-//                    logger.warn("[DEBUG] isModuleAccessibleInConfiguration $activeConfigurations => ${module.value}")
-//                    isModuleAccessible(module, targetModule)
-//                }
-//            logger.warn("[DEBUG] isModuleAccessibleInConfiguration $activeConfigurations ? $foundInConfig")
-//            foundInConfig != null
-//        }
-//    }
+    private fun isModuleAccessibleInConfiguration(
+        initialModule: MetaModuleData?,
+        targetModule: MetaModuleData
+    ) : Boolean {
+        val foundInConfig = activeConfiguration
+            .filter { it.value != initialModule?.value && it.value != initialModule?.parentModule?.value }
+            .firstOrNull { module ->
+//                logger.warn("[DEBUG] isModuleAccessibleInConfiguration? ${module.value}")
+                isModuleAccessible(module, targetModule)
+            }
+//        logger.warn("[DEBUG] isModuleAccessibleInConfiguration $targetModule ? $foundInConfig")
+        return foundInConfig != null
+    }
 
     private fun isModuleAccessibleFromParent(
         initialModule: MetaModuleData?,

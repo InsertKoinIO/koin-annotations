@@ -27,6 +27,7 @@ class MyScopedComponent4(val myScope: MyScope)
 class MyScopedSessionComponent
 
 @Module
+@Configuration
 @ComponentScan
 class ScopeModule {
 

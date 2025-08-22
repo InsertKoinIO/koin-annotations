@@ -55,7 +55,7 @@ annotation class MetaModule(val value: String = "", val id: String = "", val inc
  * Meta Application annotation to help represents
  * @param value: Application full path
  * @param includes - used Module Tags to check
- * @param configurations - used Configurations to check
+ * @param configurations - used Configurations modules to check
  */
 @Target(AnnotationTarget.CLASS)
 annotation class MetaApplication(val value: String = "", val includes: Array<String> = [], val configurations: Array<String> = [])

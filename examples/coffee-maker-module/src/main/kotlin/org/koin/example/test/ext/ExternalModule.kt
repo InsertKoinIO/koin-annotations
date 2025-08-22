@@ -20,6 +20,7 @@ class PropertyComponent(@Property("prop_id") val id: String)
 class PropertyComponent2(val id: String)
 
 @Module(includes = [IncludedModule::class])
+@Configuration
 @ComponentScan
 class ExternalModule {
 
