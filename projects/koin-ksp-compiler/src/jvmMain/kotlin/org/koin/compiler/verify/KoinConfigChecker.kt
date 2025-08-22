@@ -65,7 +65,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             resolveModuleIncludes(module, metaModule)
         }
 
-        logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString(",\n") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
+//        logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString(",\n") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
 
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
             mapToDefinition(metaDefinition)
@@ -79,7 +79,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         }.toMap()
         allLocalDefinitions = ((definitionTypes + scopes + binds) as MutableMap<String, MetaDefinitionData>)
 
-        logger.warn("[DEBUG] definitions:\n${allLocalDefinitions.map { (k,v) -> "$k -> ${v.value}" }.joinToString(",\n")}")
+//        logger.warn("[DEBUG] definitions:\n${allLocalDefinitions.map { (k,v) -> "$k -> ${v.value}" }.joinToString(",\n")}")
 
         definitions.forEach { def -> verifyDefinition(def)}
         detectDependencyCycles(definitions)
@@ -89,10 +89,10 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         revertedTag: String,
         symbol: String
     ): Pair<MetaModuleData, MetaModuleAnnotationData>? {
-        logger.warn("[DEBUG] findExternalModule: '$revertedTag'")
+//        logger.warn("[DEBUG] findExternalModule: '$revertedTag'")
 
         if (revertedTag == "_KSP_DefaultModule") {
-            logger.warn("[DEBUG] findExternalModule: '$revertedTag' - skipped")
+//            logger.warn("[DEBUG] findExternalModule: '$revertedTag' - skipped")
             return null
         }
 
@@ -111,7 +111,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun resolveModuleIncludes(module: MetaModuleData, metaModule: MetaModuleAnnotationData){
-        logger.warn("[DEBUG] resolveModuleIncludes: '${module.value}'")
+//        logger.warn("[DEBUG] resolveModuleIncludes: '${module.value}'")
 
         // get includes
         val includes = metaModule.includes
@@ -178,7 +178,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         def: MetaDefinitionData
     ) {
         if (def.dependencies?.isNotEmpty() == true){
-            logger.warn("[DEBUG] verify - ${def.value}")
+//            logger.warn("[DEBUG] verify - ${def.value}")
+            
             def.dependencies.forEach { dep -> verifyDefinition( def, dep) }
         }
     }
@@ -187,7 +188,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         def: MetaDefinitionData,
         dependency: String
     ) {
-        logger.warn("[DEBUG] dependency '$dependency'")
+//        logger.warn("[DEBUG] dependency '$dependency'")
 
         val tagData = dependency.split(":")
         val parameterName = tagData[0]
@@ -197,7 +198,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val foundInLocalDefinitions = (parameterType in fullWhiteList || (parameterType in allLocalDefinitions.keys))
         if (foundInLocalDefinitions) {
             allLocalDefinitions[parameterType]?.let { found ->
-                logger.warn("[DEBUG] found local definition - $found")
+//                logger.warn("[DEBUG] found local definition - $found")
                 isDependencyDefined(def,found, dependency)
             }
         }
@@ -209,7 +210,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             } else {
                 resolveTagDeclarationForDefinition(tag) ?: resolveTagDeclarationForDefinition(TagFactory.updateTagWithScope(tag, def))
             }
-            logger.warn("[DEBUG] found resolution? ${foundResolution != null}")
+//            logger.warn("[DEBUG] found resolution? ${foundResolution != null}")
 
             // found definition resolution
             if (foundResolution == null){
@@ -227,7 +228,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun addDefinitionToCurrentSymbols(definition: MetaDefinitionData) {
-        logger.warn("[DEBUG] add definition $definition")
+//        logger.warn("[DEBUG] add definition $definition")
 
         val defByValue = definition.value to definition
         val defByBindings = definition.binds?.map { it to definition } ?: emptyList()
@@ -241,13 +242,15 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         dependencyDefinition: MetaDefinitionData,
         property: String
     ) {
-        logger.warn("[DEBUG] isDependencyDefined ${initialDefinition.value} -> ${dependencyDefinition.value}")
+//        logger.warn("[DEBUG] isDependencyDefined ${initialDefinition.value} -> ${dependencyDefinition.value}")
 
         val initialModule = initialDefinition.module
         val targetModule = dependencyDefinition.module
         if (targetModule != null){
             val isAccessible : Boolean = isModuleAccessible(initialModule,targetModule) || isModuleAccessibleFromParent(initialModule,targetModule)
-            logger.warn("[DEBUG] ${initialModule?.value} -> ${targetModule.value} ? $isAccessible")
+
+//            logger.warn("[DEBUG] ${initialModule?.value} -> ${targetModule.value} ? $isAccessible")
+
             if (!isAccessible){
                 logger.error("--> Unreachable property '$property' in '${initialDefinition.value}'. Fix your modules configuration.")
             }
@@ -258,8 +261,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         initialModule: MetaModuleData?,
         targetModule: MetaModuleData
     ) : Boolean {
-        logger.warn("[DEBUG] isModuleAccessibleFromParent ${initialModule?.value} <=> ${targetModule.value}")
-        logger.warn("[DEBUG] -> parent:${initialModule?.parentModule}")
+//        logger.warn("[DEBUG] isModuleAccessibleFromParent ${initialModule?.value} <=> ${targetModule.value}")
+//        logger.warn("[DEBUG] -> parent:${initialModule?.parentModule}")
+
         return if (initialModule?.parentModule == null) false
         else {
             isModuleAccessible(initialModule.parentModule,targetModule) || isModuleAccessibleFromParent(initialModule.parentModule,targetModule)
@@ -271,8 +275,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         initialModule: MetaModuleData?,
         targetModule: MetaModuleData
     ) : Boolean {
-        logger.warn("[DEBUG] isModuleAccessible ${initialModule?.value} <=> ${targetModule.value}")
-        logger.warn("[DEBUG] -> includes:${initialModule?.includes?.joinToString(",") { it.value }}")
+//        logger.warn("[DEBUG] isModuleAccessible ${initialModule?.value} <=> ${targetModule.value}")
+//        logger.warn("[DEBUG] -> includes:${initialModule?.includes?.joinToString(",") { it.value }}")
+
         return if (initialModule?.value == targetModule.value) true
         else if (initialModule == null) false
         else {

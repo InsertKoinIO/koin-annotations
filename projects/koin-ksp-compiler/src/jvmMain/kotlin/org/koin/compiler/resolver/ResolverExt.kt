@@ -42,7 +42,7 @@ fun Resolver.getResolutionForTagProp(tag : String?) : Sequence<KSFunctionDeclara
 }
 
 fun Resolver.getResolutionForClass(name : String) : KSDeclaration?{
-    LOGGER.warn("[DEBUG] Resolver.getResolutionForClass '$name'")
+//    LOGGER.warn("[DEBUG] Resolver.getResolutionForClass '$name'")
     return getClassDeclarationByName(getKSNameFromString(name))
 }
 // Compat with KSP1
