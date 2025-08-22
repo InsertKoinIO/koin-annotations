@@ -20,7 +20,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.validate
-import org.koin.compiler.scanner.ext.getValueArgument
+import org.koin.meta.annotations.MetaApplication
 import org.koin.meta.annotations.MetaDefinition
 import org.koin.meta.annotations.MetaModule
 
@@ -30,10 +30,7 @@ class KoinTagMetaDataScanner(
     internal lateinit var resolver: Resolver
 
     fun findInvalidSymbols(): List<KSAnnotated> {
-        val invalidModuleSymbols = resolver.getMetaModuleSymbols(isValid = false)
-        val invalidDefinitionSymbols = resolver.getMetaDefinitionSymbols(isValid = false)
-
-        val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
+        val invalidSymbols = resolver.getSymbols<MetaModule>(isValid = false) + resolver.getSymbols<MetaModule>(isValid = false) + resolver.getSymbols<MetaApplication>(isValid = false)
         if (invalidSymbols.isNotEmpty()) {
             logger.logging("Invalid definition symbols found.")
             logInvalidEntities(invalidSymbols)
@@ -43,30 +40,29 @@ class KoinTagMetaDataScanner(
         return emptyList()
     }
 
-    fun findMetaModules(): List<KSAnnotation> {
-        logger.logging("scan meta modules ...")
-        return resolver.getMetaModuleSymbols(isValid = true).map { it.annotations.first() }
-    }
-
-    fun findMetaDefinitions(): List<KSAnnotation> {
-        logger.logging("scan meta definitions ...")
-        return resolver.getMetaDefinitionSymbols(isValid = true).map { it.annotations.first() }
-    }
-
-    private fun Resolver.getMetaModuleSymbols(isValid : Boolean): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(MetaModule::class.qualifiedName!!)
-            .filter { isValid == it.validate() }
-            .toList()
-    }
-
-    private fun Resolver.getMetaDefinitionSymbols(isValid : Boolean): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(MetaDefinition::class.qualifiedName!!)
-            .filter { isValid == it.validate() }
-            .toList()
-    }
-
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
         classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
     }
 
+    fun findMetaModules(): List<KSAnnotation> {
+        return resolver.getAnnotationForSymbols<MetaModule>(isValid = true)
+    }
+
+    fun findMetaDefinitions(): List<KSAnnotation> {
+        return resolver.getAnnotationForSymbols<MetaDefinition>(isValid = true)
+    }
+
+    fun findMetaApplications(): List<KSAnnotation> {
+        return resolver.getAnnotationForSymbols<MetaApplication>(isValid = true)
+    }
+
+    inline fun <reified T> Resolver.getSymbols(isValid : Boolean): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(T::class.qualifiedName!!)
+            .filter { isValid == it.validate() }
+            .toList()
+    }
+
+    inline fun <reified T> Resolver.getAnnotationForSymbols(isValid : Boolean): List<KSAnnotation> {
+        return this.getSymbols<T>(isValid).map { it.annotations.first() }
+    }
 }

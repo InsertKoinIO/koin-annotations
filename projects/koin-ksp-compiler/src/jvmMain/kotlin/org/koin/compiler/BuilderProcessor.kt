@@ -102,7 +102,11 @@ class BuilderProcessor(
             }
 
             KoinConfigChecker(logger, tagResolver).apply {
-                extractData(metaTagScanner.findMetaModules(), metaTagScanner.findMetaDefinitions())
+                extractData(
+                    metaTagScanner.findMetaModules(),
+                    metaTagScanner.findMetaDefinitions(),
+                    metaTagScanner.findMetaApplications()
+                    )
             }
 
             if (doLogTimes && checkTime != null) {
