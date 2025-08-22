@@ -37,7 +37,7 @@ import kotlin.error
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
 data class MetaDefinitionAnnotationData(val value: String, val moduleTagId : String, val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
-data class MetaDefinitionData(val value: String, val module : MetaModuleData, val dependencies: List<String>?, val scope: String?, val binds: List<String>?, val qualifier: String?)
+data class MetaDefinitionData(val value: String, val module : MetaModuleData?, val dependencies: List<String>?, val scope: String?, val binds: List<String>?, val qualifier: String?)
 
 data class MetaModuleAnnotationData(val value: String, val tag : String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
 data class MetaModuleData(val value: String, val tag : String, val id : String, val includes: ArrayList<MetaModuleData>, val configurations: List<String>?){
@@ -60,24 +60,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
         val modulesToProcess = modulesById.values.toList()
         modulesToProcess.forEach { module ->
-            // fill includes
+            // resolve includes
             val metaModule = metaModuleByValue[module.value]!!
-            val includes = metaModule.includes
-            // map includes
-            module.includes.addAll( includes?.map { includeSymbol ->
-                //found in current modules?
-                var found = modulesById.values.firstOrNull { it.value == includeSymbol }
-                if (found == null){
-                    val moduleTag = reverTag(includeSymbol)
-                    // find by current modules tag
-                    found = modulesById.values.firstOrNull { it.tag == moduleTag }
-                    if (found == null){
-                        found = findExternalModule(moduleTag, includeSymbol)
-                    }
-                }
-                found.parentModule = module
-                found
-            } ?: emptyList())
+            resolveModuleIncludes(module, metaModule)
         }
 
         logger.warn("[DEBUG] modules:\n${modulesById.values.joinToString(",\n") { module -> "${module.value} -> ${module.includes?.map { include -> include.value }}" }}")
@@ -103,7 +88,14 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     private fun findExternalModule(
         revertedTag: String,
         symbol: String
-    ): MetaModuleData {
+    ): Pair<MetaModuleData, MetaModuleAnnotationData>? {
+        logger.warn("[DEBUG] findExternalModule: '$revertedTag'")
+
+        if (revertedTag == "_KSP_DefaultModule") {
+            logger.warn("[DEBUG] findExternalModule: '$revertedTag' - skipped")
+            return null
+        }
+
         // find external module by tag
         val declaration = resolveTagDeclarationForModule(revertedTag)
         // found external module
@@ -113,9 +105,36 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
                 ?: error("can't find module metadata for $symbol on ${declaration.qualifiedName?.asString()}")
             val newModule = mapToModule(metaModule)
             modulesById[newModule.id] = newModule
-            newModule
+            newModule to metaModule
             // add to modulesById
         } ?: error("can't find module metadata for $symbol in current modules or any meta tags")
+    }
+
+    private fun resolveModuleIncludes(module: MetaModuleData, metaModule: MetaModuleAnnotationData){
+        logger.warn("[DEBUG] resolveModuleIncludes: '${module.value}'")
+
+        // get includes
+        val includes = metaModule.includes
+
+        // map includes
+        module.includes.addAll( includes?.mapNotNull { includeSymbol ->
+            //found in current modules?
+            var found = modulesById.values.firstOrNull { it.value == includeSymbol }
+            if (found == null){
+                val moduleTag = reverTag(includeSymbol)
+                // find by current modules tag
+                found = modulesById.values.firstOrNull { it.tag == moduleTag }
+                if (found == null){
+                    val foundExternalModule = findExternalModule(moduleTag, includeSymbol)
+                    if (foundExternalModule != null){
+                        found = foundExternalModule.first
+                        resolveModuleIncludes(found, foundExternalModule.second)
+                    }
+                }
+            }
+            found?.parentModule = module
+            found
+        } ?: emptyList())
     }
 
     private fun mapToDefinition(
@@ -124,7 +143,11 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val (moduleId, moduleTag) = metaDefinition.moduleTagId.split(":").let { it[0] to it[1] }
         return MetaDefinitionData(
             metaDefinition.value,
-            modulesById[moduleId] ?: findExternalModule(TAG_PREFIX+moduleTag, metaDefinition.value),
+            modulesById[moduleId] ?: findExternalModule(TAG_PREFIX+moduleTag, metaDefinition.value)
+                ?.let {
+                    resolveModuleIncludes(it.first, it.second)
+                    it.first
+                     },
             metaDefinition.dependencies,
             metaDefinition.scope,
             metaDefinition.binds,
@@ -205,6 +228,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun addDefinitionToCurrentSymbols(definition: MetaDefinitionData) {
         logger.warn("[DEBUG] add definition $definition")
+
         val defByValue = definition.value to definition
         val defByBindings = definition.binds?.map { it to definition } ?: emptyList()
         val defByScope = definition.scope?.let { it to definition }
@@ -221,10 +245,12 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
         val initialModule = initialDefinition.module
         val targetModule = dependencyDefinition.module
-        val isAccessible : Boolean = isModuleAccessible(initialModule,targetModule) || isModuleAccessibleFromParent(initialModule,targetModule)
-        logger.warn("[DEBUG] ${initialModule.value} -> ${targetModule.value} ? $isAccessible")
-        if (!isAccessible){
-            logger.error("--> Unreachable property '$property' in '${initialDefinition.value}'. Fix your modules configuration.")
+        if (targetModule != null){
+            val isAccessible : Boolean = isModuleAccessible(initialModule,targetModule) || isModuleAccessibleFromParent(initialModule,targetModule)
+            logger.warn("[DEBUG] ${initialModule?.value} -> ${targetModule.value} ? $isAccessible")
+            if (!isAccessible){
+                logger.error("--> Unreachable property '$property' in '${initialDefinition.value}'. Fix your modules configuration.")
+            }
         }
     }
 
@@ -232,7 +258,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         initialModule: MetaModuleData?,
         targetModule: MetaModuleData
     ) : Boolean {
-        logger.warn("[DEBUG] isModuleAccessibleFromParent ${initialModule?.value} -> ${targetModule.value}")
+        logger.warn("[DEBUG] isModuleAccessibleFromParent ${initialModule?.value} <=> ${targetModule.value}")
+        logger.warn("[DEBUG] -> parent:${initialModule?.parentModule}")
         return if (initialModule?.parentModule == null) false
         else {
             isModuleAccessible(initialModule.parentModule,targetModule) || isModuleAccessibleFromParent(initialModule.parentModule,targetModule)
@@ -244,8 +271,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         initialModule: MetaModuleData?,
         targetModule: MetaModuleData
     ) : Boolean {
-        logger.warn("[DEBUG] isModuleAccessible ${initialModule?.value} -> ${targetModule.value}")
-        return if (initialModule == targetModule) true
+        logger.warn("[DEBUG] isModuleAccessible ${initialModule?.value} <=> ${targetModule.value}")
+        logger.warn("[DEBUG] -> includes:${initialModule?.includes?.joinToString(",") { it.value }}")
+        return if (initialModule?.value == targetModule.value) true
         else if (initialModule == null) false
         else {
             if (initialModule.includes.isEmpty()) false

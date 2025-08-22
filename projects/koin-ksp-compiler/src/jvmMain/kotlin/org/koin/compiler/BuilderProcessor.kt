@@ -134,7 +134,7 @@ class BuilderProcessor(
     }
 
     private fun isDefaultModuleActive(): Boolean {
-        return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "true") == true.toString()
+        return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "false") == true.toString()
     }
 
     private fun doLogTimes(): Boolean {
