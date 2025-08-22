@@ -84,7 +84,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
     ): Pair<MetaModuleData, MetaModuleAnnotationData>? {
 //        logger.warn("[DEBUG] findExternalModule: '$revertedTag'")
 
-        if (revertedTag == "_KSP_DefaultModule") {
+        if (revertedTag == "DefaultModule") {
 //            logger.warn("[DEBUG] findExternalModule: '$revertedTag' - skipped")
             return null
         }
