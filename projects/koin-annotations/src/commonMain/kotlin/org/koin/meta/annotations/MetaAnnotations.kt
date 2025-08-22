@@ -32,12 +32,13 @@ annotation class ExternalDefinition(val value: String = "")
 /**
  * Meta Definition annotation to help represents
  * @param value: Definition full path
+ * @param moduleTagId - Module Tag + ID => "module_id:module_tag"
  * @param dependencies - Parameters Tags to check
  * @param scope - Scope where it's declared
  * @param binds - Bound types
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class MetaDefinition(val value: String = "",val moduleId: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
+annotation class MetaDefinition(val value: String = "", val moduleTagId: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
 
 /**
  * Meta Definition annotation to help represents

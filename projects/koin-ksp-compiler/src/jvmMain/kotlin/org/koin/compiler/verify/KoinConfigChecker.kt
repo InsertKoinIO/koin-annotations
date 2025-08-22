@@ -34,12 +34,11 @@ import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.type.fullWhiteList
-import org.koin.meta.annotations.MetaDefinition
 import kotlin.error
 
 const val codeGenerationPackage = "org.koin.ksp.generated"
 
-data class MetaDefinitionAnnotationData(val value: String, val moduleId : String, val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
+data class MetaDefinitionAnnotationData(val value: String, val moduleTagId : String, val dependencies: ArrayList<String>?, val scope: String?, val binds: ArrayList<String>?, val qualifier: String?)
 data class MetaDefinitionData(val value: String, val module : MetaModuleData, val dependencies: List<String>?, val scope: String?, val binds: List<String>?, val qualifier: String?)
 
 data class MetaModuleAnnotationData(val value: String, val tag : String, val id : String, val includes: ArrayList<String>?, val configurations: ArrayList<String>?)
@@ -103,7 +102,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun findExternalModule(
         revertedTag: String,
-        inc: String
+        symbol: String
     ): MetaModuleData {
         // find external module by tag
         val declaration = resolveTagDeclarationForModule(revertedTag)
@@ -111,25 +110,27 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         return declaration?.let { declaration ->
             // extract meta
             val metaModule = extractMetaModuleValues(declaration.annotations.first())
-                ?: error("can't find module metadata for $inc on ${declaration.qualifiedName?.asString()}")
+                ?: error("can't find module metadata for $symbol on ${declaration.qualifiedName?.asString()}")
             val newModule = mapToModule(metaModule)
             modulesById[newModule.id] = newModule
             newModule
             // add to modulesById
-        } ?: error("can't find module metadata for $inc in current modules or any meta tags")
+        } ?: error("can't find module metadata for $symbol in current modules or any meta tags")
     }
 
     private fun mapToDefinition(
         metaDefinition: MetaDefinitionAnnotationData,
-    ): MetaDefinitionData = MetaDefinitionData(
-        metaDefinition.value,
-        //TODO External module to catch
-        modulesById[metaDefinition.moduleId] ?: error("module '${metaDefinition.moduleId}' not found"),
-        metaDefinition.dependencies,
-        metaDefinition.scope,
-        metaDefinition.binds,
-        metaDefinition.qualifier
-    )
+    ): MetaDefinitionData {
+        val (moduleId, moduleTag) = metaDefinition.moduleTagId.split(":").let { it[0] to it[1] }
+        return MetaDefinitionData(
+            metaDefinition.value,
+            modulesById[moduleId] ?: findExternalModule(TAG_PREFIX+moduleTag, metaDefinition.value),
+            metaDefinition.dependencies,
+            metaDefinition.scope,
+            metaDefinition.binds,
+            metaDefinition.qualifier
+        )
+    }
 
     private fun mapToModule(module: MetaModuleAnnotationData): MetaModuleData = MetaModuleData(
         module.value,
@@ -228,12 +229,12 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
     private fun extractMetaDefinitionValues(a: KSAnnotation): MetaDefinitionAnnotationData? {
         val value = a.arguments.getValueArgument()
-        val moduleId = a.arguments.getArgument("moduleId") ?: error("can't find module id in MetaDefinitionData in $a")
+        val moduleTagId = a.arguments.getArgument("moduleTagId") ?: error("can't find moduleTagId in MetaDefinitionData in $a")
         val includes = if (value != null) a.arguments.getArray("dependencies") else null
         val scope = if (value != null) a.arguments.getScopeArgument() else null
         val binds = if (value != null) a.arguments.getArray("binds") else null
         val qualifier = if (value != null) a.arguments.getArgument("qualifier") else null
-        return value?.let { MetaDefinitionAnnotationData(value,moduleId,includes,scope,binds,qualifier) }
+        return value?.let { MetaDefinitionAnnotationData(value,moduleTagId,includes,scope,binds,qualifier) }
     }
 
     private fun List<KSValueArgument>.getArray(name : String): ArrayList<String>? {
@@ -303,7 +304,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         }
 
         val currentDefinition = allDefinitions.firstOrNull { it.value == currentTag } ?: return
-        
+
         // If we've seen this node before, we have a cycle
         if (currentDefinition.value in visited) {
             // Report any cycle, not just back to origin
@@ -312,9 +313,9 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
             logger.error("---> Cycle detected: $cyclePath")
             return
         }
-        
+
         visited.add(currentDefinition.value)
-        
+
         currentDefinition.dependencies?.forEach { dep ->
             try {
                 val nextTag = cleanUpTag(dep)
@@ -323,7 +324,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
                 logger.error("Error processing dependency '$dep' in '${currentDefinition.value}': ${e.message}")
             }
         }
-        
+
         visited.remove(currentDefinition.value)
     }
 }

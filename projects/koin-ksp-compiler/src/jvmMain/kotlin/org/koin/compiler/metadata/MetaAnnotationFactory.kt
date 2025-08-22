@@ -29,7 +29,7 @@ object MetaAnnotationFactory {
         """.trimIndent()
     }
 
-    fun generate(def: KoinMetaData.Definition, moduleId : String): String {
+    fun generate(def: KoinMetaData.Definition, module : KoinMetaData.Module): String {
         val fullpath = def.packageName + "." + def.label
         val dependencies = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
 
@@ -64,8 +64,11 @@ object MetaAnnotationFactory {
         val scopeString = scopeDef?.let { ", scope=\"$it\"" } ?: ""
         val bindsString = boundTypes?.let { ", binds=[$it]" } ?: ""
         val qualifierString = qualifier?.let { ", qualifier=\"$it\"" } ?: ""
+
+        val tagId = "${module.hashId}:${TagFactory.getTagClass(module)}"
+
         return """
-            @$metaDefinition("$fullpath",moduleId="$moduleId"$depsString$scopeString$bindsString$qualifierString)
+            @$metaDefinition("$fullpath",moduleTagId="$tagId"$depsString$scopeString$bindsString$qualifierString)
         """.trimIndent()
     }
 

@@ -144,7 +144,7 @@ class KoinTagWriter(
             val tag = TagFactory.getTagClass(definition)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
-                    val metaLine = MetaAnnotationFactory.generate(definition, module.hashId)
+                    val metaLine = MetaAnnotationFactory.generate(definition, module)
                     writeMeta(metaLine)
                 }
                 writeTag(tag)
@@ -163,7 +163,7 @@ class KoinTagWriter(
             val alreadyGenerated = resolver.tagPropAlreadyExists(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 if (isConfigCheckActive){
-                    val metaLine = MetaAnnotationFactory.generate(def, module.hashId)
+                    val metaLine = MetaAnnotationFactory.generate(def, module)
                     writeMeta(metaLine)
                 }
                 writeTag(tag, asProperty = true)
