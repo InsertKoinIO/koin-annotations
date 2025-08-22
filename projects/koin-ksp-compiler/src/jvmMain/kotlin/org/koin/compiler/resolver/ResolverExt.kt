@@ -13,7 +13,7 @@ fun Resolver.tagAlreadyExists(app : KoinMetaData.Application) : Boolean {
 }
 
 fun Resolver.getResolution(app : KoinMetaData.Application) : KSDeclaration?{
-    return getResolutionForTag(TagFactory.getTagClass(app))
+    return getResolutionForTag(TagFactory.generateTag(app))
 }
 
 fun Resolver.tagAlreadyExists(mod : KoinMetaData.Module) : Boolean {
@@ -21,7 +21,7 @@ fun Resolver.tagAlreadyExists(mod : KoinMetaData.Module) : Boolean {
 }
 
 fun Resolver.getResolution(mod : KoinMetaData.Module) : KSDeclaration?{
-    return getResolutionForTag(TagFactory.getTagClass(mod))
+    return getResolutionForTag(TagFactory.generateTag(mod))
 }
 
 fun Resolver.tagAlreadyExists(def : KoinMetaData.Definition) : Boolean {
@@ -29,7 +29,7 @@ fun Resolver.tagAlreadyExists(def : KoinMetaData.Definition) : Boolean {
 }
 
 fun Resolver.getResolution(def : KoinMetaData.Definition) : KSDeclaration?{
-    return getResolutionForTag(TagFactory.getTagClass(def))
+    return getResolutionForTag(TagFactory.generateTag(def))
 }
 
 fun Resolver.tagAlreadyExists(tag : String?) : Boolean {

@@ -89,7 +89,7 @@ class KoinTagWriter(
         }
 
         if (application.alreadyGenerated == false){
-            val tag = TagFactory.getTagClass(application)
+            val tag = TagFactory.generateTag(application)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(application)
@@ -121,7 +121,7 @@ class KoinTagWriter(
         }
 
         if (module.alreadyGenerated == false){
-            val tag = TagFactory.getTagClass(module)
+            val tag = TagFactory.generateTag(module)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(module)
@@ -148,7 +148,7 @@ class KoinTagWriter(
     ) {
         val scopeName = scope.qualifiedName?.asString()
         if (scopeName !in fullWhiteList) {
-            val tag = TagFactory.getTagClass(scope)
+            val tag = TagFactory.generateTag(scope)
             val alreadyGenerated = resolver.tagPropAlreadyExists(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 writeTag(tag, asProperty = true)
@@ -165,7 +165,7 @@ class KoinTagWriter(
         }
 
         if (definition.alreadyGenerated == false){
-            val tag = TagFactory.getTagClass(definition)
+            val tag = TagFactory.generateTag(definition)
             if (tag !in alreadyDeclaredTags) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(definition, module)
@@ -183,7 +183,7 @@ class KoinTagWriter(
     ) {
         val name = binding.qualifiedName?.asString()
         if (name !in fullWhiteList) {
-            val tag = TagFactory.getTagClass(def, binding)
+            val tag = TagFactory.generateTag(def, binding)
             val alreadyGenerated = resolver.tagPropAlreadyExists(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 if (isConfigCheckActive){

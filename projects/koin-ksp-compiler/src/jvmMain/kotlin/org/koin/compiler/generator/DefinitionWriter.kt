@@ -42,7 +42,7 @@ class DefinitionWriter(
         }
 
         if (def.alreadyGenerated == true){
-            LOGGER.logging("skip ${def.label} -> ${TagFactory.getTagClass(def)} - already generated")
+            LOGGER.logging("skip ${def.label} -> ${TagFactory.generateTag(def)} - already generated")
         } else {
             if (def.isActual.not()){
                 LOGGER.logging("write definition ${def.label} ...")

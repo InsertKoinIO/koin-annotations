@@ -16,7 +16,7 @@ object MetaAnnotationFactory {
         val fullpath = application.fullpath
 
         val includesTags = if (application.moduleIncludes?.isNotEmpty() == true) {
-            application.moduleIncludes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
+            application.moduleIncludes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.generateTag(it) }
         } else null
 
         val configurationsTag = if (application.configurationTags?.isNotEmpty() == true) {
@@ -36,7 +36,7 @@ object MetaAnnotationFactory {
         val moduleId = module.hashId
 
         val includesTags = if (module.includes?.isNotEmpty() == true) {
-            module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.getMetaTag(it) }
+            module.includes.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.generateTag(it) }
         } else null
 
         val configurationsTag = if (module.configurationTags?.isNotEmpty() == true) {
@@ -55,7 +55,7 @@ object MetaAnnotationFactory {
         val fullpath = def.packageName + "." + def.label
         val dependencies = def.parameters.filterIsInstance<KoinMetaData.DefinitionParameter.Dependency>()
 
-        val bindings = def.bindings.map { it.qualifiedName?.asString() to it }.filter { (v,_) -> v !in fullWhiteList }.map { (v, t) -> TagFactory.getMetaTagForBinding( v,t) }
+        val bindings = def.bindings.map { it.qualifiedName?.asString() to it }.filter { (v,_) -> v !in fullWhiteList }.map { (v, t) -> TagFactory.generateTag( v,t) }
         val boundTypes = if (bindings.isNotEmpty()) bindings.joinToString(
             "\",\"",
             prefix = "\"",
@@ -67,10 +67,10 @@ object MetaAnnotationFactory {
         val cleanedDependencies = dependencies
             .filter { !it.alreadyProvided && !it.hasDefault && !it.isNullable }
             .mapNotNull { dep ->
-                if (dep.kind == DependencyKind.SingleValue) TagFactory.getMetaTag(dep)
+                if (dep.kind == DependencyKind.SingleValue) TagFactory.generateTag(dep)
                 else {
                     val ksDeclaration = extractLazyOrListType(dep)
-                    ksDeclaration?.let { TagFactory.getMetaTag(def, dep ,ksDeclaration) }
+                    ksDeclaration?.let { TagFactory.generateTag(def, dep ,ksDeclaration) }
                 }
             }
 
@@ -87,7 +87,7 @@ object MetaAnnotationFactory {
         val bindsString = boundTypes?.let { ", binds=[$it]" } ?: ""
         val qualifierString = qualifier?.let { ", qualifier=\"$it\"" } ?: ""
 
-        val tagId = "${module.hashId}:${TagFactory.getTagClass(module)}"
+        val tagId = "${module.hashId}:${TagFactory.generateTag(module)}"
 
         return """
             @$metaDefinition("$fullpath",moduleTagId="$tagId"$depsString$scopeString$bindsString$qualifierString)
