@@ -68,7 +68,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         //TODO process included modules
         activeConfiguration = applications.flatMap { it.includes + it.configurations }
 
-        logger.warn("[DEBUG] activeConfiguration:\n${activeConfiguration.joinToString(",\n") { it.value }}")
+//        logger.warn("[DEBUG] activeConfiguration:\n${activeConfiguration.joinToString(",\n") { it.value }}")
 
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
             mapToDefinition(metaDefinition)

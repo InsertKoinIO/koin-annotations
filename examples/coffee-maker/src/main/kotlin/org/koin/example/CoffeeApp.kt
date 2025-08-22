@@ -24,7 +24,7 @@ class CoffeeApp : KoinComponent {
 object CoffeeKoinApp
 
 fun main() {
-    
+
 //    startKoin {
 //        printLogger(Level.DEBUG)
 //        // if no module
