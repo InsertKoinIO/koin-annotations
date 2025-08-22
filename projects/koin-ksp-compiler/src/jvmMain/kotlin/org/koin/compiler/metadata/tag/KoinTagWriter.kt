@@ -3,13 +3,10 @@ package org.koin.compiler.metadata.tag
 import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.MetaAnnotationFactory
-import org.koin.compiler.resolver.tagAlreadyExists
-import org.koin.compiler.resolver.tagPropAlreadyExists
 import org.koin.compiler.type.fullWhiteList
 import org.koin.compiler.verify.*
 import java.io.OutputStream
@@ -22,7 +19,7 @@ private const val TAG_FILE_HASH_LIMIT = 8
 class KoinTagWriter(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger,
-    val resolver: Resolver,
+    val resolver: TagResolver,
     val isConfigCheckActive : Boolean
 ) {
     private val alreadyDeclaredTags: ArrayList<String> = arrayListOf()
@@ -85,7 +82,7 @@ class KoinTagWriter(
 
     private fun writeApplicationTag(application: KoinMetaData.Application) {
         if (application.alreadyGenerated == null){
-            application.alreadyGenerated = resolver.tagAlreadyExists(application)
+            application.alreadyGenerated = resolver.tagExists(application)
         }
 
         if (application.alreadyGenerated == false){
@@ -117,7 +114,7 @@ class KoinTagWriter(
         module: KoinMetaData.Module
     ) {
         if (module.alreadyGenerated == null){
-            module.alreadyGenerated = resolver.tagAlreadyExists(module)
+            module.alreadyGenerated = resolver.tagExists(module)
         }
 
         if (module.alreadyGenerated == false){
@@ -139,17 +136,17 @@ class KoinTagWriter(
         writeDefinitionTag(def, module)
         def.bindings.forEach { writeBindingTag(def,module, it) }
         if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope){
-            writeScopeTag(def.scope.type)
+            writeScopeTag(def.scope)
         }
     }
 
     private fun writeScopeTag(
-        scope: KSDeclaration
+        scope: KoinMetaData.Scope.ClassScope
     ) {
-        val scopeName = scope.qualifiedName?.asString()
+        val scopeName = scope.type.qualifiedName?.asString()
         if (scopeName !in fullWhiteList) {
             val tag = TagFactory.generateTag(scope)
-            val alreadyGenerated = resolver.tagPropAlreadyExists(tag)
+            val alreadyGenerated = resolver.tagPropertyExists(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 writeTag(tag, asProperty = true)
             }
@@ -161,7 +158,7 @@ class KoinTagWriter(
         module: KoinMetaData.Module
     ) {
         if (definition.alreadyGenerated == null){
-            definition.alreadyGenerated = resolver.tagAlreadyExists(definition)
+            definition.alreadyGenerated = resolver.tagExists(definition)
         }
 
         if (definition.alreadyGenerated == false){
@@ -184,7 +181,7 @@ class KoinTagWriter(
         val name = binding.qualifiedName?.asString()
         if (name !in fullWhiteList) {
             val tag = TagFactory.generateTag(def, binding)
-            val alreadyGenerated = resolver.tagPropAlreadyExists(tag)
+            val alreadyGenerated = resolver.tagPropertyExists(tag)
             if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
                 if (isConfigCheckActive){
                     val metaLine = MetaAnnotationFactory.generate(def, module)
@@ -217,14 +214,21 @@ class KoinTagWriter(
         """.trimIndent())
     }
 
-    // Compat with KSP1
-    //TODO change for property once KSP2
-    private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
+    private fun prepareTagLine(tagName: String, asProperty: Boolean) : String {
         val cleanedTag = tagName.replace("-", "_")//TODO Check for other rules if needed
-        return if (asFunction){
-            "\npublic fun $TAG_PREFIX$cleanedTag() : Unit = Unit"
+        return if (asProperty){
+            "\npublic val $TAG_PREFIX$cleanedTag : Unit get() = Unit"
         } else "\npublic class $TAG_PREFIX$cleanedTag"
     }
+
+    // Compat with KSP1
+    //TODO change for property once KSP2
+//    private fun prepareTagLine(tagName: String, asFunction: Boolean) : String {
+//        val cleanedTag = tagName.replace("-", "_")//TODO Check for other rules if needed
+//        return if (asFunction){
+//            "\npublic fun $TAG_PREFIX$cleanedTag() : Unit = Unit"
+//        } else "\npublic class $TAG_PREFIX$cleanedTag"
+//    }
 
     companion object {
         val sha1 = MessageDigest.getInstance("SHA1")

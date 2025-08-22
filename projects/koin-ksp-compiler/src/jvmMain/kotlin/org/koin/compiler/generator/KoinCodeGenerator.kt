@@ -17,19 +17,17 @@ package org.koin.compiler.generator
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.camelCase
-import org.koin.compiler.resolver.getResolution
+import org.koin.compiler.metadata.tag.TagResolver
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger,
     //TODO Remove isComposeViewModelActive with Koin 4
-    val isViewModelMPActive: Boolean
+    val isViewModelMPActive: Boolean,
+    val tagResolver: TagResolver
 ) {
-    lateinit var resolver: Resolver
-
     init {
         LOGGER = logger
     }
@@ -58,14 +56,14 @@ class KoinCodeGenerator(
         logger.info("generate default file ...")
 
         checkAlreadyGenerated(defaultModule)
-        val hasDefaultDefinitions = defaultModule.definitions.any { resolver.getResolution(it) == null }
+        val hasDefaultDefinitions = defaultModule.definitions.any { !tagResolver.tagExists(it) }
 
         if (defaultModule.alreadyGenerated == false && hasDefaultDefinitions){
             if (generateDefaultModule && defaultModule.definitions.isNotEmpty()) {
                 LOGGER.warn("Generating 'defaultModule' with ${defaultModule.definitions.size} definitions")
             }
             defaultModule.setCurrentDefinitionsToExternals()
-            DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule(isViewModelMPActive)
+            DefaultModuleWriter(codeGenerator, tagResolver, defaultModule, generateDefaultModule).writeModule(isViewModelMPActive)
         }
     }
 
@@ -92,17 +90,17 @@ class KoinCodeGenerator(
                 val allModules = (subModules + main)
                 allModules.mapIndexed { index, m ->
                     val generateIncludes = if (index == allModules.indexOf(main)) subModulesInclude else emptyList()
-                    ClassModuleWriter(codeGenerator, resolver, m).writeModule(isViewModelMPActive, generateIncludes)
+                    ClassModuleWriter(codeGenerator, tagResolver, m).writeModule(isViewModelMPActive, generateIncludes)
                 }
             } else {
-                ClassModuleWriter(codeGenerator, resolver, module).writeModule(isViewModelMPActive)
+                ClassModuleWriter(codeGenerator, tagResolver, module).writeModule(isViewModelMPActive)
             }
         }
     }
 
     private fun checkAlreadyGenerated(module: KoinMetaData.Module){
         if (module.alreadyGenerated == null){
-            module.alreadyGenerated = resolver.getResolution(module) != null
+            module.alreadyGenerated = tagResolver.tagExists(module)
         }
     }
 
@@ -110,7 +108,7 @@ class KoinCodeGenerator(
 
 //        logger.logging("generating applications ${applications.size} ...")
         applications.forEach { application ->
-            ApplicationClassWriter(codeGenerator,resolver,application).writeApplication()
+            ApplicationClassWriter(codeGenerator,application).writeApplication()
         }
     }
 

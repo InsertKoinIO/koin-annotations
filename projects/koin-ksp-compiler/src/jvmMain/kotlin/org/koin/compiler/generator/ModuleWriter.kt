@@ -25,12 +25,13 @@ import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
+import org.koin.compiler.metadata.tag.TagResolver
 import org.koin.compiler.type.clearPackageSymbols
 
 abstract class ModuleWriter(
     codeGenerator: CodeGenerator,
-    val resolver: Resolver,
     val module: KoinMetaData.Module,
+    val tagResolver : TagResolver
 ) : AbstractFileWriter(codeGenerator) {
 
     open val hasExternalDefinitions: Boolean = false
@@ -42,7 +43,7 @@ abstract class ModuleWriter(
     //TODO Remove isComposeViewModelActive with Koin 4
     fun writeModule(isViewModelMPActive: Boolean, generateIncludeModules: List<KoinMetaData.ModuleInclude> = emptyList()) {
         fileStream = createFileStream()
-        definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
+        definitionFactory = DefinitionWriterFactory(fileStream!!, tagResolver)
 
         writeHeader()
         writeHeaderImports(isViewModelMPActive)

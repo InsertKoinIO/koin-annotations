@@ -16,17 +16,13 @@
 package org.koin.compiler.verify
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
-import org.koin.compiler.metadata.tag.KOIN_TAG_SEPARATOR
-import org.koin.compiler.metadata.tag.QUALIFIER_SYMBOL
 import org.koin.compiler.metadata.tag.TAG_PREFIX
 import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
-import org.koin.compiler.resolver.getResolutionForTag
-import org.koin.compiler.resolver.getResolutionForTagProp
+import org.koin.compiler.metadata.tag.TagResolver
 import org.koin.compiler.scanner.ext.getArgument
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
@@ -47,7 +43,7 @@ data class MetaModuleData(val value: String, val tag : String, val id : String, 
 /**
  * Koin Configuration Checker
  */
-class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
+class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
 
     private lateinit var modulesById : MutableMap<String, MetaModuleData>
     private lateinit var allLocalDefinitions : MutableMap<String, MetaDefinitionData>
@@ -74,7 +70,7 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
         val definitionTypes = definitions.associateBy { it.value }
         val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
         val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
-            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> "${b}$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}" }
+            val t = if (def.qualifier == null) def.binds!! else def.binds!!.map { b -> TagFactory.createTagForQualifier(b,def) }
             t.map { it to def }
         }.toMap()
         allLocalDefinitions = ((definitionTypes + scopes + binds) as MutableMap<String, MetaDefinitionData>)
@@ -205,11 +201,8 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
 
         if (!foundInLocalDefinitions) {
             // resolve definition by tag
-            val foundResolution = if (def.scope == null) {
-                resolveTagDeclarationForDefinition(tag)
-            } else {
-                resolveTagDeclarationForDefinition(tag) ?: resolveTagDeclarationForDefinition(TagFactory.updateTagWithScope(tag, def))
-            }
+            val foundResolution = resolveTagDeclarationForDefinition(tag) ?: if (def.scope != null) { resolveTagDeclarationForDefinition(TagFactory.createTagForScope(tag, def)) } else null
+
 //            logger.warn("[DEBUG] found resolution? ${foundResolution != null}")
 
             // found definition resolution
@@ -287,11 +280,11 @@ class KoinConfigChecker(val logger: KSPLogger, val resolver: Resolver) {
     }
 
     private fun resolveTagDeclarationForModule(tag : String) : KSDeclaration?{
-        return resolver.getResolutionForTag(tag, addTagPrefix = false)
+        return tagResolver.resolveKSDeclaration(tag, addTagPrefix = false)
     }
 
     private fun resolveTagDeclarationForDefinition(tag : String) : KSDeclaration?{
-        return resolver.getResolutionForTag(tag) ?: resolver.getResolutionForTagProp(tag).firstOrNull()
+        return tagResolver.resolveKSDeclaration(tag) ?: tagResolver.resolveKSPropertyDeclaration(tag)
     }
 
     private fun extractMetaDefinitionValues(a: KSAnnotation): MetaDefinitionAnnotationData? {

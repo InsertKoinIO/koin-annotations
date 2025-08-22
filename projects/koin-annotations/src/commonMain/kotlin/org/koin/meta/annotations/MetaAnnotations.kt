@@ -38,7 +38,7 @@ annotation class ExternalDefinition(val value: String = "")
  * @param qualifier - Qualifier
  * @param scope - Scope where it's declared
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
 annotation class MetaDefinition(val value: String = "", val moduleTagId: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
 
 /**

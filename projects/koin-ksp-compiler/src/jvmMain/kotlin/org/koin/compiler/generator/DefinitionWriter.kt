@@ -16,7 +16,6 @@
 package org.koin.compiler.generator
 
 import org.koin.compiler.generator.ext.appendText
-import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
@@ -24,13 +23,13 @@ import org.koin.compiler.metadata.KoinMetaData.Module.Companion.DEFINE_PREFIX
 import org.koin.compiler.metadata.SINGLE
 import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
+import org.koin.compiler.metadata.tag.TagResolver
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
-import org.koin.compiler.resolver.getResolution
 import java.io.OutputStream
 
 class DefinitionWriter(
-    val resolver: Resolver,
-    val fileStream: OutputStream
+    val fileStream: OutputStream,
+    val tagResolver: TagResolver
 ) {
     private fun write(s: String) { fileStream.appendText(s) }
     private fun writeln(s: String) = write("$s\n")
@@ -68,7 +67,7 @@ class DefinitionWriter(
         }
     }
 
-    private fun canResolveType(def: KoinMetaData.Definition): Boolean = resolver.getResolution(def) != null
+    private fun canResolveType(def: KoinMetaData.Definition): Boolean = tagResolver.tagExists(def)
 
     private fun writeDefinition(
         space: String,

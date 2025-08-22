@@ -3,10 +3,10 @@ package org.koin.compiler.generator
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.tag.TagResolver
 
 class ApplicationClassWriter(
     codeGenerator: CodeGenerator,
-    val resolver: Resolver,
     val application: KoinMetaData.Application,
 ) : AbstractFileWriter(codeGenerator) {
 

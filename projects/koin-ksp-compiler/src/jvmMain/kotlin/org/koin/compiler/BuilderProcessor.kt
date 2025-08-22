@@ -22,6 +22,7 @@ import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.tag.KoinTagWriter
+import org.koin.compiler.metadata.tag.TagResolver
 import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.KoinTagMetaDataScanner
 import org.koin.compiler.verify.KoinConfigChecker
@@ -33,8 +34,9 @@ class BuilderProcessor(
     private val options: Map<String, String>
 ) : SymbolProcessor {
 
+    private val tagResolver = TagResolver()
     private val isViewModelMPActive = isKoinViewModelMPActive()
-    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive)
+    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger, isViewModelMPActive, tagResolver)
     private val koinMetaDataScanner = KoinMetaDataScanner(logger)
     private val metaTagScanner = KoinTagMetaDataScanner(logger)
 
@@ -74,7 +76,7 @@ class BuilderProcessor(
 
         val isConfigCheckActive = isConfigCheckActive()
         // Tags are used to verify generated content (KMP)
-        KoinTagWriter(codeGenerator, logger, resolver, isConfigCheckActive)
+        KoinTagWriter(codeGenerator, logger, tagResolver, isConfigCheckActive)
             .writeAllTags(moduleList, defaultModule, applications)
 
         if (doLogTimes && mainTime != null) {
@@ -99,11 +101,9 @@ class BuilderProcessor(
                 return invalidSymbols
             }
 
-            KoinConfigChecker(logger, resolver).apply {
+            KoinConfigChecker(logger, tagResolver).apply {
                 extractData(metaTagScanner.findMetaModules(), metaTagScanner.findMetaDefinitions())
             }
-//            checker.verifyMetaModules(metaTagScanner.findMetaModules())
-//            checker.verifyMetaDefinitions(metaTagScanner.findMetaDefinitions())
 
             if (doLogTimes && checkTime != null) {
                 checkTime.elapsedNow()
@@ -114,7 +114,7 @@ class BuilderProcessor(
     }
 
     private fun initComponents(resolver: Resolver) {
-        koinCodeGenerator.resolver = resolver
+        tagResolver.resolver = resolver
         metaTagScanner.resolver = resolver
     }
 

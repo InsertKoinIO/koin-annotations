@@ -7,11 +7,12 @@ import org.koin.compiler.type.clearPackageSymbols
 import org.koin.compiler.verify.MetaDefinitionData
 import org.koin.compiler.verify.qualifiedNameCamelCase
 
-const val KOIN_TAG_SEPARATOR = "_"
-internal const val QUALIFIER_SYMBOL = "Q_"
-internal const val SCOPE_SYMBOL = "S_"
 
 object TagFactory {
+
+    private const val KOIN_TAG_SEPARATOR = "_"
+    private const val QUALIFIER_SYMBOL = "Q_"
+    private const val SCOPE_SYMBOL = "S_"
 
     fun generateTag(app: KoinMetaData.Application): String {
         return with(app) {
@@ -73,8 +74,9 @@ object TagFactory {
         ).joinToString(separator = KOIN_TAG_SEPARATOR)
     }
 
-    fun updateTagWithScope(classTag: String, dv: MetaDefinitionData) =  "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${dv.scope}"
-    fun generateTag(clazz: KSDeclaration): String = clazz.qualifiedNameCamelCase() ?: ""
+    fun generateTag(scope : KoinMetaData.Scope.ClassScope) : String{
+        return scope.type.qualifiedNameCamelCase() ?: ""
+    }
 
     fun generateTag(definition: KoinMetaData.Definition): String {
         return with(definition) {
@@ -103,6 +105,9 @@ object TagFactory {
             ).joinToString(prefix = "${dep.name}:", separator = KOIN_TAG_SEPARATOR)
         }
     }
+
+    fun createTagForScope(classTag: String, def: MetaDefinitionData) = "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${def.scope}"
+    fun createTagForQualifier(classTag: String, def: MetaDefinitionData) = "$classTag$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}"
 
     private fun escapeTagClass(qualifier : String) : String {
         return if (!qualifier.contains(".")) qualifier
