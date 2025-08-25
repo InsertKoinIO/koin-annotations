@@ -109,3 +109,125 @@ This example show that `MyFactory` component will resolve `MyScopedComponent` co
 :::info
   The `MyScopedComponent` component needs to be defined in a Scope section, and scope instance needs to created with id "my_scope_id". 
 :::
+
+## Scope Archetype Annotations
+
+Koin Annotations provides predefined scope archetype annotations for common scope patterns, eliminating the need to manually declare scope types. These annotations combine scope declaration and component definition in a single annotation.
+
+### Android Scope Archetypes
+
+For Android development, you can use these predefined scope annotations:
+
+#### @ActivityScope
+
+Declare a component in an Activity scope:
+
+```kotlin
+@ActivityScope
+class ActivityScopedComponent(val dependency: MyDependency)
+```
+
+This generates:
+```kotlin
+activityScope {
+    scoped { ActivityScopedComponent(get()) }
+}
+```
+
+**Usage:** The tagged class is meant to be used with Activity and the `activityScope` function to activate the scope.
+
+#### @ActivityRetainedScope
+
+Declare a component in an Activity Retained scope (survives configuration changes):
+
+```kotlin
+@ActivityRetainedScope
+class RetainedComponent(val repository: MyRepository)
+```
+
+This generates:
+```kotlin
+activityRetainedScope {
+    scoped { RetainedComponent(get()) }
+}
+```
+
+**Usage:** The tagged class is meant to be used with Activity and the `activityRetainedScope` function to activate the scope.
+
+#### @FragmentScope
+
+Declare a component in a Fragment scope:
+
+```kotlin
+@FragmentScope
+class FragmentScopedComponent(val service: MyService)
+```
+
+This generates:
+```kotlin
+fragmentScope {
+    scoped { FragmentScopedComponent(get()) }
+}
+```
+
+**Usage:** The tagged class is meant to be used with Fragment and the `fragmentScope` function to activate the scope.
+
+### Core Scope Archetypes
+
+#### @ViewModelScope
+
+Declare a component in a ViewModel scope:
+
+```kotlin
+@ViewModelScope
+class ViewModelScopedComponent(val useCase: MyUseCase)
+```
+
+This generates:
+```kotlin
+viewModelScope {
+    scoped { ViewModelScopedComponent(get()) }
+}
+```
+
+**Usage:** The tagged class is meant to be used with ViewModel and the `viewModelScope` function to activate the scope.
+
+### Using Scope Archetypes
+
+Scope archetype annotations work seamlessly with regular Koin scoping:
+
+```kotlin
+// Regular components
+@Single
+class GlobalService
+
+// Scoped components using archetypes
+@ActivityScope
+class ActivityService(val global: GlobalService)
+
+@FragmentScope  
+class FragmentService(
+    val global: GlobalService,
+    val activity: ActivityService
+)
+```
+
+### Combining with Function Definitions
+
+Scope archetypes can also be used on functions within modules:
+
+```kotlin
+@Module
+class MyModule {
+    
+    @ActivityScope
+    fun activityComponent(dep: MyDependency) = MyActivityComponent(dep)
+    
+    @FragmentScope
+    fun fragmentComponent(dep: MyDependency) = MyFragmentComponent(dep)
+}
+```
+
+:::info
+Scope archetype annotations automatically create the appropriate scope definition and scoped component declaration, reducing boilerplate code for common scope patterns.
+:::
