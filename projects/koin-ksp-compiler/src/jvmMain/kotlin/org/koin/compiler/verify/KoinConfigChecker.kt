@@ -48,14 +48,22 @@ private const val DEFAULT_MODULE_NAME = "DefaultModule"
 class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
 
     private lateinit var modulesById : MutableMap<String, MetaModuleData>
+    private lateinit var modulesByValue: MutableMap<String, MetaModuleData>
+    private lateinit var modulesByTag: MutableMap<String, MetaModuleData>
     private lateinit var allLocalDefinitions : MutableMap<String, MetaDefinitionData>
+    private lateinit var definitionsByValue: MutableMap<String, MetaDefinitionData>
     private lateinit var activeConfiguration : List<MetaModuleData>
 
     fun verify(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>, foundMetaApplications: List<KSAnnotation>) {
         val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
-        modulesById = metaModuleByValue.values.map { module ->
+        val modules = metaModuleByValue.values.map { module ->
             mapToModule(module)
-        }.associateBy { it.id }.toMutableMap()
+        }
+        
+        // Build all module indexes for O(1) lookup
+        modulesById = modules.associateBy { it.id }.toMutableMap()
+        modulesByValue = modules.associateBy { it.value }.toMutableMap()
+        modulesByTag = modules.associateBy { it.tag }.toMutableMap()
 
         val modulesToProcess = modulesById.values.toList()
         modulesToProcess.forEach { module ->
@@ -71,6 +79,9 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
             mapToDefinition(metaDefinition)
         }
 
+        // Build definition indexes for O(1) lookup
+        definitionsByValue = definitions.associateBy { it.value }.toMutableMap()
+        
         val definitionTypes = definitions.associateBy { it.value }
         val scopes = definitions.filter { it.scope != null }.associateBy { it.scope!! }
         val binds = definitions.filter { !it.binds.isNullOrEmpty() }.flatMap { def ->
@@ -119,17 +130,20 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         includeSymbol: String,
         module: MetaModuleData? = null,
     ): MetaModuleData? {
-        //found in current modules?
-        var found = modulesById.values.firstOrNull { it.value == includeSymbol }
+        // O(1) lookup by value
+        var found = modulesByValue[includeSymbol]
         if (found == null) {
             val moduleTag = reverTag(includeSymbol)
-            // find by current modules tag
-            found = modulesById.values.firstOrNull { it.tag == moduleTag }
+            // O(1) lookup by tag
+            found = modulesByTag[moduleTag]
             if (found == null) {
                 val foundExternalModule = findExternalModule(moduleTag, includeSymbol)
                 if (foundExternalModule != null) {
                     found = foundExternalModule.first
                     resolveModuleIncludes(found, foundExternalModule.second)
+                    // Update indexes with external module
+                    modulesByValue[found.value] = found
+                    modulesByTag[found.tag] = found
                 }
             }
         }
@@ -360,7 +374,12 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
     private fun findDefinitionFromTag(
         definitions: List<MetaDefinitionData>,
         tag: String
-    ): MetaDefinitionData? = definitions.firstOrNull { it.binds?.contains(tag) == true || it.value == tag }
+    ): MetaDefinitionData? {
+        // First try O(1) lookup by value
+        definitionsByValue[tag]?.let { return it }
+        // Fallback to O(n) lookup for binds
+        return definitions.firstOrNull { it.binds?.contains(tag) == true }
+    }
 
     private fun lookupCycle(
         allDefinitions: List<MetaDefinitionData>,
@@ -374,7 +393,8 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
             return
         }
 
-        val currentDefinition = allDefinitions.firstOrNull { it.value == currentTag } ?: return
+        // O(1) lookup by value instead of O(n) linear search
+        val currentDefinition = definitionsByValue[currentTag] ?: return
 
         // If we've seen this node before, we have a cycle
         if (currentDefinition.value in visited) {
