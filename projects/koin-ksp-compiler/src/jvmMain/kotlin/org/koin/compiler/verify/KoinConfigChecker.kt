@@ -108,12 +108,12 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         return declaration?.let { declaration ->
             // extract meta
             val metaModule = extractMetaModuleValues(declaration.annotations.first())
-                ?: error("can't find module metadata for $symbol on ${declaration.qualifiedName?.asString()}")
+                ?: error("can't find module metadata for '$symbol' on ${declaration.qualifiedName?.asString()}")
             val newModule = mapToModule(metaModule)
             modulesById[newModule.id] = newModule
             newModule to metaModule
             // add to modulesById
-        } ?: error("can't find module metadata for $symbol in current modules or any meta tags")
+        } ?: error("can't find module metadata for '$symbol' in current modules or any meta tags")
     }
 
     private fun resolveModuleIncludes(module: MetaModuleData, metaModule: MetaModuleAnnotationData){
@@ -220,6 +220,10 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         val parameterType = tagData[1].clearPackageSymbols()
         val tag = parameterType.camelCase()
 
+        if (tag.endsWith("_Actual")){
+            return
+        }
+
         val foundInLocalDefinitions = (parameterType in fullWhiteList || (parameterType in allLocalDefinitions.keys))
         if (foundInLocalDefinitions) {
             allLocalDefinitions[parameterType]?.let { found ->
@@ -233,7 +237,8 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
 
             // found definition resolution
             if (foundResolution == null){
-                logger.error("--> Missing definition for '$parameterName : $parameterType' in '${def.value}'. Fix your configuration: add definition annotation or check modules.")
+                val paramType = parameterType.removeSuffix("_Expect")
+                logger.error("--> Missing definition for '$parameterName : $paramType' in '${def.value}'. Fix your configuration: add definition annotation or check modules.")
             }
             else {
                 val definition = extractMetaDefinitionValues(foundResolution.annotations.firstOrNull() ?: error("can't find definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}") )
@@ -264,7 +269,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         if (targetModule != null){
             val isAccessible = isModuleAccessible(initialModule,targetModule) || isModuleAccessibleFromParent(initialModule,targetModule) || isModuleAccessibleInConfiguration(initialModule,targetModule)
             if (!isAccessible){
-                logger.error("--> Unreachable definition '$property' in '${initialDefinition.value}'. Fix your modules configuration.")
+                logger.error("--> Unreachable definition '$property' in '${initialDefinition.value}'. Fix your modules and configuration.")
             }
         }
     }

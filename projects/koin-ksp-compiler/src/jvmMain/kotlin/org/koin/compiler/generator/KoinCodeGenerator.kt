@@ -146,9 +146,14 @@ class KoinCodeGenerator(
 
     fun generateApplications(applications: List<KoinMetaData.Application>) {
 
-//        logger.logging("generating applications ${applications.size} ...")
         applications.forEach { application ->
-            ApplicationClassWriter(codeGenerator,application).writeApplication()
+            if (application.alreadyGenerated == null){
+                application.alreadyGenerated = tagResolver.tagExists(application)
+            }
+
+            if (application.alreadyGenerated == false){
+                ApplicationClassWriter(codeGenerator,application).writeApplication()
+            }
         }
     }
 

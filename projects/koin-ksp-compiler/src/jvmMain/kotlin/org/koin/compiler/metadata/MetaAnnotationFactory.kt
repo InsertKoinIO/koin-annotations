@@ -20,7 +20,9 @@ object MetaAnnotationFactory {
         } else null
 
         val configurationsTag = if (application.configurations?.isNotEmpty() == true) {
-            application.configurations.flatMap { it.modules }.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.generateTag(it) }
+            val configModules = application.configurations.flatMap { it.modules }
+            if (configModules.isNotEmpty()) configModules.joinToString("\",\"", prefix = "\"", postfix = "\"") { TagFactory.generateTag(it) }
+            else null
         } else null
 
         val includesString = includesTags?.let { ", includes=[$it]" } ?: ""

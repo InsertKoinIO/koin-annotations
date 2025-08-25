@@ -29,10 +29,9 @@ class ApplicationScanner(
     fun createClassApplication(element: KSAnnotated): KoinMetaData.Application {
         val declaration = (element as KSClassDeclaration)
         val modulePackage = declaration.getPackageName().filterForbiddenKeywords()
-
-        val annotations = declaration.annotations
-        val configurations = getConfigurationScans(annotations)
-        val includes = getIncludes(annotations)
+        val applicationAnnotation = declaration.annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
+        val configurations = getConfigurationScans(applicationAnnotation)
+        val includes = getIncludes(applicationAnnotation)
 
         val name = "$element"
         val type = if (declaration.classKind == ClassKind.OBJECT) {
@@ -45,22 +44,20 @@ class ApplicationScanner(
             packageName = modulePackage,
             name = name,
             type = type,
-            configurationTags = configurations ?: defaultConfiguration(),
+            configurationTags = configurations,
             moduleIncludes = includes
         )
         return applicationMetadata
     }
 
-    private fun getConfigurationScans(annotations: Sequence<KSAnnotation>): Set<KoinMetaData.ConfigurationTag>? {
-        val annotation = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
+    private fun getConfigurationScans(annotation: KSAnnotation?): Set<KoinMetaData.ConfigurationTag> {
         if (annotation == null) return defaultConfiguration()
         return configurationValue(annotation,"configurations")
     }
 
-    private fun getIncludes(annotations: Sequence<KSAnnotation>): List<KoinMetaData.ModuleInclude>? {
-        val annotation = annotations.firstOrNull { it.shortName.asString() == KoinApplication::class.simpleName!! }
+    private fun getIncludes(annotation: KSAnnotation?): List<KoinMetaData.ModuleInclude>? {
         return annotation?.let {
-            includedModules(annotation).toModuleIncludes()
+            includedModules(annotation, "modules").toModuleIncludes()
         }
     }
 }

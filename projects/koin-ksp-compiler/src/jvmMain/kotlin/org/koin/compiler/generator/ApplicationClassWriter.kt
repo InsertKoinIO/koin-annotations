@@ -40,8 +40,8 @@ class ApplicationClassWriter(
     private fun writeKoinConfigurationField() {
         val moduleIncludes = application.moduleIncludes?.let { "+ listOf(${generateIncludes(it)})" } ?: ""
         val configString = """
-            fun $extensionBase.koinConfiguration(ext : KoinAppDeclaration?=null) : KoinAppDeclaration = {
-                includes(ext)
+            fun $extensionBase.koinConfiguration(config : KoinAppDeclaration?=null) : KoinAppDeclaration = {
+                includes(config)
                 modules(configurationModules$moduleIncludes)
             }
         """.trimIndent()
@@ -52,8 +52,8 @@ class ApplicationClassWriter(
     private fun writeStartKoinFunction() {
         writeln("""
             @KoinApplicationDslMarker
-            fun $extensionBase.startKoin(ext : KoinAppDeclaration?=null) : KoinApplication {
-                return GlobalContext.startKoin(koinConfiguration(ext))
+            fun $extensionBase.startKoin(config : KoinAppDeclaration?=null) : KoinApplication {
+                return KoinPlatformTools.defaultContext().startKoin(koinConfiguration(config))
             }
         """.trimIndent())
     }
@@ -61,8 +61,8 @@ class ApplicationClassWriter(
     private fun writeKoinApplicationFunction() {
         writeln("""
             @KoinApplicationDslMarker
-            fun $extensionBase.koinApplication(ext : KoinAppDeclaration?=null) : KoinApplication {
-                return org.koin.dsl.koinApplication(koinConfiguration(ext))
+            fun $extensionBase.koinApplication(config : KoinAppDeclaration?=null) : KoinApplication {
+                return org.koin.dsl.koinApplication(koinConfiguration(config))
             }
         """.trimIndent())
     }

@@ -35,7 +35,7 @@ val APP_HEADER = """
     
     import org.koin.core.module.KoinApplicationDslMarker
     import org.koin.core.KoinApplication
-    import org.koin.core.context.GlobalContext
+    import org.koin.mp.KoinPlatformTools
     import org.koin.core.module.Module
     import org.koin.dsl.*
 """.trimIndent()
