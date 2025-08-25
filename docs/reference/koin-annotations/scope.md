@@ -176,21 +176,30 @@ fragmentScope {
 
 #### @ViewModelScope
 
-Declare a component in a ViewModel scope:
+Declare a component in a ViewModel scope. This annotation is **Kotlin Multiplatform (KMP) compatible** and works with both Android ViewModels and Compose Multiplatform ViewModels:
 
 ```kotlin
 @ViewModelScope
-class ViewModelScopedComponent(val useCase: MyUseCase)
+class ViewModelScopedRepository(val apiService: ApiService)
+
+@ViewModelScope  
+class ViewModelScopedUseCase(
+    val repository: ViewModelScopedRepository,
+    val analytics: AnalyticsService
+)
 ```
 
 This generates:
 ```kotlin
 viewModelScope {
-    scoped { ViewModelScopedComponent(get()) }
+    scoped { ViewModelScopedRepository(get()) }
+    scoped { ViewModelScopedUseCase(get(), get()) }
 }
 ```
 
 **Usage:** The tagged class is meant to be used with ViewModel and the `viewModelScope` function to activate the scope.
+
+**KMP Support:** Works seamlessly across all Kotlin Multiplatform targets including Android, iOS, Desktop, and Web platforms where ViewModels are used.
 
 ### Using Scope Archetypes
 
