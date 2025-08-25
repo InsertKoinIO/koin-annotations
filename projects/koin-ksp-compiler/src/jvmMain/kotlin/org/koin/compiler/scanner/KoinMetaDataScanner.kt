@@ -203,13 +203,13 @@ class KoinMetaDataScanner(
             .flatMap { it.parameters }
             .filterIsInstance<KoinMetaData.DefinitionParameter.Property>()
 
-        //associate default values
-        propertyValues
-            .forEach { propertyValue ->
-                allProperties.filter { it.value == propertyValue.id }.forEach {
-                    it.defaultValue = propertyValue
-                }
+        //associate default values - optimized O(n) lookup instead of O(n*m)
+        val propertyMap = allProperties.groupBy { it.value }
+        propertyValues.forEach { propertyValue ->
+            propertyMap[propertyValue.id]?.forEach { property ->
+                property.defaultValue = propertyValue
             }
+        }
     }
 
     private fun scanExternalDefinitions(
@@ -226,7 +226,7 @@ class KoinMetaDataScanner(
                     }
             }
             .forEach { extDef ->
-                val module = index.firstOrNull { it.acceptDefinition(extDef.targetPackage) }
+                val module = findModuleForDefinition(extDef.targetPackage, index, null)
                 module?.externalDefinitions?.add(extDef)
             }
     }
@@ -313,8 +313,8 @@ class KoinMetaDataScanner(
     private fun findModuleForDefinition(
         definitionPackage: String,
         modules: List<KoinMetaData.Module>,
-        defaultModule: KoinMetaData.Module
-    ): KoinMetaData.Module {
+        defaultModule: KoinMetaData.Module?
+    ): KoinMetaData.Module? {
         // Try cache first for exact package match
         moduleCache[definitionPackage]?.let { return it }
         
@@ -337,7 +337,7 @@ class KoinMetaDataScanner(
         modules: List<KoinMetaData.Module>
     ) {
         val definitionPackage = definition.packageName
-        val foundModule = findModuleForDefinition(definitionPackage, modules, defaultModule)
+        val foundModule = findModuleForDefinition(definitionPackage, modules, defaultModule)!!
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
