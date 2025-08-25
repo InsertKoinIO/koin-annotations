@@ -238,7 +238,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
             // found definition resolution
             if (foundResolution == null){
                 val paramType = parameterType.removeSuffix("_Expect")
-                logger.error("--> Missing definition for '$parameterName : $paramType' in '${def.value}'. Fix your configuration: add definition annotation or check modules.")
+                logger.error("--> Missing definition for '$parameterName : $paramType' in '${def.value}'. Fix by adding a definition annotation or function definition in module class.")
             }
             else {
                 val definition = extractMetaDefinitionValues(foundResolution.annotations.firstOrNull() ?: error("can't find definition metadata for $tag on ${foundResolution.qualifiedName?.asString()}") )
