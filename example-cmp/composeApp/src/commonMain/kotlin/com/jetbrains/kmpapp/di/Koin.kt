@@ -3,22 +3,21 @@ package com.jetbrains.kmpapp.di
 import com.jetbrains.kmpapp.native.PlatformComponentA
 import com.jetbrains.kmpapp.native.PlatformComponentB
 import com.jetbrains.kmpapp.native.PlatformComponentD2
-import org.koin.core.context.startKoin
+import org.koin.core.annotation.KoinApplication
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.includes
 import org.koin.ksp.generated.*
 import org.koin.mp.KoinPlatform
 
+@KoinApplication
+object KoinApp
+
 fun initKoin(config : KoinAppDeclaration ?= null) {
-    startKoin {
-        if (config != null){
-            includes(config)
-        } else {
+    KoinApp.startKoin {
+        includes(config)
+        if (config == null){
             printLogger()
         }
-        modules(
-            AppModule().module,
-        )
     }
 
     val msgA = KoinPlatform.getKoin().get<PlatformComponentA>().sayHello()
