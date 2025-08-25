@@ -17,9 +17,10 @@ class MyComponent
 ```
 
 ```kotlin
-// Declare a module and scan for annotations
+// Declare a module and scan for annotations, installed in default configuration
 @Module
 @ComponentScan
+@Configuration
 class MyModule
 ```
 
@@ -29,17 +30,16 @@ Use the `org.koin.ksp.generated.*` import as follows to be able to use generated
 // Use Koin Generation
 import org.koin.ksp.generated.*
 
+@KoinApplication
+object MyApp
+
 fun main() {
-    val koin = startKoin {
+    MyApp.startKoin {
         printLogger()
-        modules(
-          // use your modules here, with generated ".module" extension on Module classes
-          MyModule().module
-        )
     }
 
     // Just use your Koin API as regular
-    koin.get<MyComponent>()
+    KoinPlatform.getKoin().get<MyComponent>()
 }
 ```
 
