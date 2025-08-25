@@ -44,6 +44,9 @@ class KoinMetaDataScanner(
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ClassComponentScanner(logger)
     private val functionMetadataScanner = FunctionComponentScanner(logger)
+    
+    // Cache for module lookup optimization
+    private var moduleCache: Map<String, KoinMetaData.Module> = emptyMap()
 
     fun findInvalidSymbols(resolver: Resolver): List<KSAnnotated> {
         val invalidModuleSymbols = resolver.getInvalidSymbols<Module>()
@@ -169,6 +172,10 @@ class KoinMetaDataScanner(
     ): List<KoinMetaData.Module> {
         val moduleList = scanClassModules(resolver)
         val index = moduleList.generateScanComponentIndex()
+        
+        // Build module lookup cache to optimize addToModule performance
+        moduleCache = buildModuleLookupCache(index)
+        
         scanClassComponents(defaultModule, index, resolver)
         scanFunctionComponents(defaultModule, index, resolver)
         scanDefaultProperties(index+defaultModule, resolver)
@@ -291,13 +298,46 @@ class KoinMetaDataScanner(
         return definitions
     }
 
+    private fun buildModuleLookupCache(modules: List<KoinMetaData.Module>): Map<String, KoinMetaData.Module> {
+        val cache = mutableMapOf<String, KoinMetaData.Module>()
+        modules.forEach { module ->
+            module.componentsScan.forEach { scan ->
+                if (scan.packageName.isNotEmpty()) {
+                    cache[scan.packageName] = module
+                }
+            }
+        }
+        return cache
+    }
+    
+    private fun findModuleForDefinition(
+        definitionPackage: String,
+        modules: List<KoinMetaData.Module>,
+        defaultModule: KoinMetaData.Module
+    ): KoinMetaData.Module {
+        // Try cache first for exact package match
+        moduleCache[definitionPackage]?.let { return it }
+        
+        // Try parent package matches in cache
+        var currentPackage = definitionPackage
+        while (currentPackage.contains('.')) {
+            currentPackage = currentPackage.substringBeforeLast('.')
+            moduleCache[currentPackage]?.let { 
+                if (it.acceptDefinition(definitionPackage)) return it 
+            }
+        }
+        
+        // Fallback to original linear search if not found in cache
+        return modules.firstOrNull { it.acceptDefinition(definitionPackage) } ?: defaultModule
+    }
+
     private fun addToModule(
         definition: KoinMetaData.Definition,
         defaultModule: KoinMetaData.Module,
         modules: List<KoinMetaData.Module>
     ) {
         val definitionPackage = definition.packageName
-        val foundModule = modules.firstOrNull { it.acceptDefinition(definitionPackage) } ?: defaultModule
+        val foundModule = findModuleForDefinition(definitionPackage, modules, defaultModule)
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
