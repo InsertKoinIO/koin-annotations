@@ -29,6 +29,8 @@ package org.koin.core.annotation
  *  scoped { MyClass(get()) }
  * }
  * ```
+ *
+ * The tagged class is meant to be used with ViewModel and `viewModelScope` function, to activate the scope.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class ViewModelScope

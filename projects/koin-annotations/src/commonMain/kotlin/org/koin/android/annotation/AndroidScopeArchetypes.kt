@@ -16,7 +16,7 @@
 package org.koin.android.annotation
 
 /**
- * Declare a class in a ViewModelScope Koin scope.
+ * Declare a class in an Activity Koin Scope.
  *
  * example:
  *
@@ -29,12 +29,14 @@ package org.koin.android.annotation
  *  scoped { MyClass(get()) }
  * }
  * ```
+ *
+ * The tagged class is meant to be used with Activity and `activityScope` function, to activate the scope.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class ActivityScope
 
 /**
- * Declare a class in a ViewModelScope Koin scope.
+ * Declare a class in a Activity Koin scope, but retained.
  *
  * example:
  *
@@ -47,12 +49,14 @@ annotation class ActivityScope
  *  scoped { MyClass(get()) }
  * }
  * ```
+ *
+ * The tagged class is meant to be used with Activity and `activityRetainedScope` function, to activate the scope.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class ActivityRetainedScope
 
 /**
- * Declare a class in a ViewModelScope Koin scope.
+ * Declare a class in a Fragment Koin scope.
  *
  * example:
  *
@@ -65,6 +69,8 @@ annotation class ActivityRetainedScope
  *  scoped { MyClass(get()) }
  * }
  * ```
+ *
+ * The tagged class is meant to be used with Fragment and `fragmentScope` function, to activate the scope.
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class FragmentScope
