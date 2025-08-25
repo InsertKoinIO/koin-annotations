@@ -207,3 +207,137 @@ public class ComponentWithProps(
 ```
 
 The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id", ComponentWithProps.DEFAAULT_ID)) }`
+
+## JSR-330 Compatibility Annotations
+
+Koin Annotations provides JSR-330 (Jakarta Inject) compatible annotations through the `koin-jsr330` module. These annotations are particularly useful for developers migrating from other JSR-330 compatible frameworks like Hilt, Dagger, or Guice.
+
+### Setup
+
+Add the `koin-jsr330` dependency to your project:
+
+```kotlin
+dependencies {
+    implementation "io.insert-koin:koin-jsr330:$koin_version"
+}
+```
+
+### Available JSR-330 Annotations
+
+#### @Singleton (jakarta.inject.Singleton)
+
+JSR-330 standard singleton annotation, equivalent to Koin's `@Single`:
+
+```kotlin
+import jakarta.inject.Singleton
+
+@Singleton
+class DatabaseService
+```
+
+This generates the same result as `@Single` - a singleton instance in Koin.
+
+#### @Named (jakarta.inject.Named)
+
+JSR-330 standard qualifier annotation for string-based qualifiers:
+
+```kotlin
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+@Named("inMemory")
+class InMemoryCache : Cache
+
+@Singleton  
+@Named("redis")
+class RedisCache : Cache
+```
+
+#### @Inject (jakarta.inject.Inject)
+
+JSR-330 standard injection annotation. While Koin Annotations doesn't require explicit constructor marking, `@Inject` can be used for JSR-330 compatibility:
+
+```kotlin
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
+
+@Singleton
+class UserService @Inject constructor(
+    private val repository: UserRepository
+)
+```
+
+#### @Qualifier (jakarta.inject.Qualifier)
+
+Meta-annotation for creating custom qualifier annotations:
+
+```kotlin
+import jakarta.inject.Qualifier
+
+@Qualifier
+annotation class Database
+
+@Qualifier  
+annotation class Cache
+
+@Singleton
+@Database
+class DatabaseConfig
+
+@Singleton
+@Cache  
+class CacheConfig
+```
+
+#### @Scope (jakarta.inject.Scope)
+
+Meta-annotation for creating custom scope annotations:
+
+```kotlin
+import jakarta.inject.Scope
+
+@Scope
+annotation class RequestScoped
+
+// Use with Koin's scope system
+@Scope(name = "request") 
+@RequestScoped
+class RequestProcessor
+```
+
+### Mixed Usage
+
+You can freely mix JSR-330 annotations with Koin annotations in the same project:
+
+```kotlin
+// JSR-330 style
+@Singleton
+@Named("primary")
+class PrimaryDatabase : Database
+
+// Koin style  
+@Single
+@Named("secondary")
+class SecondaryDatabase : Database
+
+// Mixed in same class
+@Factory
+class DatabaseManager @Inject constructor(
+    @Named("primary") private val primary: Database,
+    @Named("secondary") private val secondary: Database  
+)
+```
+
+### Framework Migration Benefits
+
+Using JSR-330 annotations provides several advantages for framework migration:
+
+- **Familiar API**: Developers coming from Hilt, Dagger, or Guice can use known annotations
+- **Gradual Migration**: Existing JSR-330 annotated code works with minimal changes
+- **Standard Compliance**: Following JSR-330 ensures compatibility with dependency injection standards
+- **Team Onboarding**: Easier for teams familiar with other DI frameworks
+
+:::info
+JSR-330 annotations in Koin generate the same underlying DSL as their Koin equivalents. The choice between JSR-330 and Koin annotations is purely stylistic and based on team preferences or migration requirements.
+:::

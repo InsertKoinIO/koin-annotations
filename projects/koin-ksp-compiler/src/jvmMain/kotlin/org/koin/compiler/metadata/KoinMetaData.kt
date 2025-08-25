@@ -18,13 +18,37 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
+import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.compiler.util.matchesGlob
 import java.util.*
+import kotlin.math.absoluteValue
 
 typealias PackageName = String
 fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
 
+fun defaultConfiguration(): Set<KoinMetaData.ConfigurationTag> = setOf(DEFAULT)
+
 sealed class KoinMetaData {
+
+    data class Configuration(val name : String, val modules : List<ModuleInclude>)
+
+    data class Application(
+        val packageName: PackageName,
+        val name: String,
+        val configurationTags: Set<ConfigurationTag> = defaultConfiguration(),
+        val type: ModuleType = ModuleType.FIELD,
+        val configurations : List<Configuration>? = null,
+        val moduleIncludes: List<ModuleInclude>? = null
+    ) {
+        var alreadyGenerated : Boolean? = null
+
+        val fullpath = "$packageName.$name"
+        val hashId = fullpath.hashCode().absoluteValue.toString(36)
+
+        fun packageName(separator: String): String {
+            return splitPackage(packageName, separator)
+        }
+    }
 
     data class Module(
         val packageName: PackageName,
@@ -34,6 +58,7 @@ sealed class KoinMetaData {
         val type: ModuleType = ModuleType.FIELD,
         val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
+        val configurationTags: Set<ConfigurationTag>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,
@@ -41,6 +66,9 @@ sealed class KoinMetaData {
         val isActual : Boolean = false,
         val isSplit : Boolean = false,
     ) : KoinMetaData() {
+
+        val fullpath = "$packageName.$name"
+        val hashId = fullpath.hashCode().absoluteValue.toString(36)
 
         var alreadyGenerated : Boolean? = null
 
@@ -80,6 +108,12 @@ sealed class KoinMetaData {
         }
     }
 
+    data class ConfigurationTag(val name : String){
+        companion object {
+            val DEFAULT = ConfigurationTag("default")
+        }
+    }
+    
     data class ModuleInclude(
         val packageName: PackageName,
         val className : String,
@@ -95,6 +129,7 @@ sealed class KoinMetaData {
     }
 
     sealed class Scope {
+        data class ArchetypeScope(val name: String) : Scope()
         data class ClassScope(val type: KSDeclaration) : Scope()
         data class StringScope(val name: String) : Scope()
 
@@ -102,6 +137,7 @@ sealed class KoinMetaData {
             return when (this) {
                 is StringScope -> name
                 is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ArchetypeScope -> name
             }
         }
 
@@ -109,6 +145,7 @@ sealed class KoinMetaData {
             return when (this) {
                 is StringScope -> name
                 is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ArchetypeScope -> name
             }
         }
     }

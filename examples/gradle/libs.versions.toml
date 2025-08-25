@@ -3,10 +3,10 @@
 # /!\ Koin in gradle.properties /!\
 
 # Core
-kotlin = "2.1.20"
+kotlin = "2.1.21"
 koin = "4.1.0"
-koinAnnotations = "2.1.1-RC1"
-ksp = "2.1.20-1.0.32"
+koinAnnotations = "2.2.0-Beta3"
+ksp = "2.1.21-2.0.2"
 junit = "4.13.2"
 # Android
 agp = "8.3.2"

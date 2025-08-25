@@ -18,14 +18,15 @@ package org.koin.compiler.generator
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
-import org.koin.compiler.metadata.KoinTagWriter
+import org.koin.compiler.metadata.tag.KoinTagWriter
+import org.koin.compiler.metadata.tag.TagResolver
 
 class DefaultModuleWriter(
     codeGenerator: CodeGenerator,
-    resolver: Resolver,
+    tagResolver : TagResolver,
     defaultModule: KoinMetaData.Module,
     generateDefaultModule: Boolean
-) : ModuleWriter(codeGenerator, resolver, defaultModule) {
+) : ModuleWriter(codeGenerator, defaultModule, tagResolver) {
 
     val hashContent = defaultModule.definitions.map { it.label }.sorted().joinToString()
     override val fileName : String = "KoinDefault-${KoinTagWriter.hashContent(hashContent)}"

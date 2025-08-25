@@ -122,3 +122,141 @@ fun main() {
     }
 }
 ```
+
+## Application Bootstrap with @KoinApplication
+
+To create a complete Koin application bootstrap, you can use the `@KoinApplication` annotation on an entry point class. This annotation helps generate Koin application bootstrap functions:
+
+```kotlin
+@KoinApplication(
+    configurations = ["default", "production"], 
+    modules = [MyModule::class]
+)
+class MyApp
+```
+
+This generates **two** functions for starting your Koin application:
+
+```kotlin
+// Use the generated application functions
+import org.koin.ksp.generated.*
+
+fun main() {
+    // Option 1: Start Koin directly
+    MyApp().startKoin()
+    
+    // Option 2: Get KoinApplication instance
+    val koinApp = MyApp().koinApplication()
+}
+```
+
+Both generated functions support custom configuration:
+
+```kotlin
+fun main() {
+    MyApp().startKoin {
+        printLogger()
+        // Add other Koin configuration
+    }
+    
+    // Or with koinApplication
+    MyApp().koinApplication {
+        printLogger()
+    }
+}
+```
+
+The `@KoinApplication` annotation supports:
+- `configurations`: Array of configuration names to scan and load
+- `modules`: Array of module classes to include directly (in addition to configurations)
+
+When no configurations are specified, it automatically loads the "default" configuration.
+
+## Configuration Management with @Configuration
+
+The `@Configuration` annotation allows you to organize modules into different configurations (environments, flavors, etc.). This is useful for organizing modules by deployment environment or feature sets.
+
+### Basic Configuration Usage
+
+```kotlin
+// Default configuration - these are equivalent
+@Module
+@Configuration
+class CoreModule
+
+@Module  
+@Configuration("default")
+class CoreModule
+```
+
+### Multiple Configuration Support
+
+A module can be associated with multiple configurations:
+
+```kotlin
+// This module is available in both "prod" and "test" configurations
+@Module
+@Configuration("prod", "test")
+class DatabaseModule {
+    @Single
+    fun database() = PostgreSQLDatabase()
+}
+
+// This module is available in default, test, and development
+@Module
+@Configuration("default", "test", "development") 
+class LoggingModule {
+    @Single
+    fun logger() = Logger()
+}
+```
+
+### Environment-Specific Configurations
+
+```kotlin
+// Development-only configuration
+@Module
+@Configuration("development")
+class DevDatabaseModule {
+    @Single
+    fun database() = InMemoryDatabase()
+}
+
+// Production-only configuration  
+@Module
+@Configuration("production")
+class ProdDatabaseModule {
+    @Single
+    fun database() = PostgreSQLDatabase()
+}
+
+// Available in multiple environments
+@Module
+@Configuration("default", "production", "development")
+class CoreModule {
+    @Single
+    fun logger() = Logger()
+}
+```
+
+### Using Configurations with @KoinApplication
+
+Reference these configurations in your application bootstrap:
+
+```kotlin
+@KoinApplication(configurations = ["default", "production"])
+class ProductionApp
+
+@KoinApplication(configurations = ["default", "development"])  
+class DevelopmentApp
+
+// Load only default configuration (same as @KoinApplication with no parameters)
+@KoinApplication
+class SimpleApp
+```
+
+:::info
+- Empty `@Configuration` is equivalent to `@Configuration("default")`
+- The "default" configuration is loaded automatically when no specific configurations are specified
+- Modules can belong to multiple configurations by listing them in the annotation
+:::

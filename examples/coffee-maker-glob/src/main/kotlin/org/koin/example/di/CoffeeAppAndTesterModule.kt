@@ -1,6 +1,7 @@
 package org.koin.example.di
 
 import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 import org.koin.example.coffee.CoffeeMaker
@@ -24,6 +25,7 @@ import org.koin.example.test.CoffeeMakerTesterTestImpl
  * can be consolidated into a single, more concise pattern "org.koin.example.coff**".
  */
 @Module
+@Configuration
 @ComponentScan("org.koin.example.coff*.**", "org.koin.example.coff*", "org.koin.example.tes*")
 class CoffeeAppAndTesterModule {
 

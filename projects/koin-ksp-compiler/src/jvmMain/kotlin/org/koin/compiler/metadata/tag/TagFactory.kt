@@ -1,31 +1,38 @@
-package org.koin.compiler.metadata
+package org.koin.compiler.metadata.tag
 
 import com.google.devtools.ksp.symbol.KSDeclaration
+import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.type.clearPackageSymbols
-import org.koin.compiler.verify.DefinitionVerification
+import org.koin.compiler.verify.MetaDefinitionData
 import org.koin.compiler.verify.qualifiedNameCamelCase
 
-const val KOIN_TAG_SEPARATOR = "_"
-internal const val QUALIFIER_SYMBOL = "Q_"
-internal const val SCOPE_SYMBOL = "S_"
-
 object TagFactory {
+    private const val KOIN_TAG_SEPARATOR = "_"
+    private const val QUALIFIER_SYMBOL = "Q_"
+    private const val SCOPE_SYMBOL = "S_"
+    private const val TAG_PREFIX = "_KSP_"
+    const val DEFAULT_GEN_PACKAGE = "org.koin.ksp.generated"
 
-    private fun getTag(module: KoinMetaData.Module): String {
+    fun generateTag(app: KoinMetaData.Application): String {
+        return with(app) {
+            listOfNotNull(
+                packageName.clearPackageSymbols()+"." + name,
+            ).joinToString(separator = KOIN_TAG_SEPARATOR)
+        }.camelCase()
+    }
+
+    fun generateTag(module: KoinMetaData.Module): String {
         return with(module) {
             listOfNotNull(
                 packageName.clearPackageSymbols()+"." + name,
                 if (isExpect) "Expect" else null,
                 if (isActual) "Actual" else null
             ).joinToString(separator = KOIN_TAG_SEPARATOR)
-        }
+        }.camelCase()
     }
 
-    fun getTagClass(module: KoinMetaData.Module): String {
-        return getTag(module).camelCase()
-    }
-
-    fun getMetaTag(module: KoinMetaData.ModuleInclude): String {
+    fun generateTag(module: KoinMetaData.ModuleInclude): String {
         return with(module) {
             listOfNotNull(
                 packageName.clearPackageSymbols() + "." +className.capitalize(),
@@ -35,7 +42,7 @@ object TagFactory {
         }
     }
 
-    fun getTagClass(definition: KoinMetaData.Definition, clazz: KSDeclaration): String {
+    fun generateTag(definition: KoinMetaData.Definition, clazz: KSDeclaration): String {
         return with(definition) {
             listOfNotNull(
                 clazz.qualifiedName?.asString() ?: "",
@@ -47,7 +54,7 @@ object TagFactory {
         }
     }
 
-    fun getMetaTag(definition: KoinMetaData.Definition,dep: KoinMetaData.DefinitionParameter.Dependency ,clazz: KSDeclaration): String {
+    fun generateTag(definition: KoinMetaData.Definition, dep: KoinMetaData.DefinitionParameter.Dependency, clazz: KSDeclaration): String {
         return with(definition) {
             listOfNotNull(
                 clazz.qualifiedName?.asString() ?: "",
@@ -59,10 +66,19 @@ object TagFactory {
         }
     }
 
-    fun updateTagWithScope(classTag: String, dv: DefinitionVerification) =  "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${dv.scope}"
-    fun getTagClass(clazz: KSDeclaration): String = clazz.qualifiedNameCamelCase() ?: ""
+    fun generateTag(name : String?, binding: KSDeclaration): String {
+        return listOfNotNull(
+            name,
+            if (binding.isExpect) "Expect" else null,
+            if (binding.isActual) "Actual" else null
+        ).joinToString(separator = KOIN_TAG_SEPARATOR)
+    }
 
-    fun getTagClass(definition: KoinMetaData.Definition): String {
+    fun generateTag(scope : KoinMetaData.Scope.ClassScope) : String{
+        return scope.type.qualifiedNameCamelCase() ?: ""
+    }
+
+    fun generateTag(definition: KoinMetaData.Definition): String {
         return with(definition) {
             listOfNotNull(
                 packageName.camelCase().clearPackageSymbols() + label.capitalize(),
@@ -74,7 +90,7 @@ object TagFactory {
         }
     }
 
-    fun getMetaTag(dep: KoinMetaData.DefinitionParameter.Dependency): String {
+    fun generateTag(dep: KoinMetaData.DefinitionParameter.Dependency): String {
         return with(dep) {
             val ksDeclaration = dep.type.declaration
             val fullClassName = ksDeclaration.qualifiedName?.asString()
@@ -89,6 +105,10 @@ object TagFactory {
             ).joinToString(prefix = "${dep.name}:", separator = KOIN_TAG_SEPARATOR)
         }
     }
+
+    fun createTagForScope(classTag: String, def: MetaDefinitionData) = "$classTag$KOIN_TAG_SEPARATOR$SCOPE_SYMBOL${def.scope}"
+    fun createTagForQualifier(classTag: String, def: MetaDefinitionData) = "$classTag$KOIN_TAG_SEPARATOR$QUALIFIER_SYMBOL${def.qualifier}"
+    fun prefixTag(classTag: String, withGenPackage : Boolean) = if (withGenPackage) "$DEFAULT_GEN_PACKAGE.$TAG_PREFIX$classTag" else "$TAG_PREFIX$classTag"
 
     private fun escapeTagClass(qualifier : String) : String {
         return if (!qualifier.contains(".")) qualifier

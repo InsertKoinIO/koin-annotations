@@ -18,8 +18,11 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
+import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass
@@ -27,28 +30,31 @@ import kotlin.reflect.KClass
 data class DefinitionAnnotation(
     val keyword: String,
     val import: String? = null,
-    val annotationType: KClass<*>
-    //TODO make aliases
+    val annotationType: KClass<*>,
+    val parentKeyword: DefinitionAnnotation? = null,
 ) {
     val annotationName = annotationType.simpleName
 }
 
 val SINGLE = DefinitionAnnotation("single", annotationType = Single::class)
-//TODO make aliases
 val SINGLETON = DefinitionAnnotation("single", annotationType = Singleton::class)
 val FACTORY = DefinitionAnnotation("factory", annotationType = Factory::class)
+val INJECT = DefinitionAnnotation("factory", annotationType = Inject::class)
 val SCOPE = DefinitionAnnotation("scoped", annotationType = Scope::class)
 val SCOPED = DefinitionAnnotation("scoped", annotationType = Scoped::class)
+@Deprecated("To be use with KOIN_VIEWMODEL")
 val KOIN_VIEWMODEL_ANDROID = DefinitionAnnotation("viewModel", "org.koin.androidx.viewmodel.dsl.viewModel", KoinViewModel::class)
 val KOIN_VIEWMODEL = DefinitionAnnotation("viewModel", "org.koin.core.module.dsl.viewModel", KoinViewModel::class)
 
 val KOIN_WORKER = DefinitionAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
 
-val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, SCOPE, SCOPED,KOIN_VIEWMODEL, KOIN_WORKER)
-val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationType }
-val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationName?.lowercase(Locale.getDefault()) }
+val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, INJECT, SCOPE, SCOPED,KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
 
-val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY, KOIN_VIEWMODEL, KOIN_WORKER)
+val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationType }
+val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationName!!.lowercase(Locale.getDefault()) }
+val DEFINITION_ANNOTATION_MAP = DEFINITION_ANNOTATION_LIST.associate { it.annotationName!! to it }
+
+val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY,INJECT, KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
 val SCOPE_DEFINITION_ANNOTATION_LIST_NAMES = SCOPE_DEFINITION_ANNOTATION_LIST.map { it.annotationName?.lowercase(Locale.getDefault()) }
 
 
@@ -83,10 +89,21 @@ fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
 }
 
 fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.ComponentScan> {
-    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
-    val declaredBindingsTypes = csValue as? List<String>
-    val values = if (declaredBindingsTypes?.isEmpty() == true) listOf("") else declaredBindingsTypes ?: listOf("")
+    val values = extractValueStringList(annotation) ?: return setOf(KoinMetaData.Module.ComponentScan(""))
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
+}
+
+fun configurationValue(annotation: KSAnnotation, field : String =  "value"): Set<KoinMetaData.ConfigurationTag> {
+    val values = extractValueStringList(annotation, DEFAULT.name, field)
+    return if (values?.isEmpty() == true) defaultConfiguration() else values!!.map { KoinMetaData.ConfigurationTag(it.trim()) }.toSet()
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun extractValueStringList(annotation: KSAnnotation, defaultValue : String = "", fieldName : String = "value"): List<String>? {
+    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == fieldName }?.value
+    val csValueList = csValue as? List<String>
+    val values = if (csValueList?.isEmpty() == true) listOf(defaultValue) else csValueList
+    return values
 }
 
 fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {
