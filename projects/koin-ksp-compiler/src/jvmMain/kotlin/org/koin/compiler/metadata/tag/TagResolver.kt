@@ -8,21 +8,55 @@ import org.koin.compiler.metadata.KoinMetaData
 
 class TagResolver {
     lateinit var resolver: Resolver
+    private val tagExistenceCache = mutableMapOf<String, Boolean>()
 
     fun tagExists(app : KoinMetaData.Application) : Boolean {
-        return resolveKSDeclaration(TagFactory.generateTag(app)) != null
+        val tag = TagFactory.generateTag(app)
+        return tagExistenceCache.getOrPut(tag) {
+            resolveKSDeclaration(tag) != null
+        }
     }
 
     fun tagExists(module : KoinMetaData.Module) : Boolean {
-        return resolveKSDeclaration(TagFactory.generateTag(module)) != null
+        val tag = TagFactory.generateTag(module)
+        return tagExistenceCache.getOrPut(tag) {
+            resolveKSDeclaration(tag) != null
+        }
     }
 
     fun tagExists(def : KoinMetaData.Definition) : Boolean {
-        return resolveKSDeclaration(TagFactory.generateTag(def)) != null
+        val tag = TagFactory.generateTag(def)
+        return tagExistenceCache.getOrPut(tag) {
+            resolveKSDeclaration(tag) != null
+        }
     }
 
     fun tagPropertyExists(tag : String) : Boolean {
-        return resolveKSPropertyDeclaration(tag) != null
+        return tagExistenceCache.getOrPut("prop:$tag") {
+            resolveKSPropertyDeclaration(tag) != null
+        }
+    }
+
+    fun batchCheckTagsExist(modules: List<KoinMetaData.Module>, definitions: List<KoinMetaData.Definition>, applications: List<KoinMetaData.Application>) {
+        val allTags = mutableSetOf<String>()
+        
+        modules.forEach { module ->
+            allTags.add(TagFactory.generateTag(module))
+        }
+        
+        definitions.forEach { def ->
+            allTags.add(TagFactory.generateTag(def))
+        }
+        
+        applications.forEach { app ->
+            allTags.add(TagFactory.generateTag(app))
+        }
+        
+        // Batch check all tags that aren't cached
+        val uncachedTags = allTags.filter { it !in tagExistenceCache }
+        uncachedTags.forEach { tag ->
+            tagExistenceCache[tag] = resolveKSDeclaration(tag) != null
+        }
     }
 
     fun resolveKSDeclaration(tag : String) : KSDeclaration?{

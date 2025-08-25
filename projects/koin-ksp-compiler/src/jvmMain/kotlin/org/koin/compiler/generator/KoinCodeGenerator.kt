@@ -20,6 +20,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.metadata.tag.TagResolver
+import kotlin.concurrent.thread
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
@@ -38,6 +39,18 @@ class KoinCodeGenerator(
         generateDefaultModule : Boolean
     ) {
         logger.info("generate ${moduleList.size} modules ...")
+        
+        // Pre-compute batch tag existence checks for all modules and definitions
+        val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
+        tagResolver.batchCheckTagsExist(moduleList, allDefinitions, emptyList())
+        
+        // Batch check already generated status for all modules
+        moduleList.forEach { module ->
+            if (module.alreadyGenerated == null) {
+                module.alreadyGenerated = tagResolver.tagExists(module)
+            }
+        }
+        
         moduleList.forEach {
             val isActualWithLocalDefinitions = it.isActual && it.definitions.all { it.isActual.not() }
             val isNotActual = it.isActual.not()
@@ -73,25 +86,9 @@ class KoinCodeGenerator(
         checkAlreadyGenerated(module)
 
         if (module.alreadyGenerated == false){
-
             val definitionsCount = module.definitions.size
             if (definitionsCount > MAX_MODULE_DEFINITIONS) {
-                val splitCount = definitionsCount / MAX_MODULE_DEFINITIONS
-                logger.warn("Module '${module.name}' is exceeding $MAX_MODULE_DEFINITIONS definitions ($definitionsCount found). We need to split generation into ${splitCount +1} modules ...")
-                // Create one main module to include sub generate modules
-                val subModules : List<KoinMetaData.Module> = module.definitions.chunked(MAX_MODULE_DEFINITIONS).mapIndexed { index, list ->
-                    module.copy(includes = emptyList(), definitions = list.toMutableList(), externalDefinitions = mutableListOf(), packageName = "", name = module.packageName.camelCase()+module.name.capitalize()+index, isSplit = true)
-                }
-                val subModulesInclude : List<KoinMetaData.ModuleInclude> = subModules.map { m ->
-                    KoinMetaData.ModuleInclude(m.packageName, m.name, m.isExpect, m.isActual)
-                }
-                val main = module.copy(includes = (module.includes ?: mutableListOf()) + subModulesInclude, definitions = mutableListOf()) // keep externalDefinitions
-
-                val allModules = (subModules + main)
-                allModules.mapIndexed { index, m ->
-                    val generateIncludes = if (index == allModules.indexOf(main)) subModulesInclude else emptyList()
-                    ClassModuleWriter(codeGenerator, tagResolver, m).writeModule(isViewModelMPActive, generateIncludes)
-                }
+                generateSplitModule(module, definitionsCount)
             } else {
                 ClassModuleWriter(codeGenerator, tagResolver, module).writeModule(isViewModelMPActive)
             }
@@ -102,6 +99,49 @@ class KoinCodeGenerator(
         if (module.alreadyGenerated == null){
             module.alreadyGenerated = tagResolver.tagExists(module)
         }
+    }
+
+    private fun generateSplitModule(module: KoinMetaData.Module, definitionsCount: Int) {
+        val splitCount = definitionsCount / MAX_MODULE_DEFINITIONS
+        logger.warn("Module '${module.name}' is exceeding $MAX_MODULE_DEFINITIONS definitions ($definitionsCount found). We need to split generation into ${splitCount + 1} modules ...")
+        
+        val moduleBaseName = module.packageName.camelCase() + module.name.replaceFirstChar { it.uppercase() }
+        
+        // Generate submodules with memory-efficient chunking
+        val subModulesInclude = mutableListOf<KoinMetaData.ModuleInclude>()
+        
+        // Process definitions in chunks without creating intermediate collections
+        module.definitions.chunked(MAX_MODULE_DEFINITIONS).forEachIndexed { index, definitionChunk ->
+            val subModuleName = "${moduleBaseName}$index"
+            val subModule = module.copy(
+                includes = emptyList(),
+                definitions = definitionChunk.toMutableList(),
+                externalDefinitions = mutableListOf(),
+                packageName = "",
+                name = subModuleName,
+                isSplit = true
+            )
+            
+            // Generate the submodule immediately to reduce memory pressure
+            ClassModuleWriter(codeGenerator, tagResolver, subModule).writeModule(isViewModelMPActive)
+            
+            // Add to includes for main module
+            subModulesInclude.add(
+                KoinMetaData.ModuleInclude(
+                    subModule.packageName,
+                    subModule.name,
+                    subModule.isExpect,
+                    subModule.isActual
+                )
+            )
+        }
+        
+        // Generate main module with includes
+        val mainModule = module.copy(
+            includes = (module.includes ?: mutableListOf()) + subModulesInclude,
+            definitions = mutableListOf() // Clear definitions to avoid duplication
+        )
+        ClassModuleWriter(codeGenerator, tagResolver, mainModule).writeModule(isViewModelMPActive, subModulesInclude)
     }
 
     fun generateApplications(applications: List<KoinMetaData.Application>) {

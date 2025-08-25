@@ -76,6 +76,10 @@ class BuilderProcessor(
 
         val isConfigCheckActive = isConfigCheckActive()
         // Tags are used to verify generated content (KMP)
+        // Pre-compute batch tag existence for all components before writing
+        val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
+        tagResolver.batchCheckTagsExist(moduleList, allDefinitions, applications)
+        
         KoinTagWriter(codeGenerator, logger, tagResolver, isConfigCheckActive)
             .writeAllTags(moduleList, defaultModule, applications)
 

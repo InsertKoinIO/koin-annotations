@@ -21,10 +21,11 @@ class KoinTagWriter(
     val resolver: TagResolver,
     val isConfigCheckActive : Boolean
 ) {
-    private val alreadyDeclaredTags: ArrayList<String> = arrayListOf()
+    private val alreadyDeclaredTags: MutableSet<String> = mutableSetOf()
     private var _tagFileStream : OutputStream? = null
     private val fileStream : OutputStream
         get() = _tagFileStream ?: error("KoinTagWriter - tagFileStream is null")
+    private val pendingContent = StringBuilder()
 
     fun writeAllTags(
         moduleList: List<KoinMetaData.Module>,
@@ -56,26 +57,37 @@ class KoinTagWriter(
         val allModules = moduleList.sortedBy { it.name }
         val allDefinitions = (allModules + default).flatMap { it.definitions }.sortedBy { it.label }
         
-        // Generate deterministic hash from sorted content
-        val contentBuilder = StringBuilder()
-        allModules.forEach { contentBuilder.append(it.name) }
-        allDefinitions.forEach { contentBuilder.append(it.label) }
-        applications.forEach { contentBuilder.append(it.name) }
-        val hashString = hashContent(contentBuilder.toString())
-
+        // Batch check already generated status for all items at once
+        batchCheckAlreadyGenerated(allModules, allDefinitions, applications)
+        
+        // Generate deterministic hash from pre-sorted content
+        val hashString = generateContentHash(allModules, allDefinitions, applications)
         val tagFileName = "KoinMeta-$hashString"
 
         writeTagFile(tagFileName).buffered().use {
             _tagFileStream = it
-            if (isConfigCheckActive){
-                writeImports()
+            
+            // Build all content in memory first for more efficient I/O
+            if (isConfigCheckActive) {
+                pendingContent.append("""
+                    
+                    import org.koin.meta.annotations.*
+                """.trimIndent())
             }
+            
+            // Process all modules and their definitions
             allModules.forEach { module ->
-                writeModuleTag(module)
-                writeDefinitionsTags(module.definitions, module)
+                processModuleAndDefinitions(module)
             }
-            writeDefinitionsTags(default.definitions, default)
-            applications.forEach { application -> writeApplicationTag(application) }
+            processDefinitions(default.definitions, default)
+            
+            // Process applications
+            applications.forEach { application ->
+                processApplication(application)
+            }
+            
+            // Write all content in one batch
+            fileStream.appendText(pendingContent.toString())
         }
     }
 
@@ -228,6 +240,127 @@ class KoinTagWriter(
 //            "\npublic fun $TAG_PREFIX$cleanedTag() : Unit = Unit"
 //        } else "\npublic class $TAG_PREFIX$cleanedTag"
 //    }
+
+    private fun batchCheckAlreadyGenerated(
+        modules: List<KoinMetaData.Module>,
+        definitions: List<KoinMetaData.Definition>,
+        applications: List<KoinMetaData.Application>
+    ) {
+        resolver.batchCheckTagsExist(modules, definitions, applications)
+        
+        modules.forEach { module ->
+            if (module.alreadyGenerated == null) {
+                module.alreadyGenerated = resolver.tagExists(module)
+            }
+        }
+        
+        definitions.forEach { definition ->
+            if (definition.alreadyGenerated == null) {
+                definition.alreadyGenerated = resolver.tagExists(definition)
+            }
+        }
+        
+        applications.forEach { application ->
+            if (application.alreadyGenerated == null) {
+                application.alreadyGenerated = resolver.tagExists(application)
+            }
+        }
+    }
+
+    private fun generateContentHash(
+        modules: List<KoinMetaData.Module>,
+        definitions: List<KoinMetaData.Definition>,
+        applications: List<KoinMetaData.Application>
+    ): String {
+        val contentBuilder = StringBuilder(
+            modules.size * 20 + definitions.size * 30 + applications.size * 20
+        )
+        
+        modules.forEach { contentBuilder.append(it.name) }
+        definitions.forEach { contentBuilder.append(it.label) }
+        applications.forEach { contentBuilder.append(it.name) }
+        
+        return hashContent(contentBuilder.toString())
+    }
+
+    private fun processModuleAndDefinitions(module: KoinMetaData.Module) {
+        if (module.alreadyGenerated == false) {
+            val tag = TagFactory.generateTag(module)
+            if (tag !in alreadyDeclaredTags) {
+                if (isConfigCheckActive) {
+                    val metaLine = MetaAnnotationFactory.generate(module)
+                    pendingContent.append("\n$metaLine")
+                }
+                addTagContent(tag)
+            }
+        }
+        
+        processDefinitions(module.definitions, module)
+    }
+
+    private fun processDefinitions(definitions: List<KoinMetaData.Definition>, module: KoinMetaData.Module) {
+        definitions.forEach { def ->
+            processDefinitionAndBindings(def, module)
+        }
+    }
+
+    private fun processDefinitionAndBindings(def: KoinMetaData.Definition, module: KoinMetaData.Module) {
+        if (def.alreadyGenerated == false) {
+            val tag = TagFactory.generateTag(def)
+            if (tag !in alreadyDeclaredTags) {
+                if (isConfigCheckActive) {
+                    val metaLine = MetaAnnotationFactory.generate(def, module)
+                    pendingContent.append("\n$metaLine")
+                }
+                addTagContent(tag)
+            }
+        }
+        
+        def.bindings.forEach { binding ->
+            val name = binding.qualifiedName?.asString()
+            if (name !in fullWhiteList) {
+                val tag = TagFactory.generateTag(def, binding)
+                val alreadyGenerated = resolver.tagPropertyExists(tag)
+                if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
+                    if (isConfigCheckActive) {
+                        val metaLine = MetaAnnotationFactory.generate(def, module)
+                        pendingContent.append("\n$metaLine")
+                    }
+                    addTagContent(tag, asProperty = true)
+                }
+            }
+        }
+        
+        if (def.isScoped() && def.scope is KoinMetaData.Scope.ClassScope) {
+            val scopeName = def.scope.type.qualifiedName?.asString()
+            if (scopeName !in fullWhiteList) {
+                val tag = TagFactory.generateTag(def.scope)
+                val alreadyGenerated = resolver.tagPropertyExists(tag)
+                if (tag !in alreadyDeclaredTags && !alreadyGenerated) {
+                    addTagContent(tag, asProperty = true)
+                }
+            }
+        }
+    }
+
+    private fun processApplication(application: KoinMetaData.Application) {
+        if (application.alreadyGenerated == false) {
+            val tag = TagFactory.generateTag(application)
+            if (tag !in alreadyDeclaredTags) {
+                if (isConfigCheckActive) {
+                    val metaLine = MetaAnnotationFactory.generate(application)
+                    pendingContent.append("\n$metaLine")
+                }
+                addTagContent(tag)
+            }
+        }
+    }
+
+    private fun addTagContent(tag: String, asProperty: Boolean = false) {
+        val line = prepareTagLine(tag, asProperty)
+        pendingContent.append(line)
+        alreadyDeclaredTags.add(tag)
+    }
 
     companion object {
         val sha1 = MessageDigest.getInstance("SHA1")
