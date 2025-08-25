@@ -57,7 +57,10 @@ class ApplicationScanner(
 
     private fun getIncludes(annotation: KSAnnotation?): List<KoinMetaData.ModuleInclude>? {
         return annotation?.let {
-            includedModules(annotation, "modules").toModuleIncludes()
+            includedModules(annotation, "modules")
+                // filter default value
+                ?.filter { it.qualifiedName?.asString() != "kotlin.Unit" }
+                .toModuleIncludes()
         }
     }
 }
