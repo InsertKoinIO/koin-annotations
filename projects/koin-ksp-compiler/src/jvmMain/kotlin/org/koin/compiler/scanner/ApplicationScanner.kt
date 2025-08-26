@@ -15,6 +15,7 @@
  */
 package org.koin.compiler.scanner
 
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
@@ -45,6 +46,7 @@ class ApplicationScanner(
             name = name,
             type = type,
             configurationTags = configurations,
+            visibility = declaration.getVisibility(),
             moduleIncludes = includes
         )
         return applicationMetadata
