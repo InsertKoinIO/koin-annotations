@@ -12,7 +12,7 @@ lifecycleCompose = "2.9.2"
 coil = "3.2.0"
 
 koin = "4.1.0"
-koin-annotations = "2.2.0-Beta5"
+koin-annotations = "2.2.0-monitor-Beta1"
 ksp = "2.1.21-2.0.2"
 
 [libraries]
@@ -42,6 +42,7 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+allOpen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 kotlinComposeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

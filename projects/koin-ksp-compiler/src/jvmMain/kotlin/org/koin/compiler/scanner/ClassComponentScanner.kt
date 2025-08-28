@@ -38,7 +38,9 @@ class ClassComponentScanner(
         // Handle only class annotation
         val isMonitored = element.annotations.firstOrNull { it.shortName.asString() == Monitor::class.simpleName } != null
 
-        LOGGER.warn("[DEBUG] '$className' is being monitoring")
+        if (isMonitored){
+            LOGGER.warn("[DEBUG] '$className' is being monitoring")
+        }
 
         return if (scopeAnnotation != null){
             createClassDefinition(scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations,isMonitored)

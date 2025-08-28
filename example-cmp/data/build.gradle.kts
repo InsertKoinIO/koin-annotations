@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.allOpen)
     alias(libs.plugins.ksp)
 }
 
@@ -96,4 +97,8 @@ android {
     dependencies {
         debugImplementation(libs.androidx.compose.ui.tooling)
     }
+}
+
+allOpen {
+    annotation("org.koin.core.annotation.Monitor")
 }

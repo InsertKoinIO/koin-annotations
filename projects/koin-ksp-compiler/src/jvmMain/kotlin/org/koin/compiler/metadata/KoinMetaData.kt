@@ -195,6 +195,10 @@ sealed class KoinMetaData {
 
         var alreadyGenerated : Boolean? = null
 
+        fun packageName(separator: String): String {
+            return splitPackage(packageName, separator)
+        }
+
         fun isScoped(): Boolean = scope != null
         fun isNotScoped(): Boolean = !isScoped()
         fun isType(keyword: DefinitionAnnotation): Boolean = this.keyword == keyword

@@ -19,6 +19,7 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
 import org.koin.compiler.generator.KoinCodeGenerator
+import org.koin.compiler.generator.generateProxies
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.tag.KoinTagWriter
@@ -70,7 +71,12 @@ class BuilderProcessor(
             moduleList
         )
 
+        //TODO Build Proxy
+        val monitoredDefinitions = (moduleList+defaultModule).flatMap { it.definitions }.filter { it.isMonitored }.filterIsInstance<KoinMetaData.Definition.ClassDefinition>()
+        koinCodeGenerator.generateProxies(monitoredDefinitions)
+
         logger.logging("Generate code ...")
+        // TODO Attach proxy if monitored
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
         koinCodeGenerator.generateApplications(applications)
 
