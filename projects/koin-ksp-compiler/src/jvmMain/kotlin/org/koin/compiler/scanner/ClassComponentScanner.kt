@@ -17,8 +17,10 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.*
+import org.koin.core.annotation.Monitor
 
 class ClassComponentScanner(
     val logger: KSPLogger,
@@ -33,11 +35,16 @@ class ClassComponentScanner(
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
 
+        // Handle only class annotation
+        val isMonitored = element.annotations.firstOrNull { it.shortName.asString() == Monitor::class.simpleName } != null
+
+        LOGGER.warn("[DEBUG] '$className' is being monitoring")
+
         return if (scopeAnnotation != null){
-            createClassDefinition(scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
+            createClassDefinition(scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations,isMonitored)
         } else {
             annotations.firstNotNullOf { (annotationName, annotation) ->
-                createClassDefinition(annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
+                createClassDefinition(annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations,isMonitored)
             }
         }
     }
@@ -49,7 +56,8 @@ class ClassComponentScanner(
         packageName: String,
         qualifier: String?,
         className: String,
-        annotations: Map<String, KSAnnotation> = emptyMap()
+        annotations: Map<String, KSAnnotation> = emptyMap(),
+        isMonitored : Boolean,
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
@@ -82,7 +90,8 @@ class ClassComponentScanner(
                 keyword = extraAnnotationDefinition ?: foundAnnotation,
                 scope = scopeData,
                 isExpect = isExpect,
-                isActual = isActual
+                isActual = isActual,
+                isMonitored = isMonitored
             )
         }
     }

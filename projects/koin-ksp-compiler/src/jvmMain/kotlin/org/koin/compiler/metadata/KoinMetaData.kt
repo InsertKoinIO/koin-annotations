@@ -189,7 +189,8 @@ sealed class KoinMetaData {
         val bindings: List<KSDeclaration>,
         val scope: Scope? = null,
         val isExpect : Boolean,
-        val isActual : Boolean
+        val isActual : Boolean,
+        val isMonitored : Boolean = false
     ) : KoinMetaData() {
 
         var alreadyGenerated : Boolean? = null
@@ -246,7 +247,8 @@ sealed class KoinMetaData {
             bindings: List<KSDeclaration>,
             scope: Scope? = null,
             isExpect : Boolean,
-            isActual : Boolean
+            isActual : Boolean,
+            isMonitored : Boolean,
         ) : Definition(
             className,
             constructorParameters,
@@ -257,7 +259,8 @@ sealed class KoinMetaData {
             bindings,
             scope,
             isExpect,
-            isActual
+            isActual,
+            isMonitored
         )
     }
 
