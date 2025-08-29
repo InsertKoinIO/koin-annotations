@@ -47,8 +47,12 @@ class DefinitionWriterFactory(
                     writer.writeDefinition(definition, prefix = "${definition.packageNamePrefix}${definition.functionName}", isExternalDefinition = isExternal ?: false)
                 }
             }
+
             // Class
-            is KoinMetaData.Definition.ClassDefinition -> writer.writeDefinition(definition, prefix = "${definition.packageNamePrefix}${definition.className}", isExternalDefinition = isExternal ?: false)
+            is KoinMetaData.Definition.ClassDefinition -> {
+                val prefix = if (definition.isMonitored) "${definition.className}Proxy" else "${definition.packageNamePrefix}${definition.className}"
+                writer.writeDefinition(definition, prefix = prefix, isExternalDefinition = isExternal ?: false)
+            }
         }
     }
 

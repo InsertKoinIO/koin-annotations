@@ -154,7 +154,7 @@ class KoinMetaDataScanner(
             val value = annotation?.arguments?.getValueArgument()
             value?.let {
                 val configList =
-                    annotation.arguments.first { it.name?.asString() == "configurations" }.value as? ArrayList<String>
+                    annotation.arguments.firstOrNull { it.name?.asString() == "configurations" }?.value as? ArrayList<String>
                         ?: emptyList()
                 // keep only modules with config
                 if (configList.isNotEmpty()) {

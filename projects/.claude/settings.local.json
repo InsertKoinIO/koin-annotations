@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(find:*)",
+      "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/docs/reference/koin-annotations/**)",
+      "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/docs/**)",
+      "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/docs/**)",
+      "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/**)"
+    ],
+    "deny": []
+  }
+}

@@ -3,6 +3,7 @@ package com.jetbrains.kmpapp.di
 import com.jetbrains.kmpapp.native.PlatformComponentA
 import com.jetbrains.kmpapp.native.PlatformComponentB
 import com.jetbrains.kmpapp.native.PlatformComponentD2
+import io.kotzilla.sdk.analytics.koin.analytics
 import org.koin.core.annotation.KoinApplication
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.includes
@@ -15,9 +16,10 @@ object KoinApp
 fun initKoin(config : KoinAppDeclaration ?= null) {
     KoinApp.startKoin {
         includes(config)
-        if (config == null){
-            printLogger()
-        }
+
+        // Activate App analyses & Perf tracing
+        // Check kotzilla.json file
+        analytics()
     }
 
     val msgA = KoinPlatform.getKoin().get<PlatformComponentA>().sayHello()

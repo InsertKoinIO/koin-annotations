@@ -39,6 +39,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
 
             implementation(libs.koin.core)
+            implementation(libs.kotzilla.core)
             api(libs.koin.annotations)
         }
     }

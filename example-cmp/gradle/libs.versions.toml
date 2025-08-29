@@ -13,6 +13,7 @@ coil = "3.2.0"
 
 koin = "4.1.0"
 koin-annotations = "2.2.0-monitor-Beta1"
+kotzilla = "1.2.1"
 ksp = "2.1.21-2.0.2"
 
 [libraries]
@@ -32,6 +33,8 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 koin-annotations = {module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations"}
 koin-ksp-compiler = {module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations"}
+kotzilla-core = {module = "io.kotzilla:kotzilla-core", version.ref = "kotzilla"}
+kotzilla-sdk = {module = "io.kotzilla:kotzilla-sdk-compose", version.ref = "kotzilla"}
 
 lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleCompose" }
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
@@ -46,3 +49,4 @@ allOpen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 kotlinComposeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotzilla = { id  = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla" }

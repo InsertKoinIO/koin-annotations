@@ -79,7 +79,8 @@ class DefinitionWriter(
         ctor: String,
         binds: String
     ) {
-        writeln("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds")
+        val cast = if (def is KoinMetaData.Definition.ClassDefinition && def.isMonitored) " as ${def.packageNamePrefix}${def.className}" else ""
+        writeln("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor$cast} $binds")
     }
 
     private fun writeExternalDefinitionFunction(

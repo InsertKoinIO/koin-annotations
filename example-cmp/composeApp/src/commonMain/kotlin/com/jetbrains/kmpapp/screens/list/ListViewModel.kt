@@ -15,7 +15,9 @@ class ListViewModel(
     val ssh : SavedStateHandle,
     museumRepository: MuseumRepository
 ) : ViewModel() {
+
     val objects: StateFlow<List<MuseumObject>> =
         museumRepository.getObjects()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
 }
