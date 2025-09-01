@@ -3,6 +3,7 @@ package org.koin.compiler.generator
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.Modifier
 import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 
@@ -23,6 +24,11 @@ class MonitoredProxyClassWriter(
         val fullClassName = definition.packageName+"."+definition.className
         val declaration = resolver.getClassDeclarationByName(resolver.getKSNameFromString(fullClassName))
         if (declaration != null){
+            //TODO Issue - AllOPen is not seen by KSP
+//            if (!declaration.modifiers.contains(Modifier.OPEN)) {
+//                LOGGER.error("Class '${definition.className}' must be open to generate proxy. Add 'allOpen' plugin configuration.")
+//                return
+//            }
             writeHeader()
 
             val bypassed = listOf("<init>")
@@ -55,17 +61,17 @@ class MonitoredProxyClassWriter(
 
 
         } else {
-            LOGGER.warn("[DEBUG] Can't create proxy for class '${definition.className}'. Class not found")
+            LOGGER.error("Can't create proxy for class '${definition.className}'. Class not found")
         }
     }
 
     private fun writeFunction(definition : KoinMetaData.Definition.ClassDefinition, functionDeclaration: KSFunctionDeclaration) {
         val functionName = functionDeclaration.simpleName.asString()
-        val functionParam = functionDeclaration.parameters.joinToString(", ") { "${it.name?.asString()} : ${it.type.resolve().declaration.qualifiedName?.asString()}" }
-        val functionParamCall = functionDeclaration.parameters.joinToString(", ") { "${it.name?.asString()} " }
+        val functionParam = functionDeclaration.parameters.joinToString(", ") { "${it.name?.asString()} : ${it.type.resolve().declaration.qualifiedName?.asString() ?: "Any"}" }
+        val functionParamCall = functionDeclaration.parameters.joinToString(", ") { "${it.name?.asString()}" }
 
         val modifiers = if (functionDeclaration.modifiers.isEmpty()) "" else functionDeclaration.modifiers.joinToString(" ", postfix = " ") { "$it".lowercase() }
-        val isSuspend = modifiers.contains("suspend")
+        val isSuspend = functionDeclaration.modifiers.contains(Modifier.SUSPEND)
         val returnedType = buildReturnTypeString(functionDeclaration)
         val traceFunction = if (isSuspend) "KotzillaCore.getDefaultInstance().suspendTrace" else "KotzillaCore.getDefaultInstance().trace"
 
@@ -83,7 +89,7 @@ class MonitoredProxyClassWriter(
 
     private fun buildTypeString(type: com.google.devtools.ksp.symbol.KSType): String {
         val declaration = type.declaration
-        val baseTypeName = declaration.qualifiedName?.asString() ?: "Unit"
+        val baseTypeName = declaration.qualifiedName?.asString() ?: "Any"
         val nullSuffix = if (type.isMarkedNullable) "?" else ""
         
         val typeArguments = type.arguments

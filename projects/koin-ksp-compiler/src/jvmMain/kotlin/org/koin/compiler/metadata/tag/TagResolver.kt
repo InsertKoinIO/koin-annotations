@@ -62,7 +62,6 @@ class TagResolver {
     fun resolveKSDeclaration(tag : String) : KSDeclaration?{
         val name = TagFactory.prefixTag(tag, withGenPackage = true)
         val declaration = resolver.getClassDeclarationByName(resolver.getKSNameFromString(name))
-//        LOGGER.warn("[DEBUG] resolveKSDeclaration '$name' ? ${declaration != null}")
         return declaration
     }
 
@@ -76,7 +75,6 @@ class TagResolver {
     fun resolveKSPropertyDeclaration(tag : String) : KSPropertyDeclaration? {
         val name = TagFactory.prefixTag(tag, withGenPackage = true)
         val declaration = resolver.getPropertyDeclarationByName(resolver.getKSNameFromString(name), true)
-//        LOGGER.warn("[DEBUG] resolveKSPropertyDeclaration '$name' ? ${declaration != null}")
         return declaration
     }
 }

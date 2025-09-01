@@ -39,7 +39,7 @@ class ClassComponentScanner(
         val isMonitored = element.annotations.firstOrNull { it.shortName.asString() == Monitor::class.simpleName } != null
 
         if (isMonitored){
-            LOGGER.warn("[DEBUG] '$className' is being monitoring")
+            println("Koin monitoring active for '$className'")
         }
 
         return if (scopeAnnotation != null){

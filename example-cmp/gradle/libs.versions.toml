@@ -12,7 +12,7 @@ lifecycleCompose = "2.9.2"
 coil = "3.2.0"
 
 koin = "4.1.0"
-koin-annotations = "2.2.0-monitor-Beta1"
+koin-annotations = "2.2.0-RC1"
 kotzilla = "1.2.1"
 ksp = "2.1.21-2.0.2"
 
