@@ -146,10 +146,15 @@ class SimpleApp
 :::
 
 
-## No Module - Using the Generated Default Module (Deprecation since Annotations 2.2)
+## Default Module (Deprecated since Annotations 2.2)
 
-While using definitions, you may need to organize them in modules or not. You can even not use any module at all and use the "default" generated module.
-If you don't want to specify any module, Koin provide a default one to host all your definitions. The `defaultModule` is ready to be use directly:
+:::warning
+The default module approach is deprecated since Annotations 2.2. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
+:::
+
+While using definitions, you may need to organize them in modules or not. Previously, you could use the "default" generated module to host definitions without explicit modules.
+
+If you don't want to specify any module, Koin provides a default one to host all your definitions. The `defaultModule` is ready to be used directly:
 
 ```kotlin
 // Use Koin Generation
@@ -172,6 +177,20 @@ fun main() {
 }
 ```
 
+**Recommended approach**: Instead of using the default module, organize your definitions in explicit modules:
+
+```kotlin
+@Module
+@Configuration
+class MyModule {
+    // Your definitions here
+}
+
+// Then use @KoinApplication
+@KoinApplication
+object MyApp
+```
+
 :::info
 Don't forget to use the `org.koin.ksp.generated.*` import
 :::
@@ -185,7 +204,7 @@ To declare a module, just tag a class with `@Module` annotation:
 class MyModule
 ```
 
-To load your module in Koin, just use the `.module` extension generated for any `@Module` class. Just create new instance of your module `MyModule().module`:
+To load your module in Koin, just use the `.module` extension generated for any `@Module` class. Just create a new instance of your module `MyModule().module`:
 
 ```kotlin
 // Use Koin Generation
@@ -212,15 +231,15 @@ To scan and gather annotated components into a module, just use the `@ComponentS
 class MyModule
 ```
 
-This will scan current package and subpackages for annotated components. You can specify to scan a given package `@ComponentScan("com.my.package")`
+This will scan the current package and subpackages for annotated components. You can specify to scan a given package with `@ComponentScan("com.my.package")`
 
 :::info
-When using `@ComponentScan` annotation, KSP traverses accross all Gradle modules for the same package. (since 1.4)
+When using `@ComponentScan` annotation, KSP traverses across all Gradle modules for the same package. (since 1.4)
 :::
 
 ## Definitions in Class Modules
 
-To define a definition directly in your can, you an annotate a function with definition annotations:
+To define a definition directly in your code, you can annotate a function with definition annotations:
 
 ```kotlin
 // given 
@@ -234,12 +253,12 @@ class MyModule {
 }
 ```
 
-> @InjectedParam, @Property are also usable on function members
+> **Note**: `@InjectedParam` (for injected parameters from startKoin) and `@Property` (for property injection) are also usable on function members. See the definitions documentation for more details on these annotations.
 
 
 ## Including Modules
 
-To include other class modules to your module, just use the `includes` attribute of the `@Module` annotation:
+To include other class modules in your module, use the `includes` attribute of the `@Module` annotation:
 
 ```kotlin
 @Module

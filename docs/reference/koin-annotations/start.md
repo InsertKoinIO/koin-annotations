@@ -2,11 +2,11 @@
 title: Starting with Koin Annotations
 ---
 
-The goal of Koin Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developer experience to scale and go fast 🚀, thanks to Kotlin Compilers.
+The goal of the Koin Annotations project is to help declare Koin definitions in a fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developers experience scaling and go fast 🚀, thanks to Kotlin Compilers.
 
 ## Getting Started
 
-Not familiar with Koin? First, take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
+Not familiar with Koin? First, take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin/)
 
 Tag your components with definition & module annotations, and use the regular Koin API.
 
@@ -16,18 +16,50 @@ Tag your components with definition & module annotations, and use the regular Ko
 class MyComponent
 ```
 
+### Basic Module Setup
+
 ```kotlin
-// Declare a module and scan for annotations, installed in default configuration
+// Declare a module and scan for annotations
 @Module
-@ComponentScan
+class MyModule
+```
+
+Now you can start your Koin application with `@KoinApplication` and explicitly specify the modules to use:
+
+```kotlin
+// The import below gives you access to generated extension functions
+// like MyModule.module and MyApp.startKoin() 
+import org.koin.ksp.generated.*
+
+@KoinApplication(modules = [MyModule::class])
+object MyApp
+
+fun main() {
+    MyApp.startKoin {
+        printLogger()
+    }
+
+    // Just use your Koin API as regular
+    KoinPlatform.getKoin().get<MyComponent>()
+}
+```
+
+### Configuration-based Module Setup
+
+Alternatively, you can use `@Configuration` to create modules that are automatically loaded:
+
+```kotlin
+// Module with configuration - automatically included in default config
+@Module
 @Configuration
 class MyModule
 ```
 
-Use the `org.koin.ksp.generated.*` import as follows to be able to use generated code:
+With configuration, you don't need to specify modules explicitly:
 
 ```kotlin
-// Use Koin Generation
+// The import below gives you access to generated extension functions
+// This approach loads all modules marked with @Configuration automatically
 import org.koin.ksp.generated.*
 
 @KoinApplication

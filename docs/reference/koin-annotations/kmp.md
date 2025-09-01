@@ -42,7 +42,7 @@ dependencies {
 
 ## Defining Definitions and Modules in Common Code
 
-In your `commonMain` sourceSet, declare your Module, scan for definitions, or define functions as regular Kotlin Koin declarations. See [Definitions](definitions.md) and [Modules](./modules.md).
+In your `commonMain` sourceSet, declare your Module, scan for definitions, or define functions as regular Kotlin Koin declarations. See [Definitions](./definitions.md) and [Modules](./modules.md).
 
 ## Sharing Patterns
 
@@ -51,7 +51,13 @@ In this section, we will see together several ways to share components with defi
 In a Kotlin Multiplatform application, some components must be implemented specifically per platform. You can share those components at the definition level, with expected/actual on the given class (definition or module).
 You can share a definition with expect/actual implementation, or a module with expect/actual.
 
+:::info
 Please look at [Multiplatform Expect & Actual Rules](https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-expect-actual.html) documentation for general Kotlin guidance.
+:::
+
+:::warning
+Expect/Actual classes can't have different constructors per platform. You need to respect the current constructor contract designed in common space
+:::
 
 ### Sharing Definitions for native implementations
 
@@ -130,7 +136,7 @@ actual class PlatformComponentB {
 
 // package com.jetbrains.kmpapp.native
 actual class PlatformComponentB {
-    actual fun sayHello() : String = "I'm iOS - A"
+    actual fun sayHello() : String = "I'm iOS - B"
 }
 ```
 
@@ -165,12 +171,12 @@ In native sources, implement our actual classes:
 @Module
 actual class NativeModuleD {
     @Factory
-    actual fun providesPlatformComponentD(scope : org.koin.core.scope.Scope) : PlatformComponentD = PlatformComponentDAndroid(ctx)
+    actual fun providesPlatformComponentD(scope : org.koin.core.scope.Scope) : PlatformComponentD = PlatformComponentDAndroid(scope)
 }
 
 class PlatformComponentDAndroid(scope : org.koin.core.scope.Scope) : PlatformComponentD{
     val context : Context = scope.get()
-    override fun sayHello() : String = "I'm Android - D - with ${ctx.context}"
+    override fun sayHello() : String = "I'm Android - D - with ${context}"
 }
 
 // iOSMain
@@ -266,7 +272,7 @@ In native sources, implement our actual classes:
 
 // package com.jetbrains.kmpapp.native
 actual class PlatformComponentA actual constructor(val ctx : ContextWrapper) {
-    actual fun sayHello() : String = "I'm Android - A - with context: ${ctx.context"
+    actual fun sayHello() : String = "I'm Android - A - with context: ${ctx.context}"
 }
 
 // iOSMain
@@ -280,7 +286,7 @@ actual class PlatformComponentA actual constructor(val ctx : ContextWrapper) {
 ### Sharing Expect/Actual Module - rely on Native Module Scanning
 
 :::info
-Relay on a native module from a common module 
+Rely on a native module from a common module 
 :::
 
 In some cases, you don't want to have constraints, and scan for components on each native side. Define an empty module class in the common source set, and define your implementation on each platform.

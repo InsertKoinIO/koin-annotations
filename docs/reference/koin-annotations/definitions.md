@@ -3,27 +3,27 @@ title: Definitions with Annotations
 ---
 
 
-Koin Annotations allow to declare the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotation, and it will generate everything for you!
+Koin Annotations allow declaring the same kind of definitions as the regular Koin DSL, but with annotations. Just tag your class with the needed annotation, and it will generate everything for you!
 
-For example the equivalent to `single { MyComponent(get()) }` DSL declaration, is just done by tagging with `@Single` like this:
+For example, the equivalent of `single { MyComponent(get()) }` DSL declaration is just done by tagging with `@Single` like this:
 
 ```kotlin
 @Single
 class MyComponent(val myDependency : MyDependency)
 ```
 
-Koin Annotations keep the same semantic as the Koin DSL. You can declare your components with the following definitions:
+Koin Annotations keep the same semantics as the Koin DSL. You can declare your components with the following definitions:
 
 - `@Single` - singleton instance (declared with `single { }` in DSL)
-- `@Factory` - factory instance. For instances recreated each time you need an instance. (declared with `factory { }` in DSL)
+- `@Factory` - factory instance. For instance recreated each time you need an instance. (declared with `factory { }` in DSL)
 - `@KoinViewModel` - Android ViewModel instance (declared with `viewModel { }` in DSL)
 - `@KoinWorker` - Android Worker Workmanager instance (declared with `worker { }` in DSL)
 
 For Scopes, check the [Declaring Scopes](/docs/reference/koin-core/scopes.md) section.
 
-### Generate Compose ViewModel for Kotlin Multipaltform (since 1.4.0)
+### Generate Compose ViewModel for Kotlin Multiplatform (since 1.4.0)
 
-The `@KoinViewModel` annotation can be used to generate either Android or Compsoe KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `KOIN_USE_COMPOSE_VIEWMODEL` option:  
+The `@KoinViewModel` annotation can be used to generate either an Android or Compose KMP ViewModel. To generate `viewModel` Koin definition with `org.koin.compose.viewmodel.dsl.viewModel` instead of regular `org.koin.androidx.viewmodel.dsl.viewModel`, you need to activate the `KOIN_USE_COMPOSE_VIEWMODEL` option:  
 
 ```groovy
 ksp {
@@ -32,16 +32,13 @@ ksp {
 ```
 
 :::note
-    `USE_COMPOSE_VIEWMODEL` key is deprecated in favor of `KOIN_USE_COMPOSE_VIEWMODEL`
-:::
-
-:::note
-    Koin 4.0 should bring merge of those 2 ViewModel DSL into only one, as the ViewModel type argiument comes from teh same library
+- `USE_COMPOSE_VIEWMODEL` key is deprecated in favor of `KOIN_USE_COMPOSE_VIEWMODEL`
+- Koin 4.0 brings a merge of those 2 ViewModel DSLs into only one, as the ViewModel type argument comes from the same library
 :::
 
 ## Automatic or Specific Binding
 
-When declaring a component, all detected "bindings" (associated supertypes) will be already prepared for you. For example, the following definition:
+When declaring a component, all detected "bindings" (associated supertypes) will already be prepared for you. For example, the following definition:
 
 ```kotlin
 @Single
@@ -73,7 +70,7 @@ The generated DSL equivalent will be `single { MyComponent(getOrNull()) }`
 
 ## Qualifier with @Named
 
-You can add a "name" to definition (also called qualifier), to make distinction between several definitions for the same type, with the `@Named` annotation:
+You can add a "name" to a definition (also called qualifier), to make a distinction between several definitions for the same type, with the `@Named` annotation:
 
 ```kotlin
 @Single
@@ -124,11 +121,11 @@ For example:
 class MyComponent(@InjectedParam val myDependency : MyDependency)
 ```
 
-Then you can call your `MyComponent` and pass a instance of `MyDependency`:
+Then you can call your `MyComponent` and pass an instance of `MyDependency`:
 
 ```kotlin
-val m = MyDependency
-// Resolve MyComponent while passing  MyDependency
+val m = MyDependency()
+// Resolve MyComponent while passing MyDependency
 koin.get<MyComponent> { parametersOf(m) }
 ```
 
@@ -137,7 +134,7 @@ The generated DSL equivalent will be `single { params -> MyComponent(params.get(
 
 ## Injecting a lazy dependency - `Lazy<T>`
 
-Koin can automatically detect and resolve a lazy dependency. Here for example, we want to resolve lazily the `LoggerDataSource` definition. You just need to use the `Lazy` Kotlin type like follow:
+Koin can automatically detect and resolve a lazy dependency. Here, for example, we want to resolve lazily the `LoggerDataSource` definition. You just need to use the `Lazy` Kotlin type as follows:
 
 ```kotlin
 @Single
@@ -155,7 +152,7 @@ single { LoggerAggregator(inject()) }
 
 ## Injecting a list of dependencies - `List<T>`
 
-Koin can automatically detect and resolve all a list of dependency. Here for example, we want to resolve all `LoggerDataSource` definition. You just need to use the `List` Kotlin type like follow:
+Koin can automatically detect and resolve a list of dependencies. Here, for example, we want to resolve all `LoggerDataSource` definitions. You just need to use the `List` Kotlin type as follows:
 
 ```kotlin
 @Single
@@ -170,7 +167,7 @@ class LoggerLocalDataSource(private val logDao: LogDao) : LoggerDataSource
 class LoggerAggregator(val datasource : List<LoggerDataSource>)
 ```
 
-Behind it will generate the DSL like with `getAll()` function:
+Behind it will generate the DSL, like with `getAll()` function:
 
 ```kotlin
 single { LoggerAggregator(getAll()) }
@@ -178,7 +175,7 @@ single { LoggerAggregator(getAll()) }
 
 ## Properties with @Property
 
-To resolve a Koin property in your definition, just tag a constructor member with `@Property`. Ths is will resolve the Koin property thanks to the value passed to the annotation:
+To resolve a Koin property in your definition, just tag a constructor member with `@Property`. This will resolve the Koin property thanks to the value passed to the annotation:
 
 ```kotlin
 @Factory
@@ -206,7 +203,7 @@ public class ComponentWithProps(
 }
 ```
 
-The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id", ComponentWithProps.DEFAAULT_ID)) }`
+The generated DSL equivalent will be `factory { ComponentWithProps(getProperty("id", ComponentWithProps.DEFAULT_ID)) }`
 
 ## JSR-330 Compatibility Annotations
 
