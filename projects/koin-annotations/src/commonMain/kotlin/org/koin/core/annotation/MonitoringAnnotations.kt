@@ -25,6 +25,7 @@ package org.koin.core.annotation
 * sending data to your Kotzilla workspace for real-time analysis.
 *
 * @see <a href="https://doc.kotzilla.io">Complete Documentation</a>
+* @see <a href="https://doc.kotzilla.io/docs/releaseNotes/changelogSDK">Latest Version</a>
 * @see <a href="https://kotzilla.io">Kotzilla Platform</a>
 *
 * @since Kotzilla 1.2.1
