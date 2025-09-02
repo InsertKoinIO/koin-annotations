@@ -4,10 +4,10 @@ import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSDeclaration
+import org.koin.compiler.generator.GenerationConfig
 import org.koin.compiler.generator.ext.getNewFile
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.MetaAnnotationFactory
-import org.koin.compiler.metadata.tag.TagFactory.DEFAULT_GEN_PACKAGE
 import org.koin.compiler.type.fullWhiteList
 import java.io.OutputStream
 import java.security.MessageDigest
@@ -117,7 +117,7 @@ class KoinTagWriter(
 
     private fun writeTagFile(tagFileName: String): OutputStream {
         val fileStream = codeGenerator.getNewFile(fileName = tagFileName)
-        fileStream.appendText("package $DEFAULT_GEN_PACKAGE\n")
+        fileStream.appendText("package ${GenerationConfig.getGenerationPath()}\n")
         return fileStream
     }
 

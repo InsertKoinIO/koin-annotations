@@ -111,7 +111,7 @@ class MonitoredProxyClassWriter(
 
     private fun writeHeader() {
         writeln("""
-            package org.koin.ksp.generated
+            package ${GenerationConfig.getGenerationPath()}
             
             import io.kotzilla.sdk.KotzillaCore
             

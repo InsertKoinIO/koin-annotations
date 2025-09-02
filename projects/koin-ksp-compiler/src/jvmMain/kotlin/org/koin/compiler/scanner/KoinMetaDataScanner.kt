@@ -23,6 +23,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
+import org.koin.compiler.generator.GenerationConfig
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinMetaData.ModuleInclude
@@ -381,14 +382,14 @@ class KoinMetaDataScanner(
 
     @OptIn(KspExperimental::class)
     fun Resolver.getExternalMetaModulesSymbols(): List<KSDeclaration> {
-        return this.getDeclarationsFromPackage("org.koin.ksp.generated")
+        return this.getDeclarationsFromPackage(GenerationConfig.getGenerationPath())
             .filter { a -> a.annotations.any { it.shortName.asString() == MetaModule::class.java.simpleName!! } }
             .toList()
     }
 
     @OptIn(KspExperimental::class)
     private fun Resolver.getExternalDefinitionSymbols(): List<KSDeclaration> {
-        return this.getDeclarationsFromPackage("org.koin.ksp.generated")
+        return this.getDeclarationsFromPackage(GenerationConfig.getGenerationPath())
             .filter { a -> a.annotations.any { it.shortName.asString() == DEFINITION_ANNOTATION } }
             .toList()
     }

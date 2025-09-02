@@ -18,6 +18,7 @@ package org.koin.compiler
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import org.koin.compiler.KspOptions.*
+import org.koin.compiler.generator.GenerationConfig
 import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.compiler.generator.generateProxies
 import org.koin.compiler.metadata.KOIN_VIEWMODEL
@@ -45,6 +46,8 @@ class BuilderProcessor(
         initComponents(resolver)
 
         val doLogTimes = doLogTimes()
+
+        GenerationConfig.setGenerationPath(getCustomGenerationPackage())
 
         val mainTime = if (doLogTimes) markNow() else null
         logger.logging("Scan symbols ...")
@@ -152,6 +155,10 @@ class BuilderProcessor(
 
     private fun doLogTimes(): Boolean {
         return options.getOrDefault(KOIN_LOG_TIMES.name, "false") == true.toString()
+    }
+
+    private fun getCustomGenerationPackage(): String? {
+        return options.getOrDefault(KOIN_GENERATION_PACKAGE.name, null)
     }
 }
 
