@@ -111,7 +111,7 @@ class MyPresenter(@Provided val provided : MyProvidedComponent)
 ### Default Module (Deprecated since 1.3.0)
 
 :::warning
-The default module approach is deprecated since Annotations 1.3. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
+The default module approach is deprecated since Annotations 1.3.0. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
 :::
 
 Previously, the Koin compiler would detect any definition not bound to a module and put it in a "default module". This approach is now deprecated in favor of using `@Configuration` and `@KoinApplication` annotations.

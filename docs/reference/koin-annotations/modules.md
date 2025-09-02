@@ -146,10 +146,10 @@ class SimpleApp
 :::
 
 
-## Default Module (Deprecated since Annotations 2.2)
+## Default Module (Deprecated since 1.3.0)
 
 :::warning
-The default module approach is deprecated since Annotations 2.2. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
+The default module approach is deprecated since Annotations 1.3.0. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
 :::
 
 While using definitions, you may need to organize them in modules or not. Previously, you could use the "default" generated module to host definitions without explicit modules.

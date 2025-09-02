@@ -4,10 +4,12 @@ import com.jetbrains.kmpapp.native.PlatformComponentA
 import com.jetbrains.kmpapp.native.PlatformComponentB
 import com.jetbrains.kmpapp.native.PlatformComponentD2
 import io.kotzilla.sdk.analytics.koin.analytics
+import io.kotzilla.sdk.config.Environment
 import org.koin.core.annotation.KoinApplication
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.includes
-import org.koin.ksp.generated.*
+import com.jetbrains.generated.*
+//import org.koin.ksp.generated.*
 import org.koin.mp.KoinPlatform
 
 @KoinApplication

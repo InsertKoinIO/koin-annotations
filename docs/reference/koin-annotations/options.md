@@ -21,8 +21,8 @@ The Koin Annotations KSP processor supports several configuration options that c
 ### KOIN_DEFAULT_MODULE
 - **Type**: Boolean
 - **Default**: `false`
-- **Status**: ⚠️ **Deprecated**
-- **Description**: Automatically generates a default module if no explicit module is found for a given definition. **This option is deprecated and discouraged.** Instead, use the `@Configuration` annotation and `@KoinApplication` to bootstrap your application automatically.
+- **Status**: ⚠️ **Deprecated since 1.3.0**
+- **Description**: Automatically generates a default module if no explicit module is found for a given definition. **This option is deprecated since Annotations 1.3.0 and discouraged.** Instead, use the `@Configuration` annotation and `@KoinApplication` to bootstrap your application automatically.
 - **Usage**: Avoid using this option. Prefer explicit module organization with `@Configuration` and `@KoinApplication` for better code clarity and maintainability.
 
 ### KOIN_GENERATION_PACKAGE

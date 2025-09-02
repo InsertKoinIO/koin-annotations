@@ -98,6 +98,7 @@ tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMet
 ksp {
     arg("KOIN_CONFIG_CHECK","true")
     arg("KOIN_LOG_TIMES","true")
+    arg("KOIN_GENERATION_PACKAGE","com.jetbrains.generated")
 }
 
 allOpen {

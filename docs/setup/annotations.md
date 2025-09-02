@@ -15,7 +15,7 @@ Here are the currently available Koin Annotations versions:
 
 ## KSP Plugin
 
-We need the KSP Plugin to work (https://github.com/google/ksp). Follow the official [KSP Setup documentation](https://kotlinlang.org/docs/ksp-quickstart.html).
+We need the [Google KSP](https://github.com/google/ksp) to work. Follow the official [KSP Setup documentation](https://kotlinlang.org/docs/ksp-quickstart.html).
 
 Just add the Gradle plugin:
 ```kotlin
