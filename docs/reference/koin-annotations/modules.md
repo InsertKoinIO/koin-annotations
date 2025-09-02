@@ -20,7 +20,7 @@ object MyApp
 This generates **two** functions for starting your Koin application:
 
 ```kotlin
-// Use the generated application functions
+// The import below gives you access to generated extension functions
 import org.koin.ksp.generated.*
 
 fun main() {
@@ -157,7 +157,7 @@ While using definitions, you may need to organize them in modules or not. Previo
 If you don't want to specify any module, Koin provides a default one to host all your definitions. The `defaultModule` is ready to be used directly:
 
 ```kotlin
-// Use Koin Generation
+// The import below gives you access to generated extension functions
 import org.koin.ksp.generated.*
 
 fun main() {

@@ -108,17 +108,24 @@ class MyProvidedComponent
 class MyPresenter(@Provided val provided : MyProvidedComponent)
 ```
 
-### Disabling Default Module (since 1.3.0)
+### Default Module (Deprecated since 1.3.0)
 
-By default, the Koin compiler detects any definition not bound to a module and puts it in a "default module", a Koin module generated at the root of your project. You can disable the use and generation of the default module with the following option:
+:::warning
+The default module approach is deprecated since Annotations 1.3. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
+:::
 
+Previously, the Koin compiler would detect any definition not bound to a module and put it in a "default module". This approach is now deprecated in favor of using `@Configuration` and `@KoinApplication` annotations.
+
+**Deprecated approach** (avoid using):
 ```groovy
 // in build.gradle or build.gradle.kts
 
 ksp {
-    arg("KOIN_DEFAULT_MODULE","false")
+    arg("KOIN_DEFAULT_MODULE","true")
 }
 ```
+
+**Recommended approach**: Use explicit module organization as shown in the examples above with `@Configuration` and `@KoinApplication`.
 
 ### Kotlin KMP Setup
 
