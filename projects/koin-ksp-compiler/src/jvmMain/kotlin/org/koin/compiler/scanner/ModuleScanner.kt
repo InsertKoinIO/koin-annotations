@@ -125,7 +125,8 @@ class ModuleScanner(
         private fun KSDeclaration.mapModuleInclude(): KoinMetaData.ModuleInclude {
             val packageName: String = packageName.asString()
             val className = simpleName.asString()
-            return KoinMetaData.ModuleInclude(packageName, className, isExpect, isActual)
+            val isObject = (this as? KSClassDeclaration)?.classKind == ClassKind.OBJECT
+            return KoinMetaData.ModuleInclude(packageName, className, isExpect, isActual, isObject)
         }
     }
 }

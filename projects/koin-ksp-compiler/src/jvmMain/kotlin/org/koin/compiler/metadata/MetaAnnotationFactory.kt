@@ -34,6 +34,7 @@ object MetaAnnotationFactory {
     }
 
     fun generate(module: KoinMetaData.Module): String {
+        val isObject = if (module.type.isObject) ", isObject = true" else ""
         val fullpath = module.fullpath
         val moduleId = module.hashId
 
@@ -49,7 +50,7 @@ object MetaAnnotationFactory {
         val configurationsString = configurationsTag?.let { ", configurations=[$it]" } ?: ""
 
         return """
-            @$metaModule("$fullpath",id="$moduleId"$includesString$configurationsString)
+            @$metaModule("$fullpath",id="$moduleId"$includesString$configurationsString$isObject)
         """.trimIndent()
     }
 

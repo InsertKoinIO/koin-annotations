@@ -36,7 +36,7 @@ sealed class KoinMetaData {
         val packageName: PackageName,
         val name: String,
         val configurationTags: Set<ConfigurationTag> = defaultConfiguration(),
-        val type: ModuleType = ModuleType.FIELD,
+        val type: ModuleType = ModuleType.CLASS,
         val visibility: Visibility = Visibility.PUBLIC,
         val configurations : List<Configuration>? = null,
         val moduleIncludes: List<ModuleInclude>? = null
@@ -56,7 +56,7 @@ sealed class KoinMetaData {
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
         val externalDefinitions: MutableList<ExternalDefinition> = mutableListOf(),
-        val type: ModuleType = ModuleType.FIELD,
+        val type: ModuleType = ModuleType.CLASS,
         val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
         val configurationTags: Set<ConfigurationTag>? = null,
@@ -119,11 +119,12 @@ sealed class KoinMetaData {
         val packageName: PackageName,
         val className : String,
         val isExpect : Boolean,
-        val isActual : Boolean
+        val isActual : Boolean,
+        val isObject : Boolean = false,
     )
 
     enum class ModuleType {
-        FIELD, CLASS, OBJECT;
+        CLASS, OBJECT;
 
         val isObject: Boolean
             get() = this == OBJECT

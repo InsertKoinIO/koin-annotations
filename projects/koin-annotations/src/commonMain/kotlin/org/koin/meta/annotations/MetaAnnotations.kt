@@ -49,7 +49,7 @@ annotation class MetaDefinition(val value: String = "", val moduleTagId: String 
  * @param configurations - Module Configurations to check
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaModule(val value: String = "", val id: String = "", val includes: Array<String> = [], val configurations: Array<String> = [])
+annotation class MetaModule(val value: String = "", val id: String = "", val includes: Array<String> = [], val configurations: Array<String> = [], val isObject: Boolean = false)
 
 /**
  * Meta Application annotation to help represents

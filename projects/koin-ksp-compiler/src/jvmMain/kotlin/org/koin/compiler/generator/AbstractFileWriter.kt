@@ -16,9 +16,10 @@ abstract class AbstractFileWriter(val codeGenerator: CodeGenerator) {
     protected fun writeEmptyLine() = writeln("")
 
     protected fun generateIncludes(modules : List<KoinMetaData.ModuleInclude>): String {
-        return modules.joinToString(separator = ",") {
-            if (it.packageName.isEmpty()) "${it.className}().module"
-            else "${it.packageName}.${it.className}().module"
+        return modules.joinToString(separator = ",\n\t\t") {
+            val ctor = if (!it.isObject) "()" else ""
+            if (it.packageName.isEmpty()) "${it.className}$ctor.module"
+            else "${it.packageName}.${it.className}$ctor.module"
         }
     }
 }

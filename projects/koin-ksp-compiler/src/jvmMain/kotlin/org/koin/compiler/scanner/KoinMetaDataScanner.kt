@@ -108,23 +108,23 @@ class KoinMetaDataScanner(
     private fun MutableMap<KoinMetaData.ConfigurationTag, List<KoinMetaData.Module>>.mapToConfiguration() : List<KoinMetaData.Configuration> {
         return map { (k,v) ->
             KoinMetaData.Configuration(
-                k.name,v.map { ModuleInclude(packageName = it.packageName, className = it.name, isExpect = false, isActual = false) }
+                k.name,v.map { ModuleInclude(packageName = it.packageName, className = it.name, isExpect = false, isActual = false, isObject = it.type.isObject) }
             )
         }
     }
 
-    private fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<String>> {
+    private fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<MetaModuleData>> {
         val metaModulesWithConfig = extractMetaModulesForConfig(resolver)
 
-        val allMetaConfigs = metaModulesWithConfig.values.flatMap { it }
+        val allMetaConfigs = metaModulesWithConfig.flatMap { it.configList }.distinct()
         val metaConfigurations = allMetaConfigs.associateWith { config ->
-            metaModulesWithConfig.mapNotNull { (module, list) -> if (config in list) module else null }
+            metaModulesWithConfig.mapNotNull { if (config in it.configList) it else null }
         }
         return metaConfigurations
     }
 
     private fun associateConfigurations(
-        metaConfigurations: Map<String, List<String>>,
+        metaConfigurations: Map<String, List<MetaModuleData>>,
         configurations: MutableMap<KoinMetaData.ConfigurationTag, List<KoinMetaData.Module>>
     ) {
         metaConfigurations.forEach { (configName, modulesName) ->
@@ -133,39 +133,45 @@ class KoinMetaDataScanner(
                 logger.info("skip configuration '$configName' with $modulesName")
             }
             foundConfig?.let {
-                val newList = modulesName.toSet().map { moduleName ->
+                val newList = modulesName.toSet().map { module ->
+                    val moduleName = module.value
                     val lastDotIndex = moduleName.lastIndexOf('.')
                     val (packageName, moduleNameOnly) = if (lastDotIndex >= 0) {
                         moduleName.substring(0, lastDotIndex) to moduleName.substring(lastDotIndex + 1)
                     } else {
                         "" to moduleName
                     }
-                    KoinMetaData.Module(packageName, moduleNameOnly)
+                    KoinMetaData.Module(packageName, moduleNameOnly, type = if(module.isObject) KoinMetaData.ModuleType.OBJECT else KoinMetaData.ModuleType.CLASS)
                 }
                 configurations[KoinMetaData.ConfigurationTag(configName)] = foundConfig + newList
             }
         }
     }
 
+    data class MetaModuleData(val value : String, val configList : List<String>, val isObject : Boolean)
+
     // return Module <-> List<Config>
-    private fun extractMetaModulesForConfig(resolver: Resolver): Map<String, List<String>> =
-        resolver.getExternalMetaModulesSymbols().mapNotNull { metaModule ->
-            val annotation =
-                metaModule.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
-            val value = annotation?.arguments?.getValueArgument()
-            value?.let {
-                val configList =
-                    annotation.arguments.firstOrNull { it.name?.asString() == "configurations" }?.value as? ArrayList<String>
-                        ?: emptyList()
-                // keep only modules with config
-                if (configList.isNotEmpty()) {
-                    Pair(
-                        value,
-                        configList
-                    )
-                } else null
-            }
-        }.toMap()
+    private fun extractMetaModulesForConfig(resolver: Resolver): List<MetaModuleData> =
+        resolver.getExternalMetaModulesSymbols()
+            .mapNotNull { metaModule ->
+                val annotation = metaModule.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
+
+                val value = annotation?.arguments?.getValueArgument()
+                value?.let {
+                    val configList = annotation.arguments.firstOrNull { it.name?.asString() == "configurations" }?.value as? ArrayList<String>
+                            ?: emptyList()
+                    val isObject = annotation.arguments.firstOrNull { it.name?.asString() == "isObject" }?.value as? Boolean ?: false
+
+                    // keep only modules with config
+                    if (configList.isNotEmpty()) {
+                        MetaModuleData(
+                            value,
+                            configList,
+                            isObject
+                        )
+                    } else null
+                }
+        }
 
     fun scanKoinModulesAndDefinitions(
         defaultModule: KoinMetaData.Module,
