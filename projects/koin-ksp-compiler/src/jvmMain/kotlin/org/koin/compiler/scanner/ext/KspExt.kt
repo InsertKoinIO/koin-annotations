@@ -107,7 +107,13 @@ fun KSAnnotation.getQualifier(): String? {
         "${Named::class.simpleName}" -> arguments.getNamed().getValue()
         "${Qualifier::class.simpleName}" -> arguments.getQualifier().getValue()
         "${jakarta.inject.Named::class.simpleName}" -> arguments.getNamed().getValue()
-        else -> annotationType.resolve().declaration.qualifiedName?.asString()
+        else -> {
+            val baseName = annotationType.resolve().declaration.qualifiedName?.asString()
+            val args = arguments.joinToString("_") { arg ->
+                "${arg.name?.asString()}-${arg.value}"
+            }
+            if (args.isNotEmpty()) "${baseName}_$args" else baseName
+        }
     }
 }
 
