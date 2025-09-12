@@ -11,9 +11,9 @@ navigationCompose = "2.9.0-beta05"
 lifecycleCompose = "2.9.2"
 coil = "3.2.0"
 
-koin = "4.1.0"
-koin-annotations = "2.2.0-RC1"
-kotzilla = "1.2.1"
+koin = "4.1.1"
+koin-annotations = "2.2.0-RC2"
+kotzilla = "1.2.2"
 ksp = "2.1.21-2.0.2"
 
 [libraries]
