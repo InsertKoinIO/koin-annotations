@@ -89,7 +89,7 @@ class BuilderProcessor(
         val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
         tagResolver.batchCheckTagsExist(moduleList, allDefinitions, applications)
         
-        KoinTagWriter(codeGenerator, logger, tagResolver, isConfigCheckActive)
+        KoinTagWriter(codeGenerator, logger, tagResolver)
             .writeAllTags(moduleList, defaultModule, applications)
 
         if (doLogTimes && mainTime != null) {

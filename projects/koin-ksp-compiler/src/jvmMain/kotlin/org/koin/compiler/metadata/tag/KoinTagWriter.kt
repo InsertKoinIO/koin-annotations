@@ -19,13 +19,15 @@ class KoinTagWriter(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger,
     val resolver: TagResolver,
-    val isConfigCheckActive : Boolean
 ) {
     private val alreadyDeclaredTags: MutableSet<String> = mutableSetOf()
     private var _tagFileStream : OutputStream? = null
     private val fileStream : OutputStream
         get() = _tagFileStream ?: error("KoinTagWriter - tagFileStream is null")
     private val pendingContent = StringBuilder()
+
+    @Deprecated("need to activate meta data even without compile check")
+    val isConfigCheckActive : Boolean = true
 
     fun writeAllTags(
         moduleList: List<KoinMetaData.Module>,
