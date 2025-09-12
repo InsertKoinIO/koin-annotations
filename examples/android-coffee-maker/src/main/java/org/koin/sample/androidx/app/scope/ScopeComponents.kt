@@ -1,5 +1,6 @@
 package org.koin.sample.androidx.app.scope
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import org.koin.android.annotation.ActivityScope
 import org.koin.android.annotation.KoinViewModel
@@ -27,6 +28,10 @@ class ScopeViewModel(val sd : ScopedData, val sod : ScopedOtherData, val ssd : S
 @ActivityScope
 class MyActivityScope {
     val id = UUID.randomUUID().toString()
+}
+
+class MyActivityInjectedScope(activity: Activity) {
+    val id = activity.hashCode()
 }
 
 @ActivityScope

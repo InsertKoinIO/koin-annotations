@@ -1,13 +1,17 @@
 package org.koin.sample.androidx.di
 
+import android.app.Activity
 import android.content.Context
+import org.koin.android.annotation.ActivityScope
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Configuration
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Provided
 import org.koin.core.scope.Scope
 import org.koin.sample.android.library.CommonModule
+import org.koin.sample.androidx.app.scope.MyActivityInjectedScope
 import org.koin.sample.androidx.multi.LibFooConsumerModule
 import org.koin.sample.androidx.repository.RepositoryModule
 import org.koin.sample.clients.ClientModule
@@ -28,6 +32,9 @@ class AppModule {
 
     @Factory
     fun useKoinScope(scope : Scope) : UseContext = UseContext(scope.get())
+
+    @ActivityScope
+    fun createOnActivityScope(@Provided activity : Activity) : MyActivityInjectedScope = MyActivityInjectedScope(activity)
 }
 
 @Module(includes = [CommonModule::class, ClientModule::class, RepositoryModule::class])
