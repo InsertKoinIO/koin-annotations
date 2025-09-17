@@ -53,6 +53,7 @@ data class DefinitionNamedAnnotation(
 
 val SINGLE = DefinitionClassAnnotation("single", annotationType = Single::class)
 val SINGLETON = DefinitionNamedAnnotation("single", null, "Singleton","jakarta.inject.Singleton")
+val JAVAX_SINGLETON = DefinitionNamedAnnotation("single", null, "Singleton","javax.inject.Singleton")
 val FACTORY = DefinitionClassAnnotation("factory", annotationType = Factory::class)
 val INJECT = DefinitionNamedAnnotation("factory", null, "Inject","jakarta.inject.Inject")
 val SCOPE = DefinitionClassAnnotation("scoped", annotationType = Scope::class)
@@ -64,19 +65,19 @@ val KOIN_VIEWMODEL = DefinitionClassAnnotation("viewModel", "org.koin.core.modul
 
 val KOIN_WORKER = DefinitionClassAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
 
-val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, INJECT, SCOPE, SCOPED,KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
+val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON, JAVAX_SINGLETON, FACTORY, INJECT, SCOPE, SCOPED,KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
 
 val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationQualifiedName }
-val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName!!.lowercase(Locale.getDefault()) }
-val DEFINITION_ANNOTATION_MAP = DEFINITION_ANNOTATION_LIST.associate { it.annotationSimpleName!! to it }
+val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName.lowercase(Locale.getDefault()) }
+val DEFINITION_ANNOTATION_MAP = DEFINITION_ANNOTATION_LIST.associate { it.annotationSimpleName to it }
 
 val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY,INJECT, KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
-val SCOPE_DEFINITION_ANNOTATION_LIST_NAMES = SCOPE_DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName?.lowercase(Locale.getDefault()) }
+val SCOPE_DEFINITION_ANNOTATION_LIST_NAMES = SCOPE_DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName.lowercase(Locale.getDefault()) }
 
 
 fun isValidAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) in DEFINITION_ANNOTATION_LIST_NAMES
 fun isValidScopeExtraAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) in SCOPE_DEFINITION_ANNOTATION_LIST_NAMES
-fun isScopeAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) == SCOPE.annotationSimpleName?.lowercase(Locale.getDefault())
+fun isScopeAnnotation(s: String): Boolean = s.equals(SCOPE.annotationSimpleName, ignoreCase = true)
 
 fun getExtraScopeAnnotation(annotations: Map<String, KSAnnotation>): DefinitionAnnotation? {
     val key = annotations.keys.firstOrNull { k -> isValidScopeExtraAnnotation(k) }
