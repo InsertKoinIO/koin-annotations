@@ -161,5 +161,5 @@ package jakarta.inject
  * @see jakarta.inject.Qualifier @Qualifier
  * @see jakarta.inject.Provider
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.CONSTRUCTOR)
 annotation class Inject()

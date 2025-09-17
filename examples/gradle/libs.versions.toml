@@ -5,7 +5,7 @@
 # Core
 kotlin = "2.1.21"
 koin = "4.1.0"
-koinAnnotations = "2.2.0-RC2"
+koinAnnotations = "2.2.0-RC3"
 ksp = "2.1.21-2.0.2"
 junit = "4.13.2"
 # Android
@@ -18,6 +18,7 @@ koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotations" }
+koin-jsr330 = { module = "io.insert-koin:koin-jsr330", version.ref = "koinAnnotations" }
 koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
 ksp-api = {module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp"}
 android-appcompat = {module = "androidx.appcompat:appcompat", version.ref = "androidCompat"}
