@@ -44,10 +44,15 @@ class KoinMetaDataScanner(
     private val applicationMetadataScanner = ApplicationScanner(logger)
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ClassComponentScanner(logger)
-    private val functionMetadataScanner = FunctionComponentScanner(logger)
+    private val functionMetadataScanner = FunctionComponentScanner(logger){ classFound ->
+        val def = componentMetadataScanner.createClassDefinition(classFound)
+        addToModule(def, defaultModule, currentIndex)
+    }
     
     // Cache for module lookup optimization
     private var moduleCache: Map<String, KoinMetaData.Module> = emptyMap()
+    private lateinit var currentIndex: List<KoinMetaData.Module>
+    private lateinit var defaultModule: KoinMetaData.Module
 
     fun findInvalidSymbols(resolver: Resolver): List<KSAnnotated> {
         val invalidModuleSymbols = resolver.getInvalidSymbols<Module>()
@@ -178,15 +183,16 @@ class KoinMetaDataScanner(
         resolver: Resolver
     ): List<KoinMetaData.Module> {
         val moduleList = scanClassModules(resolver)
-        val index = moduleList.generateScanComponentIndex()
+        currentIndex = moduleList.generateScanComponentIndex()
+        this.defaultModule = defaultModule
         
         // Build module lookup cache to optimize addToModule performance
-        moduleCache = buildModuleLookupCache(index)
+        moduleCache = buildModuleLookupCache(currentIndex)
         
-        scanClassComponents(defaultModule, index, resolver)
-        scanFunctionComponents(defaultModule, index, resolver)
-        scanDefaultProperties(index+defaultModule, resolver)
-        scanExternalDefinitions(index, resolver)
+        scanClassComponents(resolver)
+        scanFunctionComponents(resolver)
+        scanDefaultProperties(currentIndex+defaultModule, resolver)
+        scanExternalDefinitions(resolver)
         return moduleList
     }
 
@@ -220,7 +226,6 @@ class KoinMetaDataScanner(
     }
 
     private fun scanExternalDefinitions(
-        index: List<KoinMetaData.Module>,
         resolver: Resolver
     ) {
         resolver.getExternalDefinitionSymbols()
@@ -233,7 +238,7 @@ class KoinMetaDataScanner(
                     }
             }
             .forEach { extDef ->
-                val module = findModuleForDefinition(extDef.targetPackage, index, null)
+                val module = findModuleForDefinition(extDef.targetPackage, currentIndex, null)
                 module?.externalDefinitions?.add(extDef)
             }
     }
@@ -275,10 +280,8 @@ class KoinMetaDataScanner(
     }
 
     private fun scanFunctionComponents(
-        defaultModule: KoinMetaData.Module,
-        scanComponentIndex: List<KoinMetaData.Module>,
         resolver: Resolver
-    ): List<KoinMetaData.Definition> {
+    ) {
         logger.logging("scan functions ...")
 
         val definitions = resolver.getValidDefinitionSymbols()
@@ -286,23 +289,19 @@ class KoinMetaDataScanner(
             .mapNotNull { functionMetadataScanner.createFunctionDefinition(it) }
             .toList()
 
-        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
-        return definitions
+        definitions.forEach { addToModule(it, defaultModule, currentIndex) }
     }
 
     private fun scanClassComponents(
-        defaultModule: KoinMetaData.Module,
-        scanComponentIndex: List<KoinMetaData.Module>,
         resolver: Resolver
-    ): List<KoinMetaData.Definition> {
+    ) {
         logger.logging("scan definitions ...")
 
         val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSClassDeclaration>()
             .map { componentMetadataScanner.createClassDefinition(it) }
             .toList()
-        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
-        return definitions
+        definitions.forEach { addToModule(it, defaultModule, currentIndex) }
     }
 
     private fun buildModuleLookupCache(modules: List<KoinMetaData.Module>): Map<String, KoinMetaData.Module> {

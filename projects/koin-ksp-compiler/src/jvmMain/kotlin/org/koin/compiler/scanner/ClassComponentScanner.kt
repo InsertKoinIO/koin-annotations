@@ -25,7 +25,6 @@ import org.koin.core.annotation.Monitor
 class ClassComponentScanner(
     val logger: KSPLogger,
 ) {
-
     fun createClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
         val ksClassDeclaration = (element as KSClassDeclaration)
         val parent = ksClassDeclaration.parentDeclaration?.simpleName?.asString()
@@ -45,16 +44,17 @@ class ClassComponentScanner(
         return if (scopeAnnotation != null){
             createClassDefinition(scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations,isMonitored)
         } else {
-            annotations.firstNotNullOf { (annotationName, annotation) ->
+            annotations.firstNotNullOfOrNull { (annotationName, annotation) ->
                 createClassDefinition(annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations,isMonitored)
-            }
+            } ?: createClassDefinition(null, ksClassDeclaration, null, packageName, qualifier, className, annotations,isMonitored)
+            // Case of @Inject on constructor class
         }
     }
 
     private fun createClassDefinition(
-        annotation: KSAnnotation,
+        annotation: KSAnnotation?,
         ksClassDeclaration: KSClassDeclaration,
-        annotationName: String,
+        annotationName: String?,
         packageName: String,
         qualifier: String?,
         className: String,
@@ -71,14 +71,14 @@ class ClassComponentScanner(
         val isExpect = ksClassDeclaration.isExpect
         val isActual = ksClassDeclaration.isActual
 
-        val foundAnnotation = DEFINITION_ANNOTATION_MAP[annotationName]
+        val foundAnnotation = DEFINITION_ANNOTATION_MAP[annotationName] ?: if (annotation == null) INJECT else null
         return if (foundAnnotation == null){
             error("Unknown annotation type: $annotationName")
         } else {
             // single case
-            val createdAtStart: Boolean? = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
+            val createdAtStart: Boolean? = annotation?.arguments?.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
             // scope case
-            val scopeValues = if (foundAnnotation == SCOPE || foundAnnotation in SCOPE_ARCHETYPES_LIST) getAnnotationScopeData(annotation, annotations) else null
+            val scopeValues = if (annotation != null && (foundAnnotation == SCOPE || foundAnnotation in SCOPE_ARCHETYPES_LIST)) getAnnotationScopeData(annotation, annotations) else null
             val scopeData = scopeValues?.scopeData
             val extraAnnotationDefinition = scopeValues?.extraAnnotationDefinition
 
