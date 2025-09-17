@@ -1,6 +1,7 @@
 package org.koin.example.newmodule.mymodule
 
 import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 import org.koin.example.`interface`.MyInterfaceExt
@@ -9,5 +10,6 @@ import org.koin.example.`interface`.MyInterfaceExt
 public class MyOtherComponent3(public val i : MyInterfaceExt)
 
 @Module
+@Configuration
 @ComponentScan
 public class MyModule3

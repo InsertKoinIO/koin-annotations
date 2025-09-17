@@ -24,6 +24,7 @@ public annotation class WhiteBunny
 public annotation class BlackBunny
 
 @Module
+@Configuration
 @ComponentScan
 public class AnimalModule {
     @Factory
