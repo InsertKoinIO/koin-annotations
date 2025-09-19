@@ -116,7 +116,7 @@ class TestModule {
 
         assertNotNull(koin.getOrNull<MyType.MyChildType>())
 
-        assertNotNull(koin.get<MyInjectedCtorClass>().s == koin.get<MySingleton>())
+        assertEquals(koin.get<MyInjectedCtorClass>().s,  koin.get<MySingleton>())
     }
 
 
