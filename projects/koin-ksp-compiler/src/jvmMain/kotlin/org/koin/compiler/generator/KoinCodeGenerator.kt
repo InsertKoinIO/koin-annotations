@@ -20,7 +20,6 @@ import com.google.devtools.ksp.processing.KSPLogger
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.metadata.tag.TagResolver
-import kotlin.concurrent.thread
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
@@ -36,7 +35,8 @@ class KoinCodeGenerator(
     fun generateModules(
         moduleList: List<KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module,
-        generateDefaultModule : Boolean
+        generateDefaultModule: Boolean,
+        doExportDefinitions: Boolean
     ) {
         logger.info("generate ${moduleList.size} modules ...")
         
@@ -58,13 +58,14 @@ class KoinCodeGenerator(
         }
 
         if (defaultModule.definitions.isNotEmpty()) {
-            generateDefaultFile(defaultModule, generateDefaultModule)
+            generateDefaultFile(defaultModule, generateDefaultModule, doExportDefinitions)
         }
     }
 
     private fun generateDefaultFile(
         defaultModule: KoinMetaData.Module,
-        generateDefaultModule: Boolean
+        generateDefaultModule: Boolean,
+        doExportDefinitions: Boolean
     ) {
         logger.info("generate default file ...")
 
@@ -76,7 +77,7 @@ class KoinCodeGenerator(
                 LOGGER.warn("Generating 'defaultModule' with ${defaultModule.definitions.size} definitions")
             }
             defaultModule.setCurrentDefinitionsToExternals()
-            DefaultModuleWriter(codeGenerator, tagResolver, defaultModule, generateDefaultModule).writeModule(isViewModelMPActive)
+            DefaultModuleWriter(codeGenerator, tagResolver, defaultModule, generateDefaultModule, doExportDefinitions).writeModule(isViewModelMPActive)
         }
     }
 

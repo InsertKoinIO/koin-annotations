@@ -16,7 +16,6 @@
 package org.koin.compiler.generator
 
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
 import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
@@ -31,7 +30,8 @@ import org.koin.compiler.type.clearPackageSymbols
 abstract class ModuleWriter(
     codeGenerator: CodeGenerator,
     val module: KoinMetaData.Module,
-    val tagResolver : TagResolver
+    val tagResolver: TagResolver,
+    val doExportDefinitions: Boolean = true
 ) : AbstractFileWriter(codeGenerator) {
 
     open val hasExternalDefinitions: Boolean = false
@@ -53,8 +53,15 @@ abstract class ModuleWriter(
         }
 
         if (hasExternalDefinitions) {
+            if (!doExportDefinitions){
+                writeln("// Definitions export skipped")
+                writeln("/*")
+            }
             writeExternalDefinitionImports()
             writeExternalDefinitions()
+            if (!doExportDefinitions){
+                writeln("*/")
+            }
         }
 
         writeEmptyLine()

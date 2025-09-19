@@ -74,13 +74,17 @@ class BuilderProcessor(
             moduleList
         )
 
-        //TODO Build Proxy
+        val doExportDefinitions = doExportDefinitions()
+        if (!doExportDefinitions && defaultModule.definitions.isNotEmpty()){
+            logger.warn("Skip definitions export ...")
+            defaultModule.definitions.clear()
+        }
+
         val monitoredDefinitions = (moduleList+defaultModule).flatMap { it.definitions }.filter { it.isMonitored }.filterIsInstance<KoinMetaData.Definition.ClassDefinition>()
         koinCodeGenerator.generateProxies(monitoredDefinitions)
 
         logger.logging("Generate code ...")
-        // TODO Attach proxy if monitored
-        koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive())
+        koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive(), doExportDefinitions)
         koinCodeGenerator.generateApplications(applications)
 
         val isConfigCheckActive = isConfigCheckActive()
@@ -148,7 +152,6 @@ class BuilderProcessor(
         return option
     }
 
-    //TODO Disable by default in 2.2?
     private fun isDefaultModuleActive(): Boolean {
         return options.getOrDefault(KOIN_DEFAULT_MODULE.name, "false") == true.toString()
     }
@@ -159,6 +162,10 @@ class BuilderProcessor(
 
     private fun getCustomGenerationPackage(): String? {
         return options.getOrDefault(KOIN_GENERATION_PACKAGE.name, null)
+    }
+
+    private fun doExportDefinitions(): Boolean {
+        return options.getOrDefault(KOIN_EXPORT_DEFINITIONS.name, "true") == true.toString()
     }
 }
 
