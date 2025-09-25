@@ -19,9 +19,11 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
 import org.koin.compiler.metadata.tag.TagResolver
+import org.koin.compiler.scanner.KoinMetaDataScanner
 import org.koin.compiler.scanner.ext.getArgument
 import org.koin.compiler.scanner.ext.getScopeArgument
 import org.koin.compiler.scanner.ext.getValueArgument
@@ -52,9 +54,8 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
     private lateinit var modulesByTag: MutableMap<String, MetaModuleData>
     private lateinit var allLocalDefinitions : MutableMap<String, MetaDefinitionData>
     private lateinit var definitionsByValue: MutableMap<String, MetaDefinitionData>
-    private lateinit var activeConfiguration : List<MetaModuleData>
 
-    fun verify(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>, foundMetaApplications: List<KSAnnotation>) {
+    fun verify(foundMetaModules: List<KSAnnotation>, foundMetaDefinitions: List<KSAnnotation>) { //, foundMetaApplications: List<KSAnnotation>) {
         val metaModuleByValue = foundMetaModules.mapNotNull(::extractMetaModuleValues).associateBy { it.value }
         val modules = metaModuleByValue.values.map { module ->
             mapToModule(module)
@@ -71,9 +72,6 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
             val metaModule = metaModuleByValue[module.value]!!
             resolveModuleIncludes(module, metaModule)
         }
-
-        val applications = foundMetaApplications.mapNotNull(::extractMetaApplicationValues).map(::mapToApplicationData)
-        activeConfiguration = applications.flatMap { it.includes + it.configurations }
 
         val definitions = foundMetaDefinitions.mapNotNull(::extractMetaDefinitionValues).map { metaDefinition ->
             mapToDefinition(metaDefinition)
@@ -278,12 +276,8 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         initialModule: MetaModuleData?,
         targetModule: MetaModuleData
     ) : Boolean {
-        val foundInConfig = activeConfiguration
-            .filter { it.value != initialModule?.value && it.value != initialModule?.parentModule?.value }
-            .firstOrNull { module ->
-                isModuleAccessible(module, targetModule)
-            }
-        return foundInConfig != null
+        if (initialModule == null) return false
+        return targetModule.configurations.any { it in initialModule.configurations } || isModuleAccessibleInConfiguration(initialModule.parentModule, targetModule)
     }
 
     private fun isModuleAccessibleFromParent(

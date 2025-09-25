@@ -75,12 +75,8 @@ class KoinMetaDataScanner(
         val applications = scanClassApplications(resolver)
         return if (applications.isNotEmpty()){
 
-//            logger.warn("found applications: $applications")
-            // Check for default config or @ConfigScan
             val activeConfigurations = applications.flatMap { it.configurationTags }.toSet()
-//            logger.warn("found configurations: $activeConfigurations")
             val configurations = extractAndBuildConfigurations(activeConfigurations, moduleList, resolver)
-//            logger.logging("configurations: ${configurations.map { it.name+" -> "+it.modules.joinToString(", ") { it.packageName+"."+it.className } }}")
 
             // add configs content
             applications.map { application ->
@@ -118,7 +114,7 @@ class KoinMetaDataScanner(
         }
     }
 
-    private fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<MetaModuleData>> {
+    public fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<MetaModuleData>> {
         val metaModulesWithConfig = extractMetaModulesForConfig(resolver)
 
         val allMetaConfigs = metaModulesWithConfig.flatMap { it.configList }.distinct()

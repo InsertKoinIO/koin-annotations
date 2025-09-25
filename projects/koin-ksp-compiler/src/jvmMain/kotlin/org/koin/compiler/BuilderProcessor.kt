@@ -121,8 +121,7 @@ class BuilderProcessor(
             KoinConfigChecker(logger, tagResolver).apply {
                 verify(
                     metaTagScanner.findMetaModules(),
-                    metaTagScanner.findMetaDefinitions(),
-                    metaTagScanner.findMetaApplications()
+                    metaTagScanner.findMetaDefinitions()
                     )
             }
 
