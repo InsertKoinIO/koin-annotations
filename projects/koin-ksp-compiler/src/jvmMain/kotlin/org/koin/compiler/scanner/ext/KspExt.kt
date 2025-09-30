@@ -111,7 +111,7 @@ fun KSAnnotation.getQualifier(): String? {
         else -> {
             val baseName = annotationType.resolve().declaration.qualifiedName?.asString()
             val args = arguments.joinToString("_") { arg ->
-                "${arg.name?.asString()}-${arg.value}"
+                "${arg.name?.asString()}_${arg.value}"
             }
             if (args.isNotEmpty()) "${baseName}_$args" else baseName
         }

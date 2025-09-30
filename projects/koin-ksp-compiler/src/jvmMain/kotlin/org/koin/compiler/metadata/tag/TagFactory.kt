@@ -111,9 +111,11 @@ object TagFactory {
     fun prefixTag(classTag: String, withGenPackage : Boolean) = if (withGenPackage) "${GenerationConfig.getGenerationPath()}.$TAG_PREFIX$classTag" else "$TAG_PREFIX$classTag"
 
     private fun escapeTagClass(qualifier : String) : String {
-        return if (!qualifier.contains(".")) qualifier
+        val cleanedQualifier = if (qualifier.contains("\\$")) qualifier.replace("\\$", "") else qualifier
+        val value = if (!cleanedQualifier.contains(".")) qualifier
         else {
-            qualifier.split(".").joinToString("") { it.capitalize() }
+            cleanedQualifier.split(".").joinToString("") { it.capitalize() }
         }
+        return value
     }
 }

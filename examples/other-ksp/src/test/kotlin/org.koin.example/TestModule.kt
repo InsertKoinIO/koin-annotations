@@ -25,6 +25,7 @@ import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
 import org.koin.example.newmodule.mymodule.MyModule3
 import org.koin.example.newmodule.mymodule.MyOtherComponent3
+import org.koin.example.qualifier.CoroutineDispatcherConsumer
 import org.koin.example.qualifier.LazyStuffCounter
 import org.koin.example.qualifier.QualifierModule
 import org.koin.example.qualifier.StuffCounter
@@ -117,6 +118,8 @@ class TestModule {
         assertNotNull(koin.getOrNull<MyType.MyChildType>())
 
         assertEquals(koin.get<MyInjectedCtorClass>().s,  koin.get<MySingleton>())
+
+        assertEquals("IO",  koin.get<CoroutineDispatcherConsumer>().dispatcher.name)
     }
 
 
