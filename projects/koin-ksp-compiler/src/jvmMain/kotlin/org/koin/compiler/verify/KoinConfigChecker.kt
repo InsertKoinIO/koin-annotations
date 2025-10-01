@@ -60,6 +60,11 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
         val modules = metaModuleByValue.values.map { module ->
             mapToModule(module)
         }
+
+        if (modules.isEmpty()){
+            LOGGER.warn("no module found")
+            return
+        }
         
         // Build all module indexes for O(1) lookup
         modulesById = modules.associateBy { it.id }.toMutableMap()
@@ -204,7 +209,7 @@ class KoinConfigChecker(val logger: KSPLogger, val tagResolver: TagResolver) {
     private fun verifyDefinition(
         def: MetaDefinitionData
     ) {
-        if (def.dependencies?.isNotEmpty() == true){
+        if (def.dependencies?.isNotEmpty() == true && def.module != null){
             def.dependencies.forEach { dep -> verifyDefinition( def, dep) }
         }
     }
