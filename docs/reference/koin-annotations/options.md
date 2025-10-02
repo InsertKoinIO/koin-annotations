@@ -37,6 +37,12 @@ The Koin Annotations KSP processor supports several configuration options that c
 - **Description**: Generates ViewModel definitions using `koin-core-viewmodel` main DSL instead of the Android-specific ViewModel. This is enabled by default to provide Kotlin Multiplatform compatibility and use the unified ViewModel API.
 - **Usage**: Recommended to keep enabled for all projects. Essential for KMP projects that need ViewModel support across platforms.
 
+### KOIN_EXPORT_DEFINITIONS
+- **Type**: Boolean
+- **Default**: `true`
+- **Description**: Controls whether exported definitions are generated in addition to module-assembled definitions. When disabled, only definitions assembled in modules will be generated, filtering out standalone exported definitions.
+- **Usage**: Set to `false` if you want to only generate definitions that are explicitly assembled in modules and exclude standalone exported definitions. Useful for stricter module organization.
+
 ## Configuration Examples
 
 ### Gradle Kotlin DSL
@@ -48,6 +54,7 @@ ksp {
     arg("KOIN_DEFAULT_MODULE", "false")
     arg("KOIN_GENERATION_PACKAGE", "com.mycompany.koin.generated")
     arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
+    arg("KOIN_EXPORT_DEFINITIONS", "true")
 }
 ```
 
@@ -60,6 +67,7 @@ ksp {
     arg("KOIN_DEFAULT_MODULE", "false")
     arg("KOIN_GENERATION_PACKAGE", "com.mycompany.koin.generated")
     arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
+    arg("KOIN_EXPORT_DEFINITIONS", "true")
 }
 ```
 

@@ -63,15 +63,34 @@ The `@Configuration` annotation allows you to organize modules into different co
 ### Basic Configuration Usage
 
 ```kotlin
-// Default configuration - these are equivalent
+// Put module in default Configuration
 @Module
 @Configuration
 class CoreModule
-
-@Module  
-@Configuration("default")
-class CoreModule
 ```
+
+:::info
+The default configuration is named "default", can be used with `@Configuration` or `@Configuration("default")`
+:::
+
+You need to use the `@KoinApplication` to be able to scan modules from configuration:
+
+```kotlin
+// module A
+@Module
+@Configuration
+class ModuleA
+
+// module B
+@Module
+@Configuration
+class ModuleB
+
+// module App, scan all @Configuration modules
+@KoinApplication
+object MyApp
+```
+
 
 ### Multiple Configuration Support
 
@@ -125,7 +144,9 @@ class CoreModule {
 
 ### Using Configurations with @KoinApplication
 
-Reference these configurations in your application bootstrap:
+By default, the `@KoinApplication` is loading all default configurations (modules tagged with `@Configuration`)
+
+You can also reference these configurations in your application bootstrap:
 
 ```kotlin
 @KoinApplication(configurations = ["default", "production"])
