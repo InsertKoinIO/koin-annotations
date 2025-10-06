@@ -6,7 +6,10 @@
       "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/docs/reference/koin-annotations/**)",
       "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/docs/**)",
       "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/docs/**)",
-      "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/**)"
+      "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/**)",
+      "Read(//Users/arnaud/workspace/koin-projects/**)",
+      "Read(//Users/arnaud/workspace/**)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
