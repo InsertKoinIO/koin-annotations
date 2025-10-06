@@ -94,7 +94,8 @@ class DefinitionWriter(
         scope: KoinMetaData.Scope?
 //        scopeTag : String? = null
     ) {
-        val definitionString = "${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds"
+        val cast = if (def is KoinMetaData.Definition.ClassDefinition && def.isMonitored) " as ${def.packageNamePrefix}${def.className}" else ""
+        val definitionString = "${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor$cast } $binds"
         val scopeDefinitionString = if (scope == null) {
             definitionString
         } else {
@@ -105,7 +106,6 @@ class DefinitionWriter(
                 "scope<${scope.getTagValue()}>{ $definitionString }"
             }
         }
-
         writeln("@ExternalDefinition(\"${def.packageName}\")")
         writeln("public fun Module.$DEFINE_PREFIX${def.packageName.camelCase()}${def.label}() : Unit { $scopeDefinitionString }")
     }
