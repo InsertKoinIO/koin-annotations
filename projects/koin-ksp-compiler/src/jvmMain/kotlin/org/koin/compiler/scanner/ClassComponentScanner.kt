@@ -17,109 +17,84 @@ package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.*
 import org.koin.compiler.scanner.ext.*
+import org.koin.core.annotation.Monitor
 
 class ClassComponentScanner(
     val logger: KSPLogger,
 ) {
-
     fun createClassDefinition(element: KSAnnotated): KoinMetaData.Definition {
         val ksClassDeclaration = (element as KSClassDeclaration)
-        val packageName = ksClassDeclaration.getPackageName().filterForbiddenKeywords()
+        val parent = ksClassDeclaration.parentDeclaration?.simpleName?.asString()
+        val packageName = (ksClassDeclaration.getPackageName() + (parent?.let { ".$it" } ?: "")).filterForbiddenKeywords()
         val className = ksClassDeclaration.simpleName.asString()
         val qualifier = ksClassDeclaration.getQualifier()
         val annotations = element.getKoinAnnotations()
         val scopeAnnotation = annotations.getScopeAnnotation()
+
+        // Handle only class annotation
+        val isMonitored = element.annotations.firstOrNull { it.shortName.asString() == Monitor::class.simpleName } != null
+
+        if (isMonitored){
+            println("Koin monitoring active for '$className'")
+        }
+
         return if (scopeAnnotation != null){
-            createClassDefinition(element, scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations)
+            createClassDefinition(scopeAnnotation.second, ksClassDeclaration, scopeAnnotation.first, packageName, qualifier, className, annotations,isMonitored)
         } else {
-            annotations.firstNotNullOf { (annotationName, annotation) ->
-                createClassDefinition(element, annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations)
-            }
+            annotations.firstNotNullOfOrNull { (annotationName, annotation) ->
+                createClassDefinition(annotation, ksClassDeclaration, annotationName, packageName, qualifier, className, annotations,isMonitored)
+            } ?: createClassDefinition(null, ksClassDeclaration, null, packageName, qualifier, className, annotations,isMonitored)
+            // Case of @Inject on constructor class
         }
     }
 
     private fun createClassDefinition(
-        element: KSAnnotated,
-        annotation: KSAnnotation,
+        annotation: KSAnnotation?,
         ksClassDeclaration: KSClassDeclaration,
-        annotationName: String,
+        annotationName: String?,
         packageName: String,
         qualifier: String?,
         className: String,
-        annotations: Map<String, KSAnnotation> = emptyMap()
+        annotations: Map<String, KSAnnotation> = emptyMap(),
+        isMonitored : Boolean,
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-        val allBindings: List<KSDeclaration> = if (declaredBindings?.hasDefaultUnitValue() == false) declaredBindings else defaultBindings
+        val forceDeclaredBindings = declaredBindings?.hasDefaultUnitValue() == false && declaredBindings.isNotEmpty()
+        val allBindings: List<KSDeclaration> = if (forceDeclaredBindings) declaredBindings else defaultBindings
+
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
 
         val isExpect = ksClassDeclaration.isExpect
         val isActual = ksClassDeclaration.isActual
 
-        return when (annotationName) {
-            SINGLE.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect, isActual = isActual)
-            }
-            SINGLETON.annotationName -> {
-                createSingleDefinition(annotation, packageName, qualifier, className, ctorParams, allBindings, isExpect, isActual = isActual)
-            }
-            FACTORY.annotationName -> {
-                createClassDefinition(FACTORY,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
-            }
-            KOIN_VIEWMODEL_ANDROID.annotationName -> {
-                createClassDefinition(KOIN_VIEWMODEL_ANDROID,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
-            }
-            KOIN_WORKER.annotationName -> {
-                createClassDefinition(KOIN_WORKER,packageName, qualifier, className, ctorParams, allBindings, isExpect = isExpect, isActual = isActual)
-            }
-            SCOPE.annotationName -> {
-                val (scopeData, extraScopeBindings, extraAnnotationDefinition) = getAnnotationScopeData(annotation, annotations, allBindings)
-                createClassDefinition(extraAnnotationDefinition ?: SCOPE,packageName, qualifier, className, ctorParams, extraScopeBindings,scope = scopeData, isExpect = isExpect, isActual = isActual)
-            }
-            else -> error("Unknown annotation type: $annotationName")
+        val foundAnnotation = DEFINITION_ANNOTATION_MAP[annotationName] ?: if (annotation == null) INJECT else null
+        return if (foundAnnotation == null){
+            error("Unknown annotation type: $annotationName")
+        } else {
+            // single case
+            val createdAtStart: Boolean? = annotation?.arguments?.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
+            // scope case
+            val scopeValues = if (annotation != null && (foundAnnotation == SCOPE || foundAnnotation in SCOPE_ARCHETYPES_LIST)) getAnnotationScopeData(annotation, annotations) else null
+            val scopeData = scopeValues?.scopeData
+            val extraAnnotationDefinition = scopeValues?.extraAnnotationDefinition
+
+            KoinMetaData.Definition.ClassDefinition(
+                packageName = packageName,
+                qualifier = qualifier,
+                isCreatedAtStart = createdAtStart,
+                className = className,
+                constructorParameters = ctorParams ?: emptyList(),
+                bindings = allBindings,
+                keyword = extraAnnotationDefinition ?: foundAnnotation,
+                scope = scopeData,
+                isExpect = isExpect,
+                isActual = isActual,
+                isMonitored = isMonitored
+            )
         }
-    }
-
-    private fun createSingleDefinition(
-        annotation: KSAnnotation,
-        packageName: String,
-        qualifier: String?,
-        className: String,
-        ctorParams: List<KoinMetaData.DefinitionParameter>?,
-        allBindings: List<KSDeclaration>,
-        isExpect : Boolean,
-        isActual : Boolean
-    ): KoinMetaData.Definition.ClassDefinition {
-        val createdAtStart: Boolean =
-            annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
-        return createClassDefinition(SINGLE, packageName, qualifier, className, ctorParams, allBindings, isCreatedAtStart = createdAtStart, isExpect= isExpect, isActual = isActual)
-    }
-
-    private fun createClassDefinition(
-        keyword : DefinitionAnnotation,
-        packageName: String,
-        qualifier: String?,
-        className: String,
-        ctorParams: List<KoinMetaData.DefinitionParameter>?,
-        allBindings: List<KSDeclaration>,
-        isCreatedAtStart : Boolean? = null,
-        scope: KoinMetaData.Scope? = null,
-        isExpect : Boolean,
-        isActual : Boolean
-    ): KoinMetaData.Definition.ClassDefinition {
-        return KoinMetaData.Definition.ClassDefinition(
-            packageName = packageName,
-            qualifier = qualifier,
-            isCreatedAtStart = isCreatedAtStart,
-            className = className,
-            constructorParameters = ctorParams ?: emptyList(),
-            bindings = allBindings,
-            keyword = keyword,
-            scope = scope,
-            isExpect = isExpect,
-            isActual = isActual
-        )
     }
 }

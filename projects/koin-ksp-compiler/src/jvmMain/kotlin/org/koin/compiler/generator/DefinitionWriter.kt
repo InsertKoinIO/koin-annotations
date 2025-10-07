@@ -16,21 +16,20 @@
 package org.koin.compiler.generator
 
 import org.koin.compiler.generator.ext.appendText
-import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSDeclaration
 import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.KoinMetaData.Module.Companion.DEFINE_PREFIX
 import org.koin.compiler.metadata.SINGLE
-import org.koin.compiler.metadata.TagFactory
+import org.koin.compiler.metadata.tag.TagFactory
 import org.koin.compiler.metadata.camelCase
+import org.koin.compiler.metadata.tag.TagResolver
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
-import org.koin.compiler.resolver.getResolution
 import java.io.OutputStream
 
 class DefinitionWriter(
-    val resolver: Resolver,
-    val fileStream: OutputStream
+    val fileStream: OutputStream,
+    val tagResolver: TagResolver
 ) {
     private fun write(s: String) { fileStream.appendText(s) }
     private fun writeln(s: String) = write("$s\n")
@@ -42,7 +41,7 @@ class DefinitionWriter(
         }
 
         if (def.alreadyGenerated == true){
-            LOGGER.logging("skip ${def.label} -> ${TagFactory.getTagClass(def)} - already generated")
+            LOGGER.logging("skip ${def.label} -> ${TagFactory.generateTag(def)} - already generated")
         } else {
             if (def.isActual.not()){
                 LOGGER.logging("write definition ${def.label} ...")
@@ -57,7 +56,7 @@ class DefinitionWriter(
                 val space = if (def.isScoped()) TAB + TAB else TAB
 
                 if (isExternalDefinition) {
-                    writeExternalDefinitionFunction(def, qualifier, createAtStart, param, prefix, ctor, binds, def.scope?.getTagValue())
+                    writeExternalDefinitionFunction(def, qualifier, createAtStart, param, prefix, ctor, binds, def.scope) //def.scope?.getTagValue()
                 }
                 else {
                     writeDefinition(space, def, qualifier, createAtStart, param, prefix, ctor, binds)
@@ -68,7 +67,7 @@ class DefinitionWriter(
         }
     }
 
-    private fun canResolveType(def: KoinMetaData.Definition): Boolean = resolver.getResolution(def) != null
+    private fun canResolveType(def: KoinMetaData.Definition): Boolean = tagResolver.tagExists(def)
 
     private fun writeDefinition(
         space: String,
@@ -80,7 +79,8 @@ class DefinitionWriter(
         ctor: String,
         binds: String
     ) {
-        writeln("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds")
+        val cast = if (def is KoinMetaData.Definition.ClassDefinition && def.isMonitored) " as ${def.packageNamePrefix}${def.className}" else ""
+        writeln("$space${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor$cast} $binds")
     }
 
     private fun writeExternalDefinitionFunction(
@@ -91,15 +91,21 @@ class DefinitionWriter(
         prefix: String,
         ctor: String,
         binds: String,
-        scopeTag : String? = null
+        scope: KoinMetaData.Scope?
+//        scopeTag : String? = null
     ) {
-        val definitionString = "${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor } $binds"
-        val scopeDefinitionString = if (scopeTag == null) {
+        val cast = if (def is KoinMetaData.Definition.ClassDefinition && def.isMonitored) " as ${def.packageNamePrefix}${def.className}" else ""
+        val definitionString = "${def.keyword.keyword}($qualifier$createAtStart) { ${param}${prefix}$ctor$cast } $binds"
+        val scopeDefinitionString = if (scope == null) {
             definitionString
         } else {
-            "scope<$scopeTag>{ $definitionString }"
+            //def.scope?.getTagValue()
+            if (scope is KoinMetaData.Scope.ArchetypeScope) {
+                "${scope.getTagValue()}{ $definitionString }"
+            } else {
+                "scope<${scope.getTagValue()}>{ $definitionString }"
+            }
         }
-
         writeln("@ExternalDefinition(\"${def.packageName}\")")
         writeln("public fun Module.$DEFINE_PREFIX${def.packageName.camelCase()}${def.label}() : Unit { $scopeDefinitionString }")
     }

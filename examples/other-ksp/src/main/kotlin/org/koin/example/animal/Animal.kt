@@ -1,14 +1,15 @@
 package org.koin.example.animal
 
+import jakarta.inject.Qualifier
 import org.koin.core.annotation.*
 import kotlin.random.Random
 
 public interface Animal
 
-@Single(binds = [])
+@Single
 public class Dog : Animal
 
-@Single(binds = [])
+@Single
 public class Cat : Animal
 
 public class Bunny(public val color: String) : Animal
@@ -23,6 +24,7 @@ public annotation class WhiteBunny
 public annotation class BlackBunny
 
 @Module
+@Configuration
 @ComponentScan
 public class AnimalModule {
     @Factory

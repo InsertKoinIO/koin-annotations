@@ -1,3 +1,4 @@
+import io.kotzilla.gradle.ext.KotzillaKeyGeneration
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
@@ -6,7 +7,9 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.kotlinComposeCompiler)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.allOpen)
     alias(libs.plugins.ksp)
+//    alias(libs.plugins.kotzilla)
 }
 
 kotlin {
@@ -66,6 +69,8 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.annotations)
+            implementation(libs.kotzilla.sdk)
+
             implementation(libs.navigation.compose)
         }
     }
@@ -86,15 +91,18 @@ dependencies {
 }
 
 // KSP Metadata Trigger
-project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
-    if(name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
+tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata" }.configureEach {
+    dependsOn("kspCommonMainKotlinMetadata")
 }
 
 ksp {
     arg("KOIN_CONFIG_CHECK","true")
     arg("KOIN_LOG_TIMES","true")
+    arg("KOIN_GENERATION_PACKAGE","com.jetbrains.generated")
+}
+
+allOpen {
+    annotation("org.koin.core.annotation.Monitor")
 }
 
 android {
@@ -130,3 +138,11 @@ android {
         debugImplementation(libs.androidx.compose.ui.tooling)
     }
 }
+
+//kotzilla {
+//    //CMP
+//    versionName = "1.0-KOTZ"
+//    keyGeneration = KotzillaKeyGeneration.COMPOSE
+//    //Optional
+//    composeInstrumentation = true
+//}

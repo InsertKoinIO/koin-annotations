@@ -16,6 +16,8 @@ import org.koin.example.by.example.ByModule
 import org.koin.example.defaultparam.COMPONENT_DEFAULT
 import org.koin.example.defaultparam.Component
 import org.koin.example.defaultparam.MyModule
+import org.koin.example.inject.MyInjectedCtorClass
+import org.koin.example.inject.MySingleton
 import org.koin.example.injparam.InjectedParamModule
 import org.koin.example.injparam.MyInjectFactory
 import org.koin.example.`interface`.MyInterfaceExt
@@ -23,6 +25,7 @@ import org.koin.example.newmodule.*
 import org.koin.example.newmodule.ComponentWithProps.Companion.DEFAULT_ID
 import org.koin.example.newmodule.mymodule.MyModule3
 import org.koin.example.newmodule.mymodule.MyOtherComponent3
+import org.koin.example.qualifier.CoroutineDispatcherConsumer
 import org.koin.example.qualifier.LazyStuffCounter
 import org.koin.example.qualifier.QualifierModule
 import org.koin.example.qualifier.StuffCounter
@@ -34,9 +37,9 @@ import org.koin.example.supertype.A
 import org.koin.example.supertype.B
 import org.koin.example.supertype.C
 import org.koin.example.supertype.D
-import org.koin.example.supertype.SuperTypesModule
-import org.koin.ksp.generated.defaultModule
-import org.koin.ksp.generated.module
+import org.koin.example.supertype.MyType
+import org.koin.ksp.generated.koinApplication
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -47,23 +50,8 @@ class TestModule {
 
     @Test
     fun testApp() {
-        val koin = koinApplication {
+        val koin = OtherApp.koinApplication {
             printLogger(Level.DEBUG)
-            // else let's use our modules
-            modules(
-                defaultModule,
-                MyModule3().module,
-                MyModule2().module,
-                AnimalModule().module,
-                ScopeModule().module,
-                ByModule().module,
-                MyModule().module,
-                SuperTypesModule().module,
-                BindTestsModule().module,
-                QualifierModule().module,
-                InjectedParamModule().module,
-                QualifierModule().module,
-            )
         }.koin
 
         koin.get<MyInterfaceExt>()
@@ -126,12 +114,19 @@ class TestModule {
 
         assertEquals(2,koin.get<StuffList>(named("another-counter")).list.size)
         assertEquals("another-counter",koin.get<StuffCounter>().name)
+
+        assertNotNull(koin.getOrNull<MyType.MyChildType>())
+
+        assertEquals(koin.get<MyInjectedCtorClass>().s,  koin.get<MySingleton>())
+
+        assertEquals("IO",  koin.get<CoroutineDispatcherConsumer>().dispatcher.name)
     }
 
 
 
     private fun randomGetAnimal(koin: Koin): Animal {
-        val a = koin.get<Animal>()
+        val animals = koin.getAll<Animal>()
+        val a = animals[Random.nextInt(animals.size)]
         println("animal: $a")
         return a
     }

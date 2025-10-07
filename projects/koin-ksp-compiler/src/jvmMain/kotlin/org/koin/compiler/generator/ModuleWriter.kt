@@ -15,44 +15,35 @@
  */
 package org.koin.compiler.generator
 
-import org.koin.compiler.generator.ext.appendText
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.DefinitionWriter.Companion.CREATED_AT_START
 import org.koin.compiler.generator.DefinitionWriter.Companion.TAB
-import org.koin.compiler.generator.ext.getNewFile
-import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
-import org.koin.compiler.metadata.KOIN_VIEWMODEL_MP
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.scanner.ext.filterForbiddenKeywords
 import org.koin.compiler.generator.ext.toSourceString
+import org.koin.compiler.metadata.KOIN_VIEWMODEL
+import org.koin.compiler.metadata.KOIN_VIEWMODEL_ANDROID
+import org.koin.compiler.metadata.tag.TagResolver
 import org.koin.compiler.type.clearPackageSymbols
-import java.io.OutputStream
 
 abstract class ModuleWriter(
-    val codeGenerator: CodeGenerator,
-    val resolver: Resolver,
+    codeGenerator: CodeGenerator,
     val module: KoinMetaData.Module,
-) {
-    abstract val fileName: String
+    val tagResolver: TagResolver,
+    val doExportDefinitions: Boolean = true
+) : AbstractFileWriter(codeGenerator) {
 
     open val hasExternalDefinitions: Boolean = false
     open val generateModuleBody: Boolean = true
-
-    private fun createFileStream(): OutputStream = codeGenerator.getNewFile(fileName = fileName)
-    private var fileStream: OutputStream? = null
-    protected fun write(s: String) { fileStream?.appendText(s) }
-    protected fun writeln(s: String) = write("$s\n")
-    protected fun writeEmptyLine() = writeln("")
     private lateinit var definitionFactory : DefinitionWriterFactory
-
     private val modulePath = if (module.packageName.isEmpty()) module.name else "${module.packageName}.${module.name}"
     private val generatedField = "${module.packageName("_").clearPackageSymbols()}_${module.name}"
 
     //TODO Remove isComposeViewModelActive with Koin 4
     fun writeModule(isViewModelMPActive: Boolean, generateIncludeModules: List<KoinMetaData.ModuleInclude> = emptyList()) {
         fileStream = createFileStream()
-        definitionFactory = DefinitionWriterFactory(resolver, fileStream!!)
+        definitionFactory = DefinitionWriterFactory(fileStream!!, tagResolver)
 
         writeHeader()
         writeHeaderImports(isViewModelMPActive)
@@ -62,8 +53,15 @@ abstract class ModuleWriter(
         }
 
         if (hasExternalDefinitions) {
+            if (!doExportDefinitions){
+                writeln("// Definitions export skipped")
+                writeln("/*")
+            }
             writeExternalDefinitionImports()
             writeExternalDefinitions()
+            if (!doExportDefinitions){
+                writeln("*/")
+            }
         }
 
         writeEmptyLine()
@@ -116,13 +114,14 @@ abstract class ModuleWriter(
         definitions: List<KoinMetaData.Definition>,
         isViewModelMPActive: Boolean
     ): String {
-        return definitions.map { definition -> definition.keyword }
+        return definitions.flatMap { definition -> listOf(definition.keyword, definition.keyword.parentKeyword) }
             .toSet()
             .mapNotNull { keyword ->
-                if (isViewModelMPActive && keyword == KOIN_VIEWMODEL_ANDROID) {
-                    KOIN_VIEWMODEL_MP.import.let { "import $it" }
+                if (!isViewModelMPActive && keyword == KOIN_VIEWMODEL) {
+                    LOGGER.warn("[Warning] KOIN_USE_COMPOSE_VIEWMODEL is deprecated and will be used by default. Please use 'KOIN_USE_COMPOSE_VIEWMODEL' = true, with '${KOIN_VIEWMODEL.import}'")
+                    keyword.import?.let { "import ${KOIN_VIEWMODEL_ANDROID.import}" }
                 } else {
-                    keyword.import?.let { "import $it" }
+                    keyword?.import?.let { "import $it" }
                 }
             }
             .joinToString(separator = "\n")
@@ -162,14 +161,7 @@ abstract class ModuleWriter(
 
     open fun writeModuleIncludes() {
         if (module.includes?.isNotEmpty() == true){
-            generateIncludes()?.let { writeln("${TAB}includes($it)") }
-        }
-    }
-
-    private fun generateIncludes(): String? {
-        return module.includes?.joinToString(separator = ",") {
-            if (it.packageName.isEmpty()) "${it.className}().module"
-            else "${it.packageName}.${it.className}().module"
+            writeln("${TAB}includes(${generateIncludes(module.includes)})")
         }
     }
 
@@ -201,6 +193,11 @@ abstract class ModuleWriter(
                 val packageName = type.packageName.asString().filterForbiddenKeywords()
                 val className = type.simpleName.asString()
                 "${TAB}scope<$packageName.$className> {"
+            }
+
+            is KoinMetaData.Scope.ArchetypeScope -> {
+                val archetype = scope.name
+                "${TAB}$archetype {"
             }
 
             is KoinMetaData.Scope.StringScope -> "${TAB}scope(org.koin.core.qualifier.StringQualifier(\"${scope.name}\")) {"

@@ -1,5 +1,6 @@
 package org.koin.example.binds
 
+import org.koin.core.annotation.Configuration
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 
@@ -12,6 +13,7 @@ public class CallImpl : Call
 public class ClientWithBinds(public val call : Call, public val network: Network)
 
 @Module
+@Configuration
 public class BindTestsModule{
 
     @Single(binds = [Call::class])

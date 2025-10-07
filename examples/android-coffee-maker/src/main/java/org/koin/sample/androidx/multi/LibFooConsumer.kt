@@ -7,9 +7,9 @@ import org.koin.example.multi.FooBase
 
 @Module
 @ComponentScan
-class LibFooDModule
+class LibFooConsumerModule
 
 @Factory
-class FooD : FooBase() {
+class FooD(val b : FooB) : FooBase() {
     val text = "text D"
 }

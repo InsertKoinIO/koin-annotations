@@ -4,8 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.Monitor
 import org.koin.core.annotation.Single
 
+@Monitor
 @Single
 class MuseumRepository(
     private val museumApi: MuseumApi,

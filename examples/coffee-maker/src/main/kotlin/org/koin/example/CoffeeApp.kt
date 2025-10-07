@@ -1,5 +1,6 @@
 package org.koin.example
 
+import org.koin.core.annotation.KoinApplication
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
@@ -19,21 +20,30 @@ class CoffeeApp : KoinComponent {
 
 // be sure to import "import org.koin.ksp.generated.*"
 
-fun main() {
-    startKoin {
-        printLogger(Level.DEBUG)
-        // if no module
-//        defaultModule()
+@KoinApplication
+object CoffeeKoinApp
 
-        // else let's use our modules
-        modules(
-            CoffeeAppModule().module,
-            CoffeeTesterModule().module,
-            TeaModule().module,
-            ExternalModule().module,
-            org.koin.example.test.ext2.ExternalModule().module,
-            ScopeModule().module
-        )
+fun main() {
+
+//    startKoin {
+//        printLogger(Level.DEBUG)
+//        // if no module
+////        defaultModule()
+//
+//        // else let's use our modules
+//        modules(
+//            CoffeeAppModule().module,
+//            CoffeeTesterModule().module,
+//            TeaModule().module,
+//
+//            ExternalModule().module,
+//            org.koin.example.test.ext2.ExternalModule().module,
+//            ScopeModule().module
+//        )
+//    }
+
+    CoffeeKoinApp.startKoin {
+        printLogger(Level.DEBUG)
     }
 
     val coffeeShop = CoffeeApp()

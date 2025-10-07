@@ -16,14 +16,14 @@
 package org.koin.compiler.generator
 
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.tag.TagResolver
 
 class ClassModuleWriter(
     codeGenerator: CodeGenerator,
-    resolver: Resolver,
+    tagResolver : TagResolver,
     module: KoinMetaData.Module
-) : ModuleWriter(codeGenerator, resolver, module) {
+) : ModuleWriter(codeGenerator, module, tagResolver) {
 
     override val fileName : String = generateModuleFileName(module)
     private fun generateModuleFileName(m: KoinMetaData.Module): String {

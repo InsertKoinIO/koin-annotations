@@ -19,6 +19,7 @@ import com.google.devtools.ksp.symbol.*
 import org.koin.compiler.metadata.*
 import org.koin.compiler.type.forbiddenKeywords
 import org.koin.core.annotation.*
+import java.util.ArrayList
 
 fun KSAnnotated.getKoinAnnotations(): Map<String, KSAnnotation> {
     return annotations
@@ -46,13 +47,21 @@ fun List<KSValueArgument>.getScope(): KoinMetaData.Scope {
         ?: error("Scope annotation needs parameters: either type value or name")
 }
 
-fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>, allBindings : List<KSDeclaration>): Triple<KoinMetaData.Scope, List<KSDeclaration>, DefinitionAnnotation?> {
-    val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
-    val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
-    val extraAnnotation = annotations[extraAnnotationDefinition?.annotationName]
-    val extraDeclaredBindings = extraAnnotation?.let { declaredBindings(it) }
-    val extraScopeBindings = if(extraDeclaredBindings?.hasDefaultUnitValue() == false) extraDeclaredBindings else allBindings
-    return Triple(scopeData, extraScopeBindings, extraAnnotationDefinition)
+data class ScopeDataValues(
+    val scopeData: KoinMetaData.Scope,
+    val extraAnnotationDefinition: DefinitionAnnotation?
+)
+
+fun getAnnotationScopeData(annotation: KSAnnotation, annotations : Map<String, KSAnnotation>): ScopeDataValues {
+    val annotationName = annotation.shortName.asString()
+    return if (annotationName in SCOPE_ARCHETYPES_LIST_NAMES) {
+        val annotation = SCOPE_ARCHETYPES_MAP[annotationName] ?: error("can't find $annotationName in Scope Archetypes Annotations")
+        ScopeDataValues(KoinMetaData.Scope.ArchetypeScope(annotation.keyword), SCOPED.copy(parentKeyword = annotation))
+    } else {
+        val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
+        val extraAnnotationDefinition = getExtraScopeAnnotation(annotations)
+        ScopeDataValues(scopeData, extraAnnotationDefinition)
+    }
 }
 
 fun List<KSValueArgument>.getNamed(): KoinMetaData.Named {
@@ -81,7 +90,13 @@ fun List<KSValueArgument>.getQualifier(): KoinMetaData.Qualifier {
             ?: error("Qualifier annotation needs parameters: either type value or name")
 }
 
-private val qualifierAnnotations = listOf(Named::class.simpleName, Qualifier::class.simpleName)
+private val qualifierAnnotations = listOf("Named","Qualifier")
+//private val qualifierAnnotations = listOf(
+//    Named::class.simpleName,
+//    Qualifier::class.simpleName,
+//    jakarta.inject.Qualifier::class.simpleName,
+//    jakarta.inject.Named::class.simpleName
+//)
 
 fun KSAnnotation.hasQualifier(): Boolean {
     val annotationName = shortName.asString()
@@ -90,9 +105,15 @@ fun KSAnnotation.hasQualifier(): Boolean {
 
 fun KSAnnotation.getQualifier(): String? {
     return when(shortName.asString()){
-        "${Named::class.simpleName}" -> arguments.getNamed().getValue()
-        "${Qualifier::class.simpleName}" -> arguments.getQualifier().getValue()
-        else -> annotationType.resolve().declaration.qualifiedName?.asString()
+        "Named" -> arguments.getNamed().getValue()
+        "Qualifier" -> arguments.getQualifier().getValue()
+        else -> {
+            val baseName = annotationType.resolve().declaration.qualifiedName?.asString()
+            val args = arguments.joinToString("_") { arg ->
+                "${arg.name?.asString()}_${arg.value}"
+            }
+            if (args.isNotEmpty()) "${baseName}_$args" else baseName
+        }
     }
 }
 
@@ -150,6 +171,10 @@ private fun KSType.isCustomQualifierAnnotation(): Boolean {
 
 internal fun List<KSValueArgument>.getValueArgument(): String? {
     return firstOrNull { a -> a.name?.asString() == "value" }?.value as? String?
+}
+
+internal fun List<KSValueArgument>.getArray(fieldName : String): ArrayList<String>? {
+    return firstOrNull { a -> a.name?.asString() == fieldName }?.value as? ArrayList<String>?
 }
 
 internal fun List<KSValueArgument>.getScopeArgument(): String? {

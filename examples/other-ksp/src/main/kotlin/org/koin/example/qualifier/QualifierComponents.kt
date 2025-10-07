@@ -1,5 +1,6 @@
 package org.koin.example.qualifier
 
+import org.koin.core.annotation.Configuration
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
@@ -10,6 +11,7 @@ public class StuffCounter(public val list: List<Stuff>, public val name : String
 public data class Stuff(val name : String)
 
 @Module
+@Configuration
 public class QualifierModule {
 
     //Can't have Qualifier + List

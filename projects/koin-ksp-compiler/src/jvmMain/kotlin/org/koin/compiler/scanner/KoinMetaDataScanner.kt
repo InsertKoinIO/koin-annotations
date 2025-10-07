@@ -23,24 +23,39 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.validate
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
+import org.koin.compiler.generator.GenerationConfig
 import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.KoinMetaData.ModuleInclude
+import org.koin.compiler.scanner.ext.getValueArgument
 import org.koin.compiler.util.anyMatch
+import org.koin.core.annotation.KoinApplication
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.PropertyValue
 import org.koin.meta.annotations.ExternalDefinition
+import org.koin.meta.annotations.MetaModule
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 class KoinMetaDataScanner(
     private val logger: KSPLogger
 ) {
 
+    private val applicationMetadataScanner = ApplicationScanner(logger)
     private val moduleMetadataScanner = ModuleScanner(logger)
     private val componentMetadataScanner = ClassComponentScanner(logger)
-    private val functionMetadataScanner = FunctionComponentScanner(logger)
+    private val functionMetadataScanner = FunctionComponentScanner(logger){ classFound ->
+        val def = componentMetadataScanner.createClassDefinition(classFound)
+        addToModule(def, defaultModule, currentIndex)
+    }
+    
+    // Cache for module lookup optimization
+    private var moduleCache: Map<String, KoinMetaData.Module> = emptyMap()
+    private lateinit var currentIndex: List<KoinMetaData.Module>
+    private lateinit var defaultModule: KoinMetaData.Module
 
     fun findInvalidSymbols(resolver: Resolver): List<KSAnnotated> {
-        val invalidModuleSymbols = resolver.getInvalidModuleSymbols()
+        val invalidModuleSymbols = resolver.getInvalidSymbols<Module>()
         val invalidDefinitionSymbols = resolver.getInvalidDefinitionSymbols()
 
         val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
@@ -53,16 +68,127 @@ class KoinMetaDataScanner(
         return emptyList()
     }
 
-    fun scanKoinModules(
+    fun scanApplicationsAndConfigurations(
+        resolver: Resolver,
+        moduleList: List<KoinMetaData.Module>,
+    ): List<KoinMetaData.Application> {
+        val applications = scanClassApplications(resolver)
+        return if (applications.isNotEmpty()){
+
+            val activeConfigurations = applications.flatMap { it.configurationTags }.toSet()
+            val configurations = extractAndBuildConfigurations(activeConfigurations, moduleList, resolver)
+
+            // add configs content
+            applications.map { application ->
+                val configKeys = application.configurationTags
+                application.copy(
+                    configurations = configKeys.map { config -> configurations.first { it.name == config.name } }
+                )
+            }
+        } else emptyList()
+    }
+
+    private fun extractAndBuildConfigurations(
+        runningConfigurations: Set<KoinMetaData.ConfigurationTag>,
+        moduleList: List<KoinMetaData.Module>,
+        resolver: Resolver
+    ): List<KoinMetaData.Configuration> {
+        val localConfigurations = runningConfigurations.associateWith { config -> // Module to see any @Config
+            moduleList.filter { if (it.configurationTags?.isNotEmpty() == true) config in it.configurationTags else false }
+        }.toMutableMap()
+
+        //check in meta modules
+        val metaConfigurations = extractMetaModulesInConfigurations(resolver)
+
+        // now associate all configs
+        associateConfigurations(metaConfigurations, localConfigurations)
+
+        return localConfigurations.mapToConfiguration()
+    }
+
+    private fun MutableMap<KoinMetaData.ConfigurationTag, List<KoinMetaData.Module>>.mapToConfiguration() : List<KoinMetaData.Configuration> {
+        return map { (k,v) ->
+            KoinMetaData.Configuration(
+                k.name,v.map { ModuleInclude(packageName = it.packageName, className = it.name, isExpect = false, isActual = false, isObject = it.type.isObject) }
+            )
+        }
+    }
+
+    public fun extractMetaModulesInConfigurations(resolver: Resolver): Map<String, List<MetaModuleData>> {
+        val metaModulesWithConfig = extractMetaModulesForConfig(resolver)
+
+        val allMetaConfigs = metaModulesWithConfig.flatMap { it.configList }.distinct()
+        val metaConfigurations = allMetaConfigs.associateWith { config ->
+            metaModulesWithConfig.mapNotNull { if (config in it.configList) it else null }
+        }
+        return metaConfigurations
+    }
+
+    private fun associateConfigurations(
+        metaConfigurations: Map<String, List<MetaModuleData>>,
+        configurations: MutableMap<KoinMetaData.ConfigurationTag, List<KoinMetaData.Module>>
+    ) {
+        metaConfigurations.forEach { (configName, modulesName) ->
+            val foundConfig = configurations[KoinMetaData.ConfigurationTag(configName)]
+            if (foundConfig == null){
+                logger.info("skip configuration '$configName' with $modulesName")
+            }
+            foundConfig?.let {
+                val newList = modulesName.toSet().map { module ->
+                    val moduleName = module.value
+                    val lastDotIndex = moduleName.lastIndexOf('.')
+                    val (packageName, moduleNameOnly) = if (lastDotIndex >= 0) {
+                        moduleName.substring(0, lastDotIndex) to moduleName.substring(lastDotIndex + 1)
+                    } else {
+                        "" to moduleName
+                    }
+                    KoinMetaData.Module(packageName, moduleNameOnly, type = if(module.isObject) KoinMetaData.ModuleType.OBJECT else KoinMetaData.ModuleType.CLASS)
+                }
+                configurations[KoinMetaData.ConfigurationTag(configName)] = foundConfig + newList
+            }
+        }
+    }
+
+    data class MetaModuleData(val value : String, val configList : List<String>, val isObject : Boolean)
+
+    // return Module <-> List<Config>
+    private fun extractMetaModulesForConfig(resolver: Resolver): List<MetaModuleData> =
+        resolver.getExternalMetaModulesSymbols()
+            .mapNotNull { metaModule ->
+                val annotation = metaModule.annotations.firstOrNull { it.shortName.asString() == MetaModule::class.simpleName!! }
+
+                val value = annotation?.arguments?.getValueArgument()
+                value?.let {
+                    val configList = annotation.arguments.firstOrNull { it.name?.asString() == "configurations" }?.value as? ArrayList<String>
+                            ?: emptyList()
+                    val isObject = annotation.arguments.firstOrNull { it.name?.asString() == "isObject" }?.value as? Boolean ?: false
+
+                    // keep only modules with config
+                    if (configList.isNotEmpty()) {
+                        MetaModuleData(
+                            value,
+                            configList,
+                            isObject
+                        )
+                    } else null
+                }
+        }
+
+    fun scanKoinModulesAndDefinitions(
         defaultModule: KoinMetaData.Module,
         resolver: Resolver
     ): List<KoinMetaData.Module> {
         val moduleList = scanClassModules(resolver)
-        val index = moduleList.generateScanComponentIndex()
-        scanClassComponents(defaultModule, index, resolver)
-        scanFunctionComponents(defaultModule, index, resolver)
-        scanDefaultProperties(index+defaultModule, resolver)
-        scanExternalDefinitions(index, resolver)
+        currentIndex = moduleList.generateScanComponentIndex()
+        this.defaultModule = defaultModule
+        
+        // Build module lookup cache to optimize addToModule performance
+        moduleCache = buildModuleLookupCache(currentIndex)
+        
+        scanClassComponents(resolver)
+        scanFunctionComponents(resolver)
+        scanDefaultProperties(currentIndex+defaultModule, resolver)
+        scanExternalDefinitions(resolver)
         return moduleList
     }
 
@@ -70,7 +196,7 @@ class KoinMetaDataScanner(
         index: List<KoinMetaData.Module>,
         resolver: Resolver
     ) {
-        val propertyValues: List<KoinMetaData.PropertyValue> = resolver.getValidPropertySymbols()
+        val propertyValues: List<KoinMetaData.PropertyValue> = resolver.getValidSymbols<PropertyValue>()
             .mapNotNull { def ->
             def.annotations
                 .first { it.shortName.asString() == PropertyValue::class.simpleName }
@@ -86,17 +212,16 @@ class KoinMetaDataScanner(
             .flatMap { it.parameters }
             .filterIsInstance<KoinMetaData.DefinitionParameter.Property>()
 
-        //associate default values
-        propertyValues
-            .forEach { propertyValue ->
-                allProperties.filter { it.value == propertyValue.id }.forEach {
-                    it.defaultValue = propertyValue
-                }
+        //associate default values - optimized O(n) lookup instead of O(n*m)
+        val propertyMap = allProperties.groupBy { it.value }
+        propertyValues.forEach { propertyValue ->
+            propertyMap[propertyValue.id]?.forEach { property ->
+                property.defaultValue = propertyValue
             }
+        }
     }
 
     private fun scanExternalDefinitions(
-        index: List<KoinMetaData.Module>,
         resolver: Resolver
     ) {
         resolver.getExternalDefinitionSymbols()
@@ -109,14 +234,22 @@ class KoinMetaDataScanner(
                     }
             }
             .forEach { extDef ->
-                val module = index.firstOrNull { it.acceptDefinition(extDef.targetPackage) }
+                val module = findModuleForDefinition(extDef.targetPackage, currentIndex, null)
                 module?.externalDefinitions?.add(extDef)
             }
     }
 
+    private fun scanClassApplications(resolver: Resolver): List<KoinMetaData.Application> {
+        logger.logging("scan applications ...")
+        return resolver.getValidSymbols<KoinApplication>()
+            .filterIsInstance<KSClassDeclaration>()
+            .map { applicationMetadataScanner.createClassApplication(it) }
+            .toList()
+    }
+
     private fun scanClassModules(resolver: Resolver): List<KoinMetaData.Module> {
         logger.logging("scan modules ...")
-        return resolver.getValidModuleSymbols()
+        return resolver.getValidSymbols<Module>()
             .filterIsInstance<KSClassDeclaration>()
             .map { moduleMetadataScanner.createClassModule(it) }
             .toList()
@@ -143,10 +276,8 @@ class KoinMetaDataScanner(
     }
 
     private fun scanFunctionComponents(
-        defaultModule: KoinMetaData.Module,
-        scanComponentIndex: List<KoinMetaData.Module>,
         resolver: Resolver
-    ): List<KoinMetaData.Definition> {
+    ) {
         logger.logging("scan functions ...")
 
         val definitions = resolver.getValidDefinitionSymbols()
@@ -154,23 +285,52 @@ class KoinMetaDataScanner(
             .mapNotNull { functionMetadataScanner.createFunctionDefinition(it) }
             .toList()
 
-        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
-        return definitions
+        definitions.forEach { addToModule(it, defaultModule, currentIndex) }
     }
 
     private fun scanClassComponents(
-        defaultModule: KoinMetaData.Module,
-        scanComponentIndex: List<KoinMetaData.Module>,
         resolver: Resolver
-    ): List<KoinMetaData.Definition> {
+    ) {
         logger.logging("scan definitions ...")
 
         val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSClassDeclaration>()
             .map { componentMetadataScanner.createClassDefinition(it) }
             .toList()
-        definitions.forEach { addToModule(it, defaultModule, scanComponentIndex) }
-        return definitions
+        definitions.forEach { addToModule(it, defaultModule, currentIndex) }
+    }
+
+    private fun buildModuleLookupCache(modules: List<KoinMetaData.Module>): Map<String, KoinMetaData.Module> {
+        val cache = mutableMapOf<String, KoinMetaData.Module>()
+        modules.forEach { module ->
+            module.componentsScan.forEach { scan ->
+                if (scan.packageName.isNotEmpty()) {
+                    cache[scan.packageName] = module
+                }
+            }
+        }
+        return cache
+    }
+    
+    private fun findModuleForDefinition(
+        definitionPackage: String,
+        modules: List<KoinMetaData.Module>,
+        defaultModule: KoinMetaData.Module?
+    ): KoinMetaData.Module? {
+        // Try cache first for exact package match
+        moduleCache[definitionPackage]?.let { return it }
+        
+        // Try parent package matches in cache
+        var currentPackage = definitionPackage
+        while (currentPackage.contains('.')) {
+            currentPackage = currentPackage.substringBeforeLast('.')
+            moduleCache[currentPackage]?.let { 
+                if (it.acceptDefinition(definitionPackage)) return it 
+            }
+        }
+        
+        // Fallback to original linear search if not found in cache
+        return modules.firstOrNull { it.acceptDefinition(definitionPackage) } ?: defaultModule
     }
 
     private fun addToModule(
@@ -179,11 +339,11 @@ class KoinMetaDataScanner(
         modules: List<KoinMetaData.Module>
     ) {
         val definitionPackage = definition.packageName
-        val foundModule = modules.firstOrNull { it.acceptDefinition(definitionPackage) } ?: defaultModule
+        val foundModule = findModuleForDefinition(definitionPackage, modules, defaultModule)!!
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
-                logger.info("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
+                logger.logging("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
             }
             foundModule.definitions.add(definition)
         } else {
@@ -195,41 +355,42 @@ class KoinMetaDataScanner(
         classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
     }
 
-    private fun Resolver.getInvalidModuleSymbols(): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
-            .filter { !it.validate() }
-            .toList()
-    }
-
     private fun Resolver.getInvalidDefinitionSymbols(): List<KSAnnotated> {
         return DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
-            this.getSymbolsWithAnnotation(annotation.qualifiedName!!)
+            this.getSymbolsWithAnnotation(annotation)
                 .filter { !it.validate() }
         }
     }
 
-    private fun Resolver.getValidModuleSymbols(): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
-            .filter { it.validate() }
-            .toList()
-    }
-
     private fun Resolver.getValidDefinitionSymbols(): List<KSAnnotated> {
         return DEFINITION_ANNOTATION_LIST_TYPES.flatMap { annotation ->
-            this.getSymbolsWithAnnotation(annotation.qualifiedName!!)
+            this.getSymbolsWithAnnotation(annotation)
                 .filter { it.validate() }
         }
     }
 
-    private fun Resolver.getValidPropertySymbols(): List<KSAnnotated> {
-        return this.getSymbolsWithAnnotation(PropertyValue::class.qualifiedName!!)
+    private inline fun <reified T> Resolver.getValidSymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(T::class.qualifiedName!!)
             .filter { it.validate() }
+            .toList()
+    }
+
+    private inline fun <reified T> Resolver.getInvalidSymbols(): List<KSAnnotated> {
+        return this.getSymbolsWithAnnotation(T::class.qualifiedName!!)
+            .filter { !it.validate() }
+            .toList()
+    }
+
+    @OptIn(KspExperimental::class)
+    fun Resolver.getExternalMetaModulesSymbols(): List<KSDeclaration> {
+        return this.getDeclarationsFromPackage(GenerationConfig.getGenerationPath())
+            .filter { a -> a.annotations.any { it.shortName.asString() == MetaModule::class.java.simpleName!! } }
             .toList()
     }
 
     @OptIn(KspExperimental::class)
     private fun Resolver.getExternalDefinitionSymbols(): List<KSDeclaration> {
-        return this.getDeclarationsFromPackage("org.koin.ksp.generated")
+        return this.getDeclarationsFromPackage(GenerationConfig.getGenerationPath())
             .filter { a -> a.annotations.any { it.shortName.asString() == DEFINITION_ANNOTATION } }
             .toList()
     }
@@ -238,3 +399,4 @@ class KoinMetaDataScanner(
         private val DEFINITION_ANNOTATION = ExternalDefinition::class.simpleName
     }
 }
+

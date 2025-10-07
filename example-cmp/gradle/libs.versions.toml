@@ -1,18 +1,20 @@
 [versions]
+kotlin = "2.1.21"
 agp = "8.6.1"
 androidx-activityCompose = "1.10.1"
 androidx-ui-tooling = "1.8.2"
-compose-plugin = "1.8.1"
+compose-plugin = "1.8.2"
 kamel = "0.9.4"
-koin = "4.1.0"
-koin-annotations = "2.1.0"
-kotlin = "2.1.20"
 ktor = "3.1.3"
 materialIconsCore = "1.7.3"
-navigationCompose = "2.9.0-beta01"
-lifecycleCompose = "2.9.0-beta01"
-ksp = "2.1.20-1.0.32"
+navigationCompose = "2.9.0-beta05"
+lifecycleCompose = "2.9.2"
 coil = "3.2.0"
+
+koin = "4.1.1"
+koin-annotations = "2.2.0"
+kotzilla = "1.2.2"
+ksp = "2.1.21-2.0.2"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -31,6 +33,8 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 koin-annotations = {module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations"}
 koin-ksp-compiler = {module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations"}
+kotzilla-core = {module = "io.kotzilla:kotzilla-core", version.ref = "kotzilla"}
+kotzilla-sdk = {module = "io.kotzilla:kotzilla-sdk-compose", version.ref = "kotzilla"}
 
 lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleCompose" }
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
@@ -41,6 +45,8 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+allOpen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 kotlinComposeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotzilla = { id  = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla" }

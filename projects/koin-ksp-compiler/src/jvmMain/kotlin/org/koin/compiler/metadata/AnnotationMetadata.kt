@@ -20,73 +20,115 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import org.koin.android.annotation.KoinViewModel
 import org.koin.android.annotation.KoinWorker
-import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
+import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.core.annotation.*
 import java.util.*
 import kotlin.reflect.KClass
 
-data class DefinitionAnnotation(
-    val keyword: String,
-    val import: String? = null,
-    val annotationType: KClass<*>
-) {
-    val annotationName = annotationType.simpleName
+interface DefinitionAnnotation {
+    val keyword: String
+    val import: String?
+    val parentKeyword: DefinitionAnnotation?
+    val annotationSimpleName : String
+    val annotationQualifiedName : String
 }
 
-val SINGLE = DefinitionAnnotation("single", annotationType = Single::class)
-val SINGLETON = DefinitionAnnotation("single", annotationType = Singleton::class)
-val FACTORY = DefinitionAnnotation("factory", annotationType = Factory::class)
-val SCOPE = DefinitionAnnotation("scoped", annotationType = Scope::class)
-val SCOPED = DefinitionAnnotation("scoped", annotationType = Scoped::class)
+data class DefinitionClassAnnotation(
+    override val keyword: String,
+    override val import: String? = null,
+    val annotationType: KClass<*>,
+    override val parentKeyword: DefinitionAnnotation? = null,
+) :DefinitionAnnotation {
+    override val annotationSimpleName: String = annotationType.simpleName!!
+    override val annotationQualifiedName: String = annotationType.qualifiedName!!
+}
 
-val KOIN_VIEWMODEL_ANDROID = DefinitionAnnotation("viewModel", "org.koin.androidx.viewmodel.dsl.viewModel", KoinViewModel::class)
-val KOIN_VIEWMODEL_MP = DefinitionAnnotation("viewModel", "org.koin.core.module.dsl.viewModel", KoinViewModel::class)
+data class DefinitionNamedAnnotation(
+    override val keyword: String,
+    override val import: String? = null,
+    override val annotationSimpleName: String,
+    override val annotationQualifiedName: String,
+    override val parentKeyword: DefinitionAnnotation? = null,
+) :DefinitionAnnotation
 
-val KOIN_WORKER = DefinitionAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
+val SINGLE = DefinitionClassAnnotation("single", annotationType = Single::class)
+val SINGLETON = DefinitionNamedAnnotation("single", null, "Singleton","jakarta.inject.Singleton")
+val JAVAX_SINGLETON = DefinitionNamedAnnotation("single", null, "Singleton","javax.inject.Singleton")
+val FACTORY = DefinitionClassAnnotation("factory", annotationType = Factory::class)
+val INJECT = DefinitionNamedAnnotation("factory", null, "Inject","jakarta.inject.Inject")
+val JAVAX_INJECT = DefinitionNamedAnnotation("factory", null, "Inject","javax.inject.Inject")
+val SCOPE = DefinitionClassAnnotation("scoped", annotationType = Scope::class)
+val SCOPED = DefinitionClassAnnotation("scoped", annotationType = Scoped::class)
 
-val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON,FACTORY, SCOPE, SCOPED,KOIN_VIEWMODEL_ANDROID, KOIN_WORKER)
-val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationType }
-val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationName?.lowercase(Locale.getDefault()) }
+@Deprecated("To be use with KOIN_VIEWMODEL")
+val KOIN_VIEWMODEL_ANDROID = DefinitionClassAnnotation("viewModel", "org.koin.androidx.viewmodel.dsl.viewModel", KoinViewModel::class)
+val KOIN_VIEWMODEL = DefinitionClassAnnotation("viewModel", "org.koin.core.module.dsl.viewModel", KoinViewModel::class)
 
-val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY, KOIN_VIEWMODEL_ANDROID, KOIN_WORKER)
-val SCOPE_DEFINITION_ANNOTATION_LIST_NAMES = SCOPE_DEFINITION_ANNOTATION_LIST.map { it.annotationName?.lowercase(Locale.getDefault()) }
+val KOIN_WORKER = DefinitionClassAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
+
+val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON, JAVAX_SINGLETON, FACTORY, INJECT, JAVAX_INJECT, SCOPE, SCOPED, KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
+
+val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationQualifiedName }
+val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName.lowercase(Locale.getDefault()) }
+val DEFINITION_ANNOTATION_MAP = DEFINITION_ANNOTATION_LIST.associate { it.annotationSimpleName to it }
+
+val SCOPE_DEFINITION_ANNOTATION_LIST = listOf(SCOPED, FACTORY,INJECT, KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
+val SCOPE_DEFINITION_ANNOTATION_LIST_NAMES = SCOPE_DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName.lowercase(Locale.getDefault()) }
 
 
 fun isValidAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) in DEFINITION_ANNOTATION_LIST_NAMES
 fun isValidScopeExtraAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) in SCOPE_DEFINITION_ANNOTATION_LIST_NAMES
-fun isScopeAnnotation(s: String): Boolean = s.lowercase(Locale.getDefault()) == SCOPE.annotationName?.lowercase(Locale.getDefault())
+fun isScopeAnnotation(s: String): Boolean = s.equals(SCOPE.annotationSimpleName, ignoreCase = true)
 
 fun getExtraScopeAnnotation(annotations: Map<String, KSAnnotation>): DefinitionAnnotation? {
     val key = annotations.keys.firstOrNull { k -> isValidScopeExtraAnnotation(k) }
     val definitionAnnotation = when (key) {
-        SCOPED.annotationName -> SCOPED
-        FACTORY.annotationName -> FACTORY
-        KOIN_VIEWMODEL_ANDROID.annotationName -> KOIN_VIEWMODEL_ANDROID
-        KOIN_WORKER.annotationName -> KOIN_WORKER
+        SCOPED.annotationSimpleName -> SCOPED
+        FACTORY.annotationSimpleName -> FACTORY
+        KOIN_VIEWMODEL.annotationSimpleName -> KOIN_VIEWMODEL
+        KOIN_WORKER.annotationSimpleName -> KOIN_WORKER
         else -> null
     }
     return definitionAnnotation
 }
 
-fun declaredBindings(annotation: KSAnnotation): List<KSDeclaration>? {
-    val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
-    return declaredBindingsTypes?.map { it.declaration }
+fun declaredBindings(annotation: KSAnnotation?): List<KSDeclaration>? {
+    if (annotation == null) return null
+    else {
+        val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
+        return declaredBindingsTypes?.map { it.declaration }
+    }
 }
 
 fun List<KSDeclaration>.hasDefaultUnitValue() : Boolean {
     return size == 1 && first().simpleName.asString() == "Unit"
 }
 
-fun includedModules(annotation: KSAnnotation): List<KSDeclaration>? {
-    val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "includes" }?.value as? List<KSType>?
+fun includedModules(annotation: KSAnnotation, fieldName : String = "includes"): List<KSDeclaration>? {
+    val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == fieldName }?.value as? List<KSType>?
     return declaredBindingsTypes?.map { it.declaration }
 }
 
 fun componentsScanValue(annotation: KSAnnotation): Set<KoinMetaData.Module.ComponentScan> {
-    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value
-    val declaredBindingsTypes = csValue as? List<String>
-    val values = if (declaredBindingsTypes?.isEmpty() == true) listOf("") else declaredBindingsTypes ?: listOf("")
+    val values = extractValueStringList(annotation) ?: return setOf(KoinMetaData.Module.ComponentScan(""))
     return values.map { KoinMetaData.Module.ComponentScan(it.trim()) }.toSet()
+}
+
+fun configurationValue(annotation: KSAnnotation, field : String =  "value"): Set<KoinMetaData.ConfigurationTag> {
+    val values = extractValueStringList(annotation, DEFAULT.name, field)
+    return if (values == null || values.isEmpty() || values == arrayListOf("")) {
+        defaultConfiguration()
+    } else {
+        values.map { KoinMetaData.ConfigurationTag(it.trim()) }.toSet()
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun extractValueStringList(annotation: KSAnnotation, defaultValue : String = "", fieldName : String = "value"): List<String>? {
+    val csValue = annotation.arguments.firstOrNull { arg -> arg.name?.asString() == fieldName }?.value
+    val csValueList = csValue as? List<String>
+    val values = if (csValueList?.isEmpty() == true) listOf(defaultValue) else csValueList
+    return values
 }
 
 fun isCreatedAtStart(annotation: KSAnnotation): Boolean? {

@@ -32,17 +32,30 @@ annotation class ExternalDefinition(val value: String = "")
 /**
  * Meta Definition annotation to help represents
  * @param value: Definition full path
+ * @param moduleTagId - Module Tag + ID => "module_id:module_tag"
  * @param dependencies - Parameters Tags to check
- * @param scope - Scope where it's declared
  * @param binds - Bound types
+ * @param qualifier - Qualifier
+ * @param scope - Scope where it's declared
  */
-@Target(AnnotationTarget.CLASS)
-annotation class MetaDefinition(val value: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
+annotation class MetaDefinition(val value: String = "", val moduleTagId: String = "", val dependencies: Array<String> = [], val binds : Array<String> = [], val qualifier : String = "", val scope : String = "")
 
 /**
  * Meta Definition annotation to help represents
  * @param value: Definition full path
+ * @param id - Module ID
  * @param includes - Includes Module Tags to check
+ * @param configurations - Module Configurations to check
  */
 @Target(AnnotationTarget.CLASS)
-annotation class MetaModule(val value: String = "", val includes: Array<String> = [])
+annotation class MetaModule(val value: String = "", val id: String = "", val includes: Array<String> = [], val configurations: Array<String> = [], val isObject: Boolean = false)
+
+/**
+ * Meta Application annotation to help represents
+ * @param value: Application full path
+ * @param includes - used Module Tags to check
+ * @param configurations - used Configurations modules to check
+ */
+@Target(AnnotationTarget.CLASS)
+annotation class MetaApplication(val value: String = "", val includes: Array<String> = [], val configurations: Array<String> = [])

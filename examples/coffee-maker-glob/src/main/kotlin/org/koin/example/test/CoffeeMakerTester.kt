@@ -1,8 +1,7 @@
 package org.koin.example.test
 
+import jakarta.inject.Named
 import org.koin.core.annotation.Factory
-import org.koin.core.annotation.Named
-import org.koin.core.annotation.Single
 import org.koin.example.coffee.CoffeeMaker
 
 @Factory

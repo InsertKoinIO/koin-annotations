@@ -19,5 +19,6 @@ public class MyScopeFactory(
 )
 
 @Module
+@Configuration
 @ComponentScan
 public class ScopeModule

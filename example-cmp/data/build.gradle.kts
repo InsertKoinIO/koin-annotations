@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.allOpen)
     alias(libs.plugins.ksp)
 }
 
@@ -38,6 +39,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
 
             implementation(libs.koin.core)
+            implementation(libs.kotzilla.core)
             api(libs.koin.annotations)
         }
     }
@@ -51,22 +53,21 @@ kotlin {
 // KSP Tasks
 dependencies {
     add("kspCommonMainMetadata", libs.koin.ksp.compiler)
-    add("kspAndroid", libs.koin.ksp.compiler)
-    add("kspIosX64", libs.koin.ksp.compiler)
-    add("kspIosArm64", libs.koin.ksp.compiler)
-    add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
+//    add("kspAndroid", libs.koin.ksp.compiler)
+//    add("kspIosX64", libs.koin.ksp.compiler)
+//    add("kspIosArm64", libs.koin.ksp.compiler)
+//    add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
 }
 
 // KSP Metadata Trigger
-project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
-    if(name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
+tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata" }.configureEach {
+    dependsOn("kspCommonMainKotlinMetadata")
 }
 
 ksp {
     arg("KOIN_CONFIG_CHECK","true")
     arg("KOIN_LOG_TIMES","true")
+    arg("KOIN_GENERATION_PACKAGE","com.jetbrains.generated")
 }
 
 android {
@@ -98,4 +99,8 @@ android {
     dependencies {
         debugImplementation(libs.androidx.compose.ui.tooling)
     }
+}
+
+allOpen {
+    annotation("org.koin.core.annotation.Monitor")
 }

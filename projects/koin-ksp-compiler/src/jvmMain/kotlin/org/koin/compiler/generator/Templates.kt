@@ -24,8 +24,19 @@ val DEFAULT_MODULE_FOOTER = """
 """.trimIndent()
 
 val MODULE_HEADER = """
-    package org.koin.ksp.generated
+    package ${GenerationConfig.getGenerationPath()}
     
     import org.koin.core.module.Module
     import org.koin.dsl.*
 """.trimIndent()
+
+val APP_HEADER = """
+    package ${GenerationConfig.getGenerationPath()}
+    
+    import org.koin.core.module.KoinApplicationDslMarker
+    import org.koin.core.KoinApplication
+    import org.koin.mp.KoinPlatformTools
+    import org.koin.core.module.Module
+    import org.koin.dsl.*
+""".trimIndent()
+

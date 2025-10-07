@@ -15,10 +15,20 @@
  */
 package org.koin.compiler
 
+/**
+ * Koin Compiler Options
+ *
+ * KOIN_CONFIG_CHECK - Boolean - check all Koin configuration at compile time (Koin compile safety)
+ * KOIN_LOG_TIMES - Boolean - display logs for module generation time
+ * KOIN_DEFAULT_MODULE - Boolean - generate a default module if no module is found for a given definition
+ * KOIN_GENERATION_PACKAGE - String - package to generate generated Koin classes
+ * KOIN_USE_COMPOSE_VIEWMODEL - Boolean - generate viewModel using koin-core-viewmodel (Multiplatform compatible)
+ */
 enum class KspOptions {
     KOIN_CONFIG_CHECK,
     KOIN_LOG_TIMES,
     KOIN_DEFAULT_MODULE,
-
-    KOIN_USE_COMPOSE_VIEWMODEL
+    KOIN_GENERATION_PACKAGE,
+    KOIN_USE_COMPOSE_VIEWMODEL,
+    KOIN_EXPORT_DEFINITIONS
 }

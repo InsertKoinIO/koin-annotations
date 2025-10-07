@@ -7,10 +7,10 @@ import org.koin.example.cycle.CycleModule
 import org.koin.example.cycle.LazyCycleModule
 import org.koin.ksp.generated.*
 
-class TestModule {
+class CycleTestModule {
 
     @Test
-    fun testApp() {
+    fun cycleTestApp() {
         koinApplication {
             printLogger(Level.DEBUG)
             // else let's use our modules

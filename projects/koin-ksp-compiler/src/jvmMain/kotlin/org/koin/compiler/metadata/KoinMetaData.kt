@@ -18,22 +18,48 @@ package org.koin.compiler.metadata
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
+import org.koin.compiler.metadata.KoinMetaData.ConfigurationTag.Companion.DEFAULT
 import org.koin.compiler.util.matchesGlob
 import java.util.*
+import kotlin.math.absoluteValue
 
 typealias PackageName = String
 fun PackageName.camelCase() = split(".").joinToString("") { it.capitalize() }
 
+fun defaultConfiguration(): Set<KoinMetaData.ConfigurationTag> = setOf(DEFAULT)
+
 sealed class KoinMetaData {
+
+    data class Configuration(val name : String, val modules : List<ModuleInclude>)
+
+    data class Application(
+        val packageName: PackageName,
+        val name: String,
+        val configurationTags: Set<ConfigurationTag> = defaultConfiguration(),
+        val type: ModuleType = ModuleType.CLASS,
+        val visibility: Visibility = Visibility.PUBLIC,
+        val configurations : List<Configuration>? = null,
+        val moduleIncludes: List<ModuleInclude>? = null
+    ) {
+        var alreadyGenerated : Boolean? = null
+
+        val fullpath = "$packageName.$name"
+        val hashId = fullpath.hashCode().absoluteValue.toString(36)
+
+        fun packageName(separator: String): String {
+            return splitPackage(packageName, separator)
+        }
+    }
 
     data class Module(
         val packageName: PackageName,
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
         val externalDefinitions: MutableList<ExternalDefinition> = mutableListOf(),
-        val type: ModuleType = ModuleType.FIELD,
+        val type: ModuleType = ModuleType.CLASS,
         val componentsScan: Set<ComponentScan> = emptySet(),
         val includes: List<ModuleInclude>? = null,
+        val configurationTags: Set<ConfigurationTag>? = null,
         val isCreatedAtStart: Boolean? = null,
         val visibility: Visibility = Visibility.PUBLIC,
         val isDefault: Boolean = false,
@@ -41,6 +67,9 @@ sealed class KoinMetaData {
         val isActual : Boolean = false,
         val isSplit : Boolean = false,
     ) : KoinMetaData() {
+
+        val fullpath = "$packageName.$name"
+        val hashId = fullpath.hashCode().absoluteValue.toString(36)
 
         var alreadyGenerated : Boolean? = null
 
@@ -80,21 +109,29 @@ sealed class KoinMetaData {
         }
     }
 
+    data class ConfigurationTag(val name : String){
+        companion object {
+            val DEFAULT = ConfigurationTag("default")
+        }
+    }
+    
     data class ModuleInclude(
         val packageName: PackageName,
         val className : String,
         val isExpect : Boolean,
-        val isActual : Boolean
+        val isActual : Boolean,
+        val isObject : Boolean = false,
     )
 
     enum class ModuleType {
-        FIELD, CLASS, OBJECT;
+        CLASS, OBJECT;
 
         val isObject: Boolean
             get() = this == OBJECT
     }
 
     sealed class Scope {
+        data class ArchetypeScope(val name: String) : Scope()
         data class ClassScope(val type: KSDeclaration) : Scope()
         data class StringScope(val name: String) : Scope()
 
@@ -102,6 +139,7 @@ sealed class KoinMetaData {
             return when (this) {
                 is StringScope -> name
                 is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ArchetypeScope -> name
             }
         }
 
@@ -109,6 +147,7 @@ sealed class KoinMetaData {
             return when (this) {
                 is StringScope -> name
                 is ClassScope -> "${type.packageName.asString()}.${type.simpleName.asString()}"
+                is ArchetypeScope -> name
             }
         }
     }
@@ -151,10 +190,15 @@ sealed class KoinMetaData {
         val bindings: List<KSDeclaration>,
         val scope: Scope? = null,
         val isExpect : Boolean,
-        val isActual : Boolean
+        val isActual : Boolean,
+        val isMonitored : Boolean = false
     ) : KoinMetaData() {
 
         var alreadyGenerated : Boolean? = null
+
+        fun packageName(separator: String): String {
+            return splitPackage(packageName, separator)
+        }
 
         fun isScoped(): Boolean = scope != null
         fun isNotScoped(): Boolean = !isScoped()
@@ -208,7 +252,8 @@ sealed class KoinMetaData {
             bindings: List<KSDeclaration>,
             scope: Scope? = null,
             isExpect : Boolean,
-            isActual : Boolean
+            isActual : Boolean,
+            isMonitored : Boolean,
         ) : Definition(
             className,
             constructorParameters,
@@ -219,7 +264,8 @@ sealed class KoinMetaData {
             bindings,
             scope,
             isExpect,
-            isActual
+            isActual,
+            isMonitored
         )
     }
 

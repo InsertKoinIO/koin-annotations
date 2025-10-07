@@ -2,11 +2,11 @@
 title: Starting with Koin Annotations
 ---
 
-The goal of Koin Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developer experience to scale and go fast 🚀, thanks to Kotlin Compilers.
+The goal of the Koin Annotations project is to help declare Koin definitions in a fast and intuitive way, and generate all underlying Koin DSL for you. The goal is to help developers experience scaling and go fast 🚀, thanks to Kotlin Compilers.
 
 ## Getting Started
 
-Not familiar with Koin? First, take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin)
+Not familiar with Koin? First, take a look at [Koin Getting Started](https://insert-koin.io/docs/quickstart/kotlin/)
 
 Tag your components with definition & module annotations, and use the regular Koin API.
 
@@ -16,30 +16,62 @@ Tag your components with definition & module annotations, and use the regular Ko
 class MyComponent
 ```
 
+### Basic Module Setup
+
 ```kotlin
 // Declare a module and scan for annotations
 @Module
-@ComponentScan
 class MyModule
 ```
 
-Use the `org.koin.ksp.generated.*` import as follows to be able to use generated code:
+Now you can start your Koin application with `@KoinApplication` and explicitly specify the modules to use:
 
 ```kotlin
-// Use Koin Generation
+// The import below gives you access to generated extension functions
+// like MyModule.module and MyApp.startKoin() 
 import org.koin.ksp.generated.*
 
+@KoinApplication(modules = [MyModule::class])
+object MyApp
+
 fun main() {
-    val koin = startKoin {
+    MyApp.startKoin {
         printLogger()
-        modules(
-          // use your modules here, with generated ".module" extension on Module classes
-          MyModule().module
-        )
     }
 
     // Just use your Koin API as regular
-    koin.get<MyComponent>()
+    KoinPlatform.getKoin().get<MyComponent>()
+}
+```
+
+### Configuration-based Module Setup
+
+Alternatively, you can use `@Configuration` to create modules that are automatically loaded:
+
+```kotlin
+// Module with configuration - automatically included in default config
+@Module
+@Configuration
+class MyModule
+```
+
+With configuration, you don't need to specify modules explicitly:
+
+```kotlin
+// The import below gives you access to generated extension functions
+// This approach loads all modules marked with @Configuration automatically
+import org.koin.ksp.generated.*
+
+@KoinApplication
+object MyApp
+
+fun main() {
+    MyApp.startKoin {
+        printLogger()
+    }
+
+    // Just use your Koin API as regular
+    KoinPlatform.getKoin().get<MyComponent>()
 }
 ```
 
@@ -76,17 +108,24 @@ class MyProvidedComponent
 class MyPresenter(@Provided val provided : MyProvidedComponent)
 ```
 
-### Disabling Default Module (since 1.3.0)
+### Default Module (Deprecated since 1.3.0)
 
-By default, the Koin compiler detects any definition not bound to a module and puts it in a "default module", a Koin module generated at the root of your project. You can disable the use and generation of the default module with the following option:
+:::warning
+The default module approach is deprecated since Annotations 1.3.0. We recommend using explicit modules with `@Module` and `@Configuration` annotations for better organization and clarity.
+:::
 
+Previously, the Koin compiler would detect any definition not bound to a module and put it in a "default module". This approach is now deprecated in favor of using `@Configuration` and `@KoinApplication` annotations.
+
+**Deprecated approach** (avoid using):
 ```groovy
 // in build.gradle or build.gradle.kts
 
 ksp {
-    arg("KOIN_DEFAULT_MODULE","false")
+    arg("KOIN_DEFAULT_MODULE","true")
 }
 ```
+
+**Recommended approach**: Use explicit module organization as shown in the examples above with `@Configuration` and `@KoinApplication`.
 
 ### Kotlin KMP Setup
 

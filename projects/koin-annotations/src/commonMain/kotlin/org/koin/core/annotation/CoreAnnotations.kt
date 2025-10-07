@@ -46,6 +46,8 @@ annotation class Single(val binds: Array<KClass<*>> = [Unit::class], val created
  * same as @Single
  * @see Single
  */
+//TODO to be removed in favor of jsr330
+@Deprecated("in favor of koin-jsr330 - @Singleton", level = DeprecationLevel.ERROR)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class Singleton(val binds: Array<KClass<*>> = [Unit::class], val createdAtStart: Boolean = false)
 
@@ -132,20 +134,6 @@ annotation class Named(val value: String = "", val type: KClass<*> = Unit::class
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 annotation class Qualifier(val value: KClass<*> = Unit::class, val name: String = "")
-
-// In Koin core Annotations 4.1
-///**
-// * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
-// *
-// * example:
-// *
-// * @Factory
-// * class MyClass(@InjectedParam val d : MyDependency)
-// *
-// * will result in `factory { params -> MyClass(params.get()) }`
-// */
-//@Target(AnnotationTarget.VALUE_PARAMETER)
-//annotation class InjectedParam
 
 /**
  * Annotate a constructor parameter or function parameter, to resolve as Koin property
@@ -240,9 +228,89 @@ annotation class Module(val includes: Array<KClass<*>> = [], val createdAtStart:
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class ComponentScan(vararg val value: String = [])
 
+/**
+ * To be applied on @Module class to be associated to a Configuration
+ * - can have several "tags"/flavour
+ *
+ * Default configuration is by default, default empty name. Else it's named "default".
+ *
+ * ex:
+ *
+ * @Module
+ * @Configuration
+ * class MyModule
+ *
+ * This indicates that this module will be part of the "default" configuration space
+ *
+ * You can associate several configurations to a Module
+ *
+ * @Module
+ * @Configuration("prod","test")
+ * class MyModule
+ *
+ * This indicates that this module will be part of the "prod" & "test" configuration space
+ *
+ * You can also use the "default" space, as well as others:
+ *
+ * @Module
+ * @Configuration("default","test")
+ * class MyModule
+ *
+ * Is available in default configuration, and test.
+ *
+ * @Module
+ * @Configuration("default") is equivalent to @Configuration
+ * class MyModule
+ *
+ *
+ * @param value The names of the configurations associated to this module.
+ */
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
+annotation class Configuration(vararg val value: String = [])
+
+/**
+ * Tag a class as a Koin application entry point: helps generate Koin application boostrap, with startKoin or koinApplication function.
+ * This also, looks at configurations to scan modules
+ *
+ * ex:
+ *
+ * @KoinApplication //this load default configuration
+ * MyApp
+ *
+ * will generate following functions, that will scan for given configurations and included modules:
+ * MyApp.startKoin()
+ * MyApp.koinApplication()
+ *
+ * Note that those functions, are open for custom lambda configuration:
+ * MyApp.startKoin {
+ *  printLogger()
+ * }
+ *
+ * @KoinApplication(
+ *  configurations = [ "default","prod" ] // will load "default" & "prod" configurations
+ * MyApp
+ *
+ * @param configurations: list of configuration names to scan
+ * @param modules: list of modules to load, besides of configuration
+ */
+@Target(AnnotationTarget.CLASS)
+annotation class KoinApplication(val configurations: Array<String> = [], val modules : Array<KClass<*>> = [Unit::class])
+
 // In Koin core Annotations 4.1
 ///**
 // * Tag a dependency as already provided by Koin (like DSL declaration, or internals)
 // */
 //@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 //annotation class Provided
+///**
+// * Annotate a constructor parameter or function parameter, to ask resolution as "injected parameter"
+// *
+// * example:
+// *
+// * @Factory
+// * class MyClass(@InjectedParam val d : MyDependency)
+// *
+// * will result in `factory { params -> MyClass(params.get()) }`
+// */
+//@Target(AnnotationTarget.VALUE_PARAMETER)
+//annotation class InjectedParam

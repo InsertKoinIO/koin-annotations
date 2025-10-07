@@ -36,7 +36,6 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
 annotation class KoinViewModel(val binds: Array<KClass<*>> = [])
 
-//TODO Separate Android annotations, to have minimum requirement deps as Android
 /**
  * Worker annotation for Koin Definition
  * Declare type as `worker` definition

@@ -15,16 +15,16 @@
  */
 package org.koin.compiler.generator
 
-import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.generator.ModuleWriter.Companion.MODULE_INSTANCE
 import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.metadata.tag.TagResolver
 import java.io.OutputStream
 
 class DefinitionWriterFactory(
-    resolver: Resolver,
-    fileStream: OutputStream
+    fileStream: OutputStream,
+    tagResolver: TagResolver
 ) {
-    private val writer = DefinitionWriter(resolver, fileStream)
+    private val writer = DefinitionWriter(fileStream,tagResolver)
 
     fun writeDefinition(
         definition : KoinMetaData.Definition,
@@ -47,8 +47,12 @@ class DefinitionWriterFactory(
                     writer.writeDefinition(definition, prefix = "${definition.packageNamePrefix}${definition.functionName}", isExternalDefinition = isExternal ?: false)
                 }
             }
+
             // Class
-            is KoinMetaData.Definition.ClassDefinition -> writer.writeDefinition(definition, prefix = "${definition.packageNamePrefix}${definition.className}", isExternalDefinition = isExternal ?: false)
+            is KoinMetaData.Definition.ClassDefinition -> {
+                val prefix = if (definition.isMonitored) "${definition.className}Proxy" else "${definition.packageNamePrefix}${definition.className}"
+                writer.writeDefinition(definition, prefix = prefix, isExternalDefinition = isExternal ?: false)
+            }
         }
     }
 

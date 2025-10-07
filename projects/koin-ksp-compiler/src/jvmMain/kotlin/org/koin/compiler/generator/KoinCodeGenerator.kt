@@ -17,19 +17,17 @@ package org.koin.compiler.generator
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
 import org.koin.compiler.metadata.KoinMetaData
 import org.koin.compiler.metadata.camelCase
-import org.koin.compiler.resolver.getResolution
+import org.koin.compiler.metadata.tag.TagResolver
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger,
     //TODO Remove isComposeViewModelActive with Koin 4
-    val isViewModelMPActive: Boolean
+    val isViewModelMPActive: Boolean,
+    val tagResolver: TagResolver
 ) {
-    lateinit var resolver: Resolver
-
     init {
         LOGGER = logger
     }
@@ -37,9 +35,22 @@ class KoinCodeGenerator(
     fun generateModules(
         moduleList: List<KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module,
-        generateDefaultModule : Boolean
+        generateDefaultModule: Boolean,
+        doExportDefinitions: Boolean
     ) {
-        logger.logging("generate ${moduleList.size} modules ...")
+        logger.info("generate ${moduleList.size} modules ...")
+        
+        // Pre-compute batch tag existence checks for all modules and definitions
+        val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
+        tagResolver.batchCheckTagsExist(moduleList, allDefinitions, emptyList())
+        
+        // Batch check already generated status for all modules
+        moduleList.forEach { module ->
+            if (module.alreadyGenerated == null) {
+                module.alreadyGenerated = tagResolver.tagExists(module)
+            }
+        }
+        
         moduleList.forEach {
             val isActualWithLocalDefinitions = it.isActual && it.definitions.all { it.isActual.not() }
             val isNotActual = it.isActual.not()
@@ -47,25 +58,26 @@ class KoinCodeGenerator(
         }
 
         if (defaultModule.definitions.isNotEmpty()) {
-            generateDefaultFile(defaultModule, generateDefaultModule)
+            generateDefaultFile(defaultModule, generateDefaultModule, doExportDefinitions)
         }
     }
 
     private fun generateDefaultFile(
         defaultModule: KoinMetaData.Module,
-        generateDefaultModule: Boolean
+        generateDefaultModule: Boolean,
+        doExportDefinitions: Boolean
     ) {
-        logger.logging("generate default file ...")
+        logger.info("generate default file ...")
 
         checkAlreadyGenerated(defaultModule)
-        val hasDefaultDefinitions = defaultModule.definitions.any { resolver.getResolution(it) == null }
+        val hasDefaultDefinitions = defaultModule.definitions.any { !tagResolver.tagExists(it) }
 
         if (defaultModule.alreadyGenerated == false && hasDefaultDefinitions){
             if (generateDefaultModule && defaultModule.definitions.isNotEmpty()) {
                 LOGGER.warn("Generating 'defaultModule' with ${defaultModule.definitions.size} definitions")
             }
             defaultModule.setCurrentDefinitionsToExternals()
-            DefaultModuleWriter(codeGenerator, resolver, defaultModule, generateDefaultModule).writeModule(isViewModelMPActive)
+            DefaultModuleWriter(codeGenerator, tagResolver, defaultModule, generateDefaultModule, doExportDefinitions).writeModule(isViewModelMPActive)
         }
     }
 
@@ -75,34 +87,73 @@ class KoinCodeGenerator(
         checkAlreadyGenerated(module)
 
         if (module.alreadyGenerated == false){
-
             val definitionsCount = module.definitions.size
             if (definitionsCount > MAX_MODULE_DEFINITIONS) {
-                val splitCount = definitionsCount / MAX_MODULE_DEFINITIONS
-                logger.warn("Module '${module.name}' is exceeding $MAX_MODULE_DEFINITIONS definitions ($definitionsCount found). We need to split generation into ${splitCount +1} modules ...")
-                // Create one main module to include sub generate modules
-                val subModules : List<KoinMetaData.Module> = module.definitions.chunked(MAX_MODULE_DEFINITIONS).mapIndexed { index, list ->
-                    module.copy(includes = emptyList(), definitions = list.toMutableList(), externalDefinitions = mutableListOf(), packageName = "", name = module.packageName.camelCase()+module.name.capitalize()+index, isSplit = true)
-                }
-                val subModulesInclude : List<KoinMetaData.ModuleInclude> = subModules.map { m ->
-                    KoinMetaData.ModuleInclude(m.packageName, m.name, m.isExpect, m.isActual)
-                }
-                val main = module.copy(includes = (module.includes ?: mutableListOf()) + subModulesInclude, definitions = mutableListOf()) // keep externalDefinitions
-
-                val allModules = (subModules + main)
-                allModules.mapIndexed { index, m ->
-                    val generateIncludes = if (index == allModules.indexOf(main)) subModulesInclude else emptyList()
-                    ClassModuleWriter(codeGenerator, resolver, m).writeModule(isViewModelMPActive, generateIncludes)
-                }
+                generateSplitModule(module, definitionsCount)
             } else {
-                ClassModuleWriter(codeGenerator, resolver, module).writeModule(isViewModelMPActive)
+                ClassModuleWriter(codeGenerator, tagResolver, module).writeModule(isViewModelMPActive)
             }
         }
     }
 
     private fun checkAlreadyGenerated(module: KoinMetaData.Module){
         if (module.alreadyGenerated == null){
-            module.alreadyGenerated = resolver.getResolution(module) != null
+            module.alreadyGenerated = tagResolver.tagExists(module)
+        }
+    }
+
+    private fun generateSplitModule(module: KoinMetaData.Module, definitionsCount: Int) {
+        val splitCount = definitionsCount / MAX_MODULE_DEFINITIONS
+        logger.warn("Module '${module.name}' is exceeding $MAX_MODULE_DEFINITIONS definitions ($definitionsCount found). We need to split generation into ${splitCount + 1} modules ...")
+        
+        val moduleBaseName = module.packageName.camelCase() + module.name.replaceFirstChar { it.uppercase() }
+        
+        // Generate submodules with memory-efficient chunking
+        val subModulesInclude = mutableListOf<KoinMetaData.ModuleInclude>()
+        
+        // Process definitions in chunks without creating intermediate collections
+        module.definitions.chunked(MAX_MODULE_DEFINITIONS).forEachIndexed { index, definitionChunk ->
+            val subModuleName = "${moduleBaseName}$index"
+            val subModule = module.copy(
+                includes = emptyList(),
+                definitions = definitionChunk.toMutableList(),
+                externalDefinitions = mutableListOf(),
+                packageName = "",
+                name = subModuleName,
+                isSplit = true
+            )
+            
+            // Generate the submodule immediately to reduce memory pressure
+            ClassModuleWriter(codeGenerator, tagResolver, subModule).writeModule(isViewModelMPActive)
+            
+            // Add to includes for main module
+            subModulesInclude.add(
+                KoinMetaData.ModuleInclude(
+                    subModule.packageName,
+                    subModule.name,
+                    subModule.isExpect,
+                    subModule.isActual
+                )
+            )
+        }
+        
+        // Generate main module with includes
+        val mainModule = module.copy(
+            includes = (module.includes ?: mutableListOf()) + subModulesInclude,
+            definitions = mutableListOf() // Clear definitions to avoid duplication
+        )
+        ClassModuleWriter(codeGenerator, tagResolver, mainModule).writeModule(isViewModelMPActive, subModulesInclude)
+    }
+
+    fun generateApplications(applications: List<KoinMetaData.Application>) {
+        applications.forEach { application ->
+            if (application.alreadyGenerated == null){
+                application.alreadyGenerated = tagResolver.tagExists(application)
+            }
+
+            if (application.alreadyGenerated == false){
+                ApplicationClassWriter(codeGenerator,application).writeApplication()
+            }
         }
     }
 

@@ -10,7 +10,7 @@ class MuseumApp : Application() {
     override fun onCreate() {
         super.onCreate()
         initKoin {
-            androidLogger()
+//            androidLogger()
             androidContext(this@MuseumApp)
         }
     }

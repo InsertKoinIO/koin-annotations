@@ -40,6 +40,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.koin.core.annotations)
+//            api(project(":koin-jsr330"))
         }
         commonTest.dependencies {
         }

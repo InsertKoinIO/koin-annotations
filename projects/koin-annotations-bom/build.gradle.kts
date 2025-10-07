@@ -11,6 +11,7 @@ javaPlatform {
 dependencies {
     constraints {
         api(project(":koin-annotations"))
+        api(project(":koin-jsr330"))
         api(project(":koin-ksp-compiler"))
     }
 }
