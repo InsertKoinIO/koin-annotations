@@ -19,7 +19,7 @@ Here are the current available Koin Annotations version tracks:
 Follow the dedicated [setup page]([https://insert-koin.io/docs/setup/koin](https://insert-koin.io/docs/setup/annotations)) to setup Koin for your project.
 Here are the currently available Koin versions:
 
-- **Stable** Version : [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations/2.1.0)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations/2.1.0)
+- **Stable** Version : [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations/2.2.0)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations/2.2.0)
 - **Unstable** Version : [![Maven Central](https://img.shields.io/maven-central/v/io.insert-koin/koin-annotations)](https://mvnrepository.com/artifact/io.insert-koin/koin-annotations)
 
 Take a look at:
