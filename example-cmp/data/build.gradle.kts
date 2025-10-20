@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
@@ -10,10 +11,8 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 

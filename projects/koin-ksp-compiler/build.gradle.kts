@@ -20,10 +20,4 @@ kotlin {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs += listOf("-Xcontext-receivers")
-    }
-}
-
 apply(from = file("../gradle/publish.gradle.kts"))

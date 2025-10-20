@@ -21,7 +21,7 @@ fun initKoin(config : KoinAppDeclaration ?= null) {
 
         // Activate App analyses & Perf tracing
         // Check kotzilla.json file
-        analytics()
+//        analytics()
     }
 
     val msgA = KoinPlatform.getKoin().get<PlatformComponentA>().sayHello()

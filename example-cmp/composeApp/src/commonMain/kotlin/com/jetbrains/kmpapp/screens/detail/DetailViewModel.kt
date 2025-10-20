@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.Monitor
 
-@Monitor
+//@Monitor
 @KoinViewModel
 class DetailViewModel(private val museumRepository: MuseumRepository) : ViewModel() {
 

@@ -1,20 +1,20 @@
 [versions]
-kotlin = "2.1.21"
+kotlin = "2.2.20"
 agp = "8.6.1"
 androidx-activityCompose = "1.10.1"
 androidx-ui-tooling = "1.8.2"
-compose-plugin = "1.8.2"
+compose-plugin = "1.9.1"
 kamel = "0.9.4"
-ktor = "3.1.3"
+ktor = "3.3.1"
 materialIconsCore = "1.7.3"
-navigationCompose = "2.9.0-beta05"
-lifecycleCompose = "2.9.2"
-coil = "3.2.0"
+navigationCompose = "2.9.1"
+lifecycleCompose = "2.9.5"
+coil = "3.3.0"
 
 koin = "4.1.1"
 koin-annotations = "2.2.0"
-kotzilla = "1.2.2"
-ksp = "2.1.21-2.0.2"
+kotzilla = "1.2.3"
+ksp = "2.2.20-2.0.4"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }

@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,9 +6,7 @@ plugins {
 }
 
 kotlin {
-    jvm {
-        withJava()
-    }
+    jvm()
 
     js(IR) {
         nodejs()
@@ -16,6 +14,7 @@ kotlin {
         binaries.executable()
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         binaries.executable()
         nodejs()
@@ -45,15 +44,6 @@ kotlin {
         commonTest.dependencies {
         }
     }
-}
-
-rootProject.the<NodeJsRootExtension>().apply {
-    nodeVersion = "21.0.0-v8-canary202309143a48826a08"
-    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask>().configureEach {
-    args.add("--ignore-engines")
 }
 
 apply(from = file("../gradle/publish.gradle.kts"))

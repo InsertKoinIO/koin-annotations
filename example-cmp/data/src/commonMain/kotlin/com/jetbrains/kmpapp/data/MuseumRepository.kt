@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.annotation.Monitor
 import org.koin.core.annotation.Single
 
-@Monitor
+//@Monitor
 @Single
 class MuseumRepository(
     private val museumApi: MuseumApi,
