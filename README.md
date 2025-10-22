@@ -50,13 +50,13 @@ Take a look at:
 ## Get started with Koin Tutorials 🚀
 
 You can find here tutorials to help you learn and get started with Koin framework:
-- [Kotlin](https://insert-koin.io/docs/quickstart/kotlin)
-- [Kotlin with Koin Annotations](https://insert-koin.io/docs/quickstart/kotlin-annotations)
-- [Android](https://insert-koin.io/docs/quickstart/android-viewmodel)
-- [Android with Koin Annotations](https://insert-koin.io/docs/quickstart/android-annotations)
-- [Android Jetpack Compose](https://insert-koin.io/docs/quickstart/android-compose)
-- [Kotlin Multiplatform](https://insert-koin.io/docs/quickstart/kmm)
-- [Ktor](https://insert-koin.io/docs/quickstart/ktor)
+- [Kotlin](https://insert-koin.io/docs/4.1/setup/koin)
+- [Kotlin with Koin Annotations](https://insert-koin.io/docs/4.1/setup/annotations)
+- [Android](https://insert-koin.io/docs/4.1/reference/koin-android/start)
+- [Android with Koin Annotations](https://insert-koin.io/docs/4.1/reference/koin-annotations/start)
+- [Android Jetpack Compose](https://insert-koin.io/docs/4.1/reference/koin-compose/compose)
+- [Kotlin Multiplatform](https://insert-koin.io/docs/4.1/reference/koin-mp/kmp)
+- [Ktor](https://insert-koin.io/docs/4.1/reference/koin-ktor/ktor)
 
 ## Contributing 🛠
 
