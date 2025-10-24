@@ -63,7 +63,7 @@ class ClassComponentScanner(
     ): KoinMetaData.Definition.ClassDefinition {
         val declaredBindings = declaredBindings(annotation)
         val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-        val forceDeclaredBindings = declaredBindings?.hasDefaultUnitValue() == false && declaredBindings.isNotEmpty()
+        val forceDeclaredBindings = declaredBindings?.hasDefaultUnitValue() == false
         val allBindings: List<KSDeclaration> = if (forceDeclaredBindings) declaredBindings else defaultBindings
 
         val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getParameters()
