@@ -35,12 +35,12 @@ class ApplicationClassWriter(
     }
 
     private fun writeConfigurationMap() {
-        val configurationListString = application.configurations?.flatMap { configuration -> configuration.modules }?.distinct()?.let { generateIncludes(it) }
+        val configurationListString = application.configurations?.flatMap { configuration -> configuration.modules }?.distinct()?.let { generateIncludes(it.sortedBy { it.packageName+"."+it.className }) }
         writeln("$visibility val $extensionBase.configurationModules : List<Module> get() = listOf($configurationListString)")
     }
 
     private fun writeKoinConfigurationField() {
-        val moduleIncludes = application.moduleIncludes?.let { "+ listOf(${generateIncludes(it)})" } ?: ""
+        val moduleIncludes = application.moduleIncludes?.let { "+ listOf(${generateIncludes(it.sortedBy { it.packageName+"."+it.className })})" } ?: ""
         val configString = """
             $visibility fun $extensionBase.koinConfiguration(config : KoinAppDeclaration?=null) : KoinAppDeclaration = {
                 includes(config)

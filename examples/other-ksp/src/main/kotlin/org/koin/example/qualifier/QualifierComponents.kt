@@ -37,5 +37,6 @@ public class QualifierModule {
     public fun anotherList(): StuffList = StuffList(listOf(Stuff("1"),Stuff("2")))
 
     @Single
+    @Named("another-counter")
     public fun anotherCounter(@Named("another-counter") stuffs: StuffList): StuffCounter = StuffCounter(stuffs.list,"another-counter")
 }

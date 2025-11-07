@@ -161,12 +161,12 @@ abstract class ModuleWriter(
 
     open fun writeModuleIncludes() {
         if (module.includes?.isNotEmpty() == true){
-            writeln("${TAB}includes(${generateIncludes(module.includes)})")
+            writeln("${TAB}includes(${generateIncludes(module.includes.sortedBy { it.packageName+"."+it.className })})")
         }
     }
 
     open fun writeDefinitions() {
-        val (standardDefinitions, scopeDefinitions) = module.definitions.partition { it.isNotScoped() }
+        val (standardDefinitions, scopeDefinitions) = module.definitions.sortedBy { it.packageName+""+it.label } .partition { it.isNotScoped() }
 
         standardDefinitions.forEach { definitionFactory.writeDefinition(it, module) }
 
@@ -207,7 +207,7 @@ abstract class ModuleWriter(
     private fun generateScopeFooter(): String = "${TAB}}"
 
     open fun writeExternalDefinitionCalls() {
-        if (module.externalDefinitions.isNotEmpty()){
+        if (module.externalDefinitions.sortedBy { it.name } .isNotEmpty()){
             writeln(TAB+generateExternalDefinitionCalls())
         }
     }
