@@ -1,9 +1,27 @@
 package org.koin.sample.androidx
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.AndroidScopeComponent
@@ -21,6 +39,8 @@ import org.koin.sample.androidx.app.scope.ScopeViewModel
 import org.koin.sample.androidx.data.TaskDatasource
 import org.koin.sample.androidx.di.UseContext
 import org.koin.sample.androidx.multi.FooB
+import org.koin.sample.androidx.testviewmodels.TestScreen1
+import org.koin.sample.androidx.testviewmodels.TestScreen2
 import org.koin.sample.multi.FooA
 
 class MainActivity : AppCompatActivity(), AndroidScopeComponent {
@@ -41,25 +61,16 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
     val myActivityScope : MyActivityScope by inject()
     val myOtherActivityScope : MyActivityOtherScope by inject()
 
-    private val button : Button by lazy { findViewById(R.id.main_button) }
-    private val textView : TextView by lazy { findViewById(R.id.main_text) }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         getKoin().declare(MyProvidedComponent())
 
-        setContentView(R.layout.main_activity)
         title = "Android Coffee Maker"
 
-        button.setOnClickListener {
-            textView.text = "Coffee Inside !"
-        }
-
+        // Run existing assertions
         assert(coffeeViewModel.repository.getId() == "_ID_")
-
         assert(myPresenter.mainActivity == this)
-
         assert(todoViewModel.repository.local == getKoin().get<TaskDatasource>(named("local")))
         assert(todoViewModel.repository.remote == getKoin().get<TaskDatasource>(named("remote")))
         println("resolved: $heater - $coffeeFactory")
@@ -78,5 +89,49 @@ class MainActivity : AppCompatActivity(), AndroidScopeComponent {
         assert(fooB.textBase == fooA.textBase)
 
         getKoin().get<UseContext>()
+
+        // Set up Compose UI
+        setContent {
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    TestViewModelsApp()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TestViewModelsApp() {
+    var currentScreen by remember { mutableStateOf(1) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        when (currentScreen) {
+            1 -> {
+                TestScreen1()
+            }
+            2 -> {
+                TestScreen2()
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                currentScreen = if (currentScreen == 1) 2 else 1
+            }
+        ) {
+            Text(text = if (currentScreen == 1) "Go to Screen 2" else "Go to Screen 1")
+        }
     }
 }

@@ -22,8 +22,8 @@ class UseContext(val context: Context)
 //    configurations = ["default","lib"]
 //)
 
-@KoinApplication
-object MyKoinApp
+//@KoinApplication
+//object MyKoinApp
 
 @Configuration
 @Module(includes = [DataModule::class, LibFooConsumerModule::class])
@@ -40,3 +40,7 @@ class AppModule {
 @Module(includes = [CommonModule::class, ClientModule::class, RepositoryModule::class])
 @ComponentScan("org.koin.sample.androidx.data")
 internal class DataModule
+
+@Module()
+//@ComponentScan("org.koin.sample.androidx.data")
+internal class SomeModule

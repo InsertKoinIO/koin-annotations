@@ -9,7 +9,8 @@
       "Read(//Users/arnaud/workspace/koin-projects/koin-annotations/**)",
       "Read(//Users/arnaud/workspace/koin-projects/**)",
       "Read(//Users/arnaud/workspace/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Read(//Users/michal.klimczak/DevProjects/koin-annotations/**)"
     ],
     "deny": []
   }

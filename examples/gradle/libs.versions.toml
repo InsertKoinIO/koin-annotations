@@ -3,20 +3,24 @@
 # /!\ Koin in gradle.properties /!\
 
 # Core
-kotlin = "2.2.21"
+kotlin = "2.1.10"
 koin = "4.1.1"
-koinAnnotations = "2.3.1"
-ksp = "2.3.2"
+koinAnnotations = "2.2.0"
+#ksp = "2.3.2"
+ksp = "2.1.10-1.0.31"
 junit = "4.13.2"
 # Android
 agp = "8.13.0"
 androidCompat = "1.7.1"
 ktor = "3.3.2"
+compose-bom = "2024.10.01"
+androidx-activity-compose = "1.9.3"
 
 [libraries]
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotations" }
 koin-jsr330 = { module = "io.insert-koin:koin-jsr330", version.ref = "koinAnnotations" }
 koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
@@ -25,10 +29,17 @@ android-appcompat = {module = "androidx.appcompat:appcompat", version.ref = "and
 junit = {module = "junit:junit",version.ref ="junit"}
 ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 
 [plugins]
 #kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinComposeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 androidApplication = {id = "com.android.application", version.ref = "agp"}
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
