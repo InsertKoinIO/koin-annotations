@@ -38,7 +38,7 @@ class KoinCodeGenerator(
         generateDefaultModule: Boolean,
         doExportDefinitions: Boolean
     ) {
-        logger.info("generate ${moduleList.size} modules ...")
+        logger.warn("generate ${moduleList.size} modules ...")
         
         // Pre-compute batch tag existence checks for all modules and definitions
         val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
@@ -67,7 +67,7 @@ class KoinCodeGenerator(
         generateDefaultModule: Boolean,
         doExportDefinitions: Boolean
     ) {
-        logger.info("generate default file ...")
+        logger.warn("generate default file ...")
 
         checkAlreadyGenerated(defaultModule)
         val hasDefaultDefinitions = defaultModule.definitions.any { !tagResolver.tagExists(it) }
@@ -82,7 +82,7 @@ class KoinCodeGenerator(
     }
 
     private fun generateModule(module: KoinMetaData.Module) {
-        logger.logging("generate module ${module.name}")
+        logger.warn("generate module ${module.name}")
 
         checkAlreadyGenerated(module)
 

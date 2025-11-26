@@ -56,16 +56,39 @@ class KoinMetaDataScanner(
 
     fun findInvalidSymbols(resolver: Resolver): List<KSAnnotated> {
         val invalidModuleSymbols = resolver.getInvalidSymbols<Module>()
+        logger.warn("DEBUG: Found ${invalidModuleSymbols.size} invalid @Module symbols")
+        invalidModuleSymbols.forEach {
+            logger.warn("DEBUG: Invalid @Module: $it")
+        }
+
         val invalidDefinitionSymbols = resolver.getInvalidDefinitionSymbols()
+        logger.warn("DEBUG: Found ${invalidDefinitionSymbols.size} invalid definition symbols")
 
         val invalidSymbols = invalidModuleSymbols + invalidDefinitionSymbols
         if (invalidSymbols.isNotEmpty()) {
-            logger.logging("Invalid definition symbols found.")
+            logger.warn("Invalid definition symbols found.")
             logInvalidEntities(invalidSymbols)
             return invalidSymbols
         }
 
         return emptyList()
+    }
+
+    fun findInvalidSymbolsSeparately(resolver: Resolver): Pair<List<KSAnnotated>, List<KSAnnotated>> {
+        val invalidModuleSymbols = resolver.getInvalidSymbols<Module>()
+        logger.warn("DEBUG: Found ${invalidModuleSymbols.size} invalid @Module symbols")
+        invalidModuleSymbols.forEach {
+            logger.warn("DEBUG: Invalid @Module: $it")
+        }
+
+        val invalidDefinitionSymbols = resolver.getInvalidDefinitionSymbols()
+        logger.warn("DEBUG: Found ${invalidDefinitionSymbols.size} invalid definition symbols")
+
+        if (invalidModuleSymbols.isNotEmpty() || invalidDefinitionSymbols.isNotEmpty()) {
+            logInvalidEntities(invalidModuleSymbols + invalidDefinitionSymbols)
+        }
+
+        return Pair(invalidModuleSymbols, invalidDefinitionSymbols)
     }
 
     fun scanApplicationsAndConfigurations(
@@ -131,7 +154,7 @@ class KoinMetaDataScanner(
         metaConfigurations.forEach { (configName, modulesName) ->
             val foundConfig = configurations[KoinMetaData.ConfigurationTag(configName)]
             if (foundConfig == null){
-                logger.info("skip configuration '$configName' with $modulesName")
+                logger.warn("skip configuration '$configName' with $modulesName")
             }
             foundConfig?.let {
                 val newList = modulesName.toSet().map { module ->
@@ -240,7 +263,7 @@ class KoinMetaDataScanner(
     }
 
     private fun scanClassApplications(resolver: Resolver): List<KoinMetaData.Application> {
-        logger.logging("scan applications ...")
+        logger.warn("scan applications ...")
         return resolver.getValidSymbols<KoinApplication>()
             .filterIsInstance<KSClassDeclaration>()
             .map { applicationMetadataScanner.createClassApplication(it) }
@@ -248,11 +271,29 @@ class KoinMetaDataScanner(
     }
 
     private fun scanClassModules(resolver: Resolver): List<KoinMetaData.Module> {
-        logger.logging("scan modules ...")
-        return resolver.getValidSymbols<Module>()
-            .filterIsInstance<KSClassDeclaration>()
-            .map { moduleMetadataScanner.createClassModule(it) }
-            .toList()
+        logger.warn("scan modules ...")
+        val allSymbols = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!).toList()
+        logger.warn("DEBUG: Resolver.getSymbolsWithAnnotation found ${allSymbols.size} @Module symbols before validation")
+        allSymbols.forEach { symbol ->
+            val isValid = symbol.validate()
+            logger.warn("DEBUG: @Module symbol ${symbol} - validate() = $isValid")
+        }
+        val symbols = resolver.getValidSymbols<Module>()
+        logger.warn("DEBUG: Found ${symbols.count()} symbols with @Module annotation after validation")
+        val classDeclarations = symbols.filterIsInstance<KSClassDeclaration>()
+        logger.warn("DEBUG: Filtered to ${classDeclarations.count()} KSClassDeclarations")
+        classDeclarations.forEach {
+            logger.warn("DEBUG: Found @Module class: ${it.qualifiedName?.asString()}")
+        }
+        val modules = classDeclarations.map {
+            logger.warn("DEBUG: Creating module metadata for: ${it.simpleName.asString()}")
+            moduleMetadataScanner.createClassModule(it)
+        }.toList()
+        logger.warn("DEBUG: Successfully created ${modules.size} module metadata objects")
+        modules.forEach {
+            logger.warn("DEBUG: Module created: ${it.name} with ${it.componentsScan.size} component scans")
+        }
+        return modules
     }
 
     private fun List<KoinMetaData.Module>.generateScanComponentIndex(): List<KoinMetaData.Module> {
@@ -278,7 +319,7 @@ class KoinMetaDataScanner(
     private fun scanFunctionComponents(
         resolver: Resolver
     ) {
-        logger.logging("scan functions ...")
+        logger.warn("scan functions ...")
 
         val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSFunctionDeclaration>()
@@ -291,7 +332,7 @@ class KoinMetaDataScanner(
     private fun scanClassComponents(
         resolver: Resolver
     ) {
-        logger.logging("scan definitions ...")
+        logger.warn("scan definitions ...")
 
         val definitions = resolver.getValidDefinitionSymbols()
             .filterIsInstance<KSClassDeclaration>()
@@ -343,16 +384,16 @@ class KoinMetaDataScanner(
         val alreadyExists = foundModule.definitions.contains(definition)
         if (!alreadyExists) {
             if (foundModule == defaultModule) {
-                logger.logging("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
+                logger.warn("No module found for '$definitionPackage.${definition.label}'. Definition is added to 'defaultModule'")
             }
             foundModule.definitions.add(definition)
         } else {
-            logger.logging("skip addToModule - definition(class) -> $definition -> module $foundModule - already exists")
+            logger.warn("skip addToModule - definition(class) -> $definition -> module $foundModule - already exists")
         }
     }
 
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
-        classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
+        classDeclarationList.forEach { logger.warn("Invalid entity: $it") }
     }
 
     private fun Resolver.getInvalidDefinitionSymbols(): List<KSAnnotated> {

@@ -43,7 +43,7 @@ class FunctionComponentScanner(
                 onClassDefinitionFound(ksFunctionDeclaration.parent as KSClassDeclaration)
                 return null
             } else if (ksFunctionDeclaration.parent is KSClassDeclaration){
-                logger.logging("parent is KClass ${ksFunctionDeclaration.parent} skipping as it should be in an inner class")
+                logger.warn("parent is KClass ${ksFunctionDeclaration.parent} skipping as it should be in an inner class")
                 return null
             }
 

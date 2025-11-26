@@ -32,7 +32,7 @@ class KoinTagMetaDataScanner(
     fun findInvalidSymbols(): List<KSAnnotated> {
         val invalidSymbols = resolver.getSymbols<MetaModule>(isValid = false) + resolver.getSymbols<MetaModule>(isValid = false) + resolver.getSymbols<MetaApplication>(isValid = false)
         if (invalidSymbols.isNotEmpty()) {
-            logger.logging("Invalid definition symbols found.")
+            logger.warn("Invalid definition symbols found.")
             logInvalidEntities(invalidSymbols)
             return invalidSymbols
         }
@@ -41,7 +41,7 @@ class KoinTagMetaDataScanner(
     }
 
     private fun logInvalidEntities(classDeclarationList: List<KSAnnotated>) {
-        classDeclarationList.forEach { logger.logging("Invalid entity: $it") }
+        classDeclarationList.forEach { logger.warn("Invalid entity: $it") }
     }
 
     fun findMetaModules(): List<KSAnnotation> {

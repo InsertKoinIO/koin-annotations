@@ -50,12 +50,24 @@ class BuilderProcessor(
         GenerationConfig.setGenerationPath(getCustomGenerationPackage())
 
         val mainTime = if (doLogTimes) markNow() else null
-        logger.logging("Scan symbols ...")
+        logger.warn("Scan symbols hello local...")
 
-        val invalidSymbols = koinMetaDataScanner.findInvalidSymbols(resolver)
-        if (invalidSymbols.isNotEmpty()) {
-            logger.logging("Invalid symbols found (${invalidSymbols.size}), waiting for next round")
-            return invalidSymbols
+        // DEBUG: Check all files KSP can see
+        val allModuleAnnotations = resolver.getSymbolsWithAnnotation("org.koin.core.annotation.Module").toList()
+        logger.warn("DEBUG BuilderProcessor: Resolver found ${allModuleAnnotations.size} symbols with @Module")
+        allModuleAnnotations.forEach {
+            logger.warn("DEBUG BuilderProcessor: @Module symbol: ${it}")
+        }
+
+        val (invalidModuleSymbols, invalidDefinitionSymbols) = koinMetaDataScanner.findInvalidSymbolsSeparately(resolver)
+
+        // If modules themselves are invalid, we must wait
+        if (invalidModuleSymbols.isNotEmpty()) {
+            logger.warn("Invalid @Module symbols found (${invalidModuleSymbols.size}), waiting for next round")
+            invalidModuleSymbols.forEach {
+                logger.warn("Invalid @Module symbol: $it")
+            }
+            return invalidModuleSymbols + invalidDefinitionSymbols
         }
 
         val defaultModule = KoinMetaData.Module(
@@ -64,11 +76,19 @@ class BuilderProcessor(
             isDefault = true,
         )
 
-        logger.logging("Build metadata ...")
+        logger.warn("Build metadata ...")
         val moduleList = koinMetaDataScanner.scanKoinModulesAndDefinitions(
             defaultModule,
             resolver
         )
+
+        // If we have invalid definitions but valid modules, process modules and return invalid definitions
+        if (invalidDefinitionSymbols.isNotEmpty()) {
+            logger.warn("Invalid definition symbols found (${invalidDefinitionSymbols.size}), but processing valid modules anyway")
+            invalidDefinitionSymbols.forEach {
+                logger.warn("Invalid definition symbol: $it")
+            }
+        }
         val applications = koinMetaDataScanner.scanApplicationsAndConfigurations(
             resolver,
             moduleList
@@ -83,22 +103,30 @@ class BuilderProcessor(
         val monitoredDefinitions = (moduleList+defaultModule).flatMap { it.definitions }.filter { it.isMonitored }.filterIsInstance<KoinMetaData.Definition.ClassDefinition>()
         koinCodeGenerator.generateProxies(monitoredDefinitions)
 
-        logger.logging("Generate code ...")
+        logger.warn("Generate code ...")
         koinCodeGenerator.generateModules(moduleList, defaultModule, isDefaultModuleActive(), doExportDefinitions)
         koinCodeGenerator.generateApplications(applications)
 
         val isConfigCheckActive = isConfigCheckActive()
-        // Tags are used to verify generated content (KMP)
-        // Pre-compute batch tag existence for all components before writing
-        val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
-        tagResolver.batchCheckTagsExist(moduleList, allDefinitions, applications)
-        
-        KoinTagWriter(codeGenerator, logger, tagResolver)
-            .writeAllTags(moduleList, defaultModule, applications)
+
+        // Only write tags if all symbols are valid (no invalid definitions)
+        // This prevents duplicate tag generation across multiple KSP rounds
+        if (invalidDefinitionSymbols.isEmpty()) {
+            logger.warn("Writing tags for all components...")
+            // Tags are used to verify generated content (KMP)
+            // Pre-compute batch tag existence for all components before writing
+            val allDefinitions = moduleList.flatMap { it.definitions } + defaultModule.definitions
+            tagResolver.batchCheckTagsExist(moduleList, allDefinitions, applications)
+
+            KoinTagWriter(codeGenerator, logger, tagResolver)
+                .writeAllTags(moduleList, defaultModule, applications)
+        } else {
+            logger.warn("Skipping tag generation due to invalid definitions - will write in next round")
+        }
 
         if (doLogTimes && mainTime != null) {
             mainTime.elapsedNow()
-            logger.warn("Koin Configuration Generated in ${mainTime.elapsedNow()}")
+            logger.warn("Koin Configuration Generated in ${mainTime.elapsedNow()} (LOCAL)")
         }
 
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
@@ -114,8 +142,8 @@ class BuilderProcessor(
 
             val invalidsMetaSymbols = metaTagScanner.findInvalidSymbols()
             if (invalidsMetaSymbols.isNotEmpty()) {
-                logger.logging("Invalid symbols found (${invalidsMetaSymbols.size}), waiting for next round")
-                return invalidSymbols
+                logger.warn("Invalid meta symbols found (${invalidsMetaSymbols.size}), waiting for next round")
+                return invalidsMetaSymbols + invalidDefinitionSymbols
             }
 
             KoinConfigChecker(logger, tagResolver).apply {
@@ -130,7 +158,8 @@ class BuilderProcessor(
                 logger.warn("Koin Configuration Check done in ${checkTime.elapsedNow()}")
             }
         }
-        return emptyList()
+        // Return invalid definition symbols so they can be processed in the next round
+        return invalidDefinitionSymbols
     }
 
     private fun initComponents(resolver: Resolver) {

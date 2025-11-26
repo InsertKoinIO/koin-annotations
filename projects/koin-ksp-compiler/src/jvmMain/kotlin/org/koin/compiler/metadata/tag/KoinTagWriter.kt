@@ -36,7 +36,7 @@ class KoinTagWriter(
     ) {
         val isAlreadyGenerated = codeGenerator.generatedFile.isEmpty()
         if (!isAlreadyGenerated) {
-            logger.logging("Koin Tags Generation ...")
+            logger.warn("Koin Tags Generation ...")
             createMetaTags(moduleList, default, applications)
         }
     }
