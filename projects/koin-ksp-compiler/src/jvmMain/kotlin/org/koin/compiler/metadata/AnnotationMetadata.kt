@@ -52,6 +52,7 @@ data class DefinitionNamedAnnotation(
 ) :DefinitionAnnotation
 
 val SINGLE = DefinitionClassAnnotation("single", annotationType = Single::class)
+val KOIN_SINGLETON = DefinitionClassAnnotation("single", annotationType = Singleton::class)
 val SINGLETON = DefinitionNamedAnnotation("single", null, "Singleton","jakarta.inject.Singleton")
 val JAVAX_SINGLETON = DefinitionNamedAnnotation("single", null, "Singleton","javax.inject.Singleton")
 val FACTORY = DefinitionClassAnnotation("factory", annotationType = Factory::class)
@@ -66,7 +67,7 @@ val KOIN_VIEWMODEL = DefinitionClassAnnotation("viewModel", "org.koin.core.modul
 
 val KOIN_WORKER = DefinitionClassAnnotation("worker", "org.koin.androidx.workmanager.dsl.worker", KoinWorker::class)
 
-val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, SINGLETON, JAVAX_SINGLETON, FACTORY, INJECT, JAVAX_INJECT, SCOPE, SCOPED, KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
+val DEFINITION_ANNOTATION_LIST = listOf(SINGLE, KOIN_SINGLETON, SINGLETON, JAVAX_SINGLETON, FACTORY, INJECT, JAVAX_INJECT, SCOPE, SCOPED, KOIN_VIEWMODEL, KOIN_WORKER) + SCOPE_ARCHETYPES_LIST
 
 val DEFINITION_ANNOTATION_LIST_TYPES = DEFINITION_ANNOTATION_LIST.map { it.annotationQualifiedName }
 val DEFINITION_ANNOTATION_LIST_NAMES = DEFINITION_ANNOTATION_LIST.map { it.annotationSimpleName.lowercase(Locale.getDefault()) }
